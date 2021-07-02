@@ -1,3 +1,5 @@
+# RAPP_Prediction library
+
 # standard library
 import sqlite3
 import argparse
@@ -5,6 +7,11 @@ import argparse
 # machine learning
 import numpy as np
 import sklearn as sk
+# imputation
+from sklearn.experimental import enable_iterative_imputer  # noqa
+from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
+from sklearn.feature_selection import VarianceThreshold
+# tools
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
@@ -52,14 +59,52 @@ class MLPipeline(object):
         self.validate_estimators()
         self.save_report()
 
-    def impute(self):
-        pass
+    def impute(self, method="iterative"):
+        if method == "knn":
+            imputer = KNNImputer(n_neighbors=5, weights="distance")
+        elif method == "iterative":
+            imputer = IterativeImputer()
+        elif method == "mean":
+            imputer = SimpleImputer(strategy="mean")
+        elif method == "median":
+            imputer = SimpleImputer(strategy="median")
+        elif method == "most_frequent":
+            imputer = SimpleImputer(strategy="most_frequent")
+        else:
+            imputer = KNNImputer(n_neighbors=5, weights="distance")
+
+        self.X = imputer.fit_transform(self.X)
 
     def transform(self):
-        pass
+        """
+        Transforms categorical columns to multiple columns (one-hot)
 
-    def feature_selection(self):
-        pass
+        Returns
+        -------
+        None
+        """
+
+        if self.args.categorical == "auto":
+            pass
+        else:
+            list_cat_cols = eval(self.args.categorical)
+            self.X = pd.get_dummies(data=self.X, columns=list_cat_cols)
+
+    def feature_selection(self, method="variance"):
+        """
+        Selects the most important features based on the used strategy
+
+        Returns
+        -------
+        None
+        """
+
+        if method == "variance":
+            sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
+            self.X = sel.fit_transform(self.X)
+        else:
+            sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
+            self.X = sel.fit_transform(self.X)
 
     def train_estimators(self):
         pass
