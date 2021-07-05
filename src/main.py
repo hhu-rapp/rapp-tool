@@ -26,10 +26,10 @@ class MLPipeline(object):
         self.parser.add_argument("-s", "--sql_filename", type=str, help="Location of the sql "
                                                                         "query file.")
         self.parser.add_argument("-l", "--label_name", type=str, help="Column name of the prediction label.")
-        self.parser.add_argument("-c", "--categorical", type=str, help="List of categorical columns.",
-                                 default="auto")
+        self.parser.add_argument("-c", "--categorical", type=str, help="List of categorical columns.")
 
         self.args = self.parser.parse_args()
+        self.args.categorical = eval(self.args.categorical) # string to list conversion
 
         # reading and quering database
         con = sqlite3.connect(self.args.filename)
@@ -60,6 +60,11 @@ class MLPipeline(object):
         self.save_report()
 
     def impute(self, method="iterative"):
+        # Only impute categorical data
+        self.X[self.args.categorical] = \
+            SimpleImputer(strategy="most_frequent").fit_transform(self.X[self.args.categorical])
+
+        # impute non-categorical data
         if method == "knn":
             imputer = KNNImputer(n_neighbors=5, weights="distance")
         elif method == "iterative":
@@ -73,7 +78,8 @@ class MLPipeline(object):
         else:
             imputer = KNNImputer(n_neighbors=5, weights="distance")
 
-        self.X = imputer.fit_transform(self.X)
+        self.X[self.X.columns.difference[self.args.categorical]] \
+            = imputer.fit_transform(self.X[self.X.columns.difference[self.args.categorical]])
 
     def transform(self):
         """
@@ -83,12 +89,7 @@ class MLPipeline(object):
         -------
         None
         """
-
-        if self.args.categorical == "auto":
-            pass
-        else:
-            list_cat_cols = eval(self.args.categorical)
-            self.X = pd.get_dummies(data=self.X, columns=list_cat_cols)
+        self.X = pd.get_dummies(data=self.X, columns=self.args.categorical)
 
     def feature_selection(self, method="variance"):
         """
