@@ -1,1 +1,0 @@
-python3 main.py -f example.db -s query.sql -l ECTS -c ["col1", "col2", "col3"]

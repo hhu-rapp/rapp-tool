@@ -1,0 +1,1 @@
+python src/main.py -f data/rapp.db -s sql/CSFirstSemester.sql -l ECTS -c "Geschlecht" "Deutsch"
