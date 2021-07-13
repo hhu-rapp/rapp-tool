@@ -7,6 +7,7 @@ import argparse
 # common
 import numpy as np
 import pandas as pd
+import sklearn as sk
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
@@ -17,6 +18,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
 
 # ML regression methods
 from sklearn.linear_model import ElasticNet
@@ -29,7 +31,7 @@ from sklearn.model_selection import train_test_split
 
 class MLPipeline(object):
 
-    def __init__(self):
+    def __init__(self, impute='iterative', feature_selection='variance'):
         self.parser = argparse.ArgumentParser()
 
         # parsing arguments
@@ -41,6 +43,9 @@ class MLPipeline(object):
                                  required=True)
         self.parser.add_argument("-c", "--categorical", nargs='+', help="List of categorical columns.",
                                  required=True)
+        self.parser.add_argument("-t", "--type", type=str, default='classification',
+                                 help="classification or regression. Default: classification",
+                                 required=False)
 
         self.args = self.parser.parse_args()
 
@@ -52,7 +57,7 @@ class MLPipeline(object):
         self.df = pd.read_sql_query(sql_query, con)
 
         # fill missing values
-        self.impute()
+        self.impute(impute)
 
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
@@ -62,22 +67,26 @@ class MLPipeline(object):
         self.transform()
 
         # feature selection, dimensionality reduction
-        self.feature_selection()
+        self.feature_selection(feature_selection)
 
-        # split dataset
+        # split datasets
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y,
                                                                               train_size=0.8, random_state=42)
 
-        # create classifiers & train
-        #self.estimators = [RandomForestClassifier(), SVC(), GaussianNB()]
-        self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
+        # create estimators & train
+        if self.args.type == 'classification':
+            self.estimators = [RandomForestClassifier(), SVC(), GaussianNB(), LogisticRegression()]
+        else:
+            self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
         self.train_estimators()
 
         # hyperparameter tuning, boosting, bagging
         self.tune_estimators()
 
-        #self.scores = {'accuracy': [], 'f1': [], 'recall': [], 'precision': []}
-        self.scores = {'standard': [], 'r2': []}
+        if self.args.type == 'classification':
+            self.scores = {'accuracy': [], 'f1': [], 'recall': [], 'precision': []}
+        else:
+            self.scores = {'mae': [], 'r2': [], 'mse': []}
         self.score_estimators()
 
         self.pretty_print()
@@ -116,7 +125,6 @@ class MLPipeline(object):
         self.X = pd.get_dummies(data=self.X, columns=self.args.categorical)
 
     def feature_selection(self, method="variance"):
-        # TODO: transforms data weirldy to another format
         """
         Selects the most important features based on the used strategy
 
@@ -137,16 +145,31 @@ class MLPipeline(object):
             self.estimators[i].fit(self.X_train, self.y_train)
 
     def score_estimators(self):
-        # score_keys = self.scores.keys()
-        for i in range(len(self.estimators)):
-            self.scores['standard'].append(self.estimators[i].score(self.X_val, self.y_val))
+        if self.args.type == 'classification':
+            for i in range(len(self.estimators)):
+                y_pred = self.estimators[i].predict(self.X_val)
+                self.scores['accuracy'].append(sk.metrics.accuracy_score(self.y_val, y_pred))
+                self.scores['f1'].append(sk.metrics.f1_score(self.y_val, y_pred))
+                self.scores['recall'].append(sk.metrics.recall_score(self.y_val, y_pred))
+                self.scores['precision'].append(sk.metrics.precision_score(self.y_val, y_pred))
+        else:
+            for i in range(len(self.estimators)):
+                y_pred = self.estimators[i].predict(self.X_val)
+                self.scores['mae'].append(sk.metrics.mean_absolute_error(self.y_val, y_pred))
+                self.scores['mse'].append(sk.metrics.mean_squared_error(self.y_val, y_pred))
+                self.scores['r2'].append(sk.metrics.r2_score(self.y_val, y_pred))
 
     def tune_estimators(self):
         pass
 
     def pretty_print(self):
-        for i in range(len(self.estimators)):
-            print('{0}: {1}'.format(self.estimators[i], self.scores['standard'][i]))
+        # iterate through metrics
+        for key_score in self.scores.keys():
+            print(key_score+':')
+            for i in range(len(self.estimators)):
+                print('{0}: {1}'.format(self.estimators[i], self.scores[key_score][i]))
+
+            print('')
 
     def save_report(self):
         pass
