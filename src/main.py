@@ -3,7 +3,6 @@
 # standard library
 import sqlite3
 import configargparse
-import sys
 
 # common
 import numpy as np
@@ -36,7 +35,7 @@ class MLPipeline(object):
         self.parser = configargparse.ArgParser()
         self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
 
-        # parsing arguments
+        # parsing arguments from the config file
         self.parser.add_argument("-f", "--filename", type=str, help="Location of the .db file.",
                                  required=True)
         self.parser.add_argument("-s", "--sql_filename", type=str, help="Location of the sql query file.",

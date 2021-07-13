@@ -8,7 +8,7 @@ Responsible Academic Performance Prediction (RAPP)
 2. SQL query on `superx` database to obtain a new database.
 3. One column of the new database is the target label. The rest are training data.
 4. With a given list of categorical columns, those are then one-hot encoded.
-5. With the predefined type of the supervised learning task, respective supervised learning algorithms are used.
+5. With the predefined type of the supervised learning task, respective supervised learning algorithms are used. The data is ran through a Machine Learning Pipeline.
 
 # Developer Setup
 ## Requirements
