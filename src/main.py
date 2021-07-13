@@ -2,7 +2,8 @@
 
 # standard library
 import sqlite3
-import argparse
+import configargparse
+import sys
 
 # common
 import numpy as np
@@ -32,7 +33,8 @@ from sklearn.model_selection import train_test_split
 class MLPipeline(object):
 
     def __init__(self, impute='iterative', feature_selection='variance'):
-        self.parser = argparse.ArgumentParser()
+        self.parser = configargparse.ArgParser()
+        self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
 
         # parsing arguments
         self.parser.add_argument("-f", "--filename", type=str, help="Location of the .db file.",
