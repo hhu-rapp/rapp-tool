@@ -2,7 +2,6 @@
 
 # standard library
 import sqlite3
-import configargparse
 
 # common
 import numpy as np
@@ -27,7 +26,7 @@ from sklearn.linear_model import BayesianRidge
 
 # tools
 from sklearn.model_selection import train_test_split
-
+import configargparse
 
 class MLPipeline(object):
 
