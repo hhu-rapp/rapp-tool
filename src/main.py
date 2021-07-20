@@ -31,7 +31,7 @@ import configargparse
 
 class MLPipeline(object):
 
-    def __init__(self, impute='iterative', feature_selection='variance'):
+    def __init__(self):
         self.parser = configargparse.ArgParser()
         self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
 
@@ -46,6 +46,14 @@ class MLPipeline(object):
                                  required=True)
         self.parser.add_argument("-t", "--type", type=str, default='classification',
                                  help="classification or regression. Default: classification",
+                                 required=True)
+        self.parser.add_argument("--imputation", type=str, default='iterative',
+                                 help="Imputation method for non-categorical data. Available: knn, iterative, mean, "
+                                      "median, most_frequent",
+                                 required=False)
+        self.parser.add_argument("--feature_selection", type=str, default='variance',
+                                 help="Feature selection method to reduce the amount of features. Available: variance, "
+                                      "",
                                  required=False)
 
         self.args = self.parser.parse_args()
@@ -58,7 +66,7 @@ class MLPipeline(object):
         self.df = pd.read_sql_query(sql_query, con)
 
         # fill missing values
-        self.impute(impute)
+        self.impute(self.args.imputation)
 
         # delete label from categorical if it is contained
         self.args.categorical = [x for x in self.args.categorical if x != self.args.label_name]
@@ -71,7 +79,7 @@ class MLPipeline(object):
         self.transform()
 
         # feature selection, dimensionality reduction
-        self.feature_selection(feature_selection)
+        self.feature_selection(self.args.feature_selection)
 
         # split datasets
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y,
