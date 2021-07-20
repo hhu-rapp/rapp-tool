@@ -28,6 +28,7 @@ from sklearn.linear_model import BayesianRidge
 from sklearn.model_selection import train_test_split
 import configargparse
 
+
 class MLPipeline(object):
 
     def __init__(self, impute='iterative', feature_selection='variance'):
@@ -58,6 +59,9 @@ class MLPipeline(object):
 
         # fill missing values
         self.impute(impute)
+
+        # delete label from categorical if it is contained
+        self.args.categorical = [x for x in self.args.categorical if x != self.args.label_name]
 
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
@@ -145,13 +149,16 @@ class MLPipeline(object):
             self.estimators[i].fit(self.X_train, self.y_train)
 
     def score_estimators(self):
+        # most common class as the positive label to use for metrics
+        pos_label = self.df[self.args.label_name].value_counts()[:1].index.tolist()[0]
+
         if self.args.type == 'classification':
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
                 self.scores['accuracy'].append(sk.metrics.accuracy_score(self.y_val, y_pred))
-                self.scores['f1'].append(sk.metrics.f1_score(self.y_val, y_pred))
-                self.scores['recall'].append(sk.metrics.recall_score(self.y_val, y_pred))
-                self.scores['precision'].append(sk.metrics.precision_score(self.y_val, y_pred))
+                self.scores['f1'].append(sk.metrics.f1_score(self.y_val, y_pred, pos_label=pos_label))
+                self.scores['recall'].append(sk.metrics.recall_score(self.y_val, y_pred, pos_label=pos_label))
+                self.scores['precision'].append(sk.metrics.precision_score(self.y_val, y_pred, pos_label=pos_label))
         else:
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
