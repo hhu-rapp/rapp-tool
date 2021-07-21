@@ -1,7 +1,7 @@
 -- Features: Performances in first and second semester
 -- Possible target variables:
 --  * Average grade over all exams until graduation
---  * Master's admission (average grade <= 2.3)
+--  * Master's admission (average grade <= 2.5)
 --  * Bachelor's thesis grade
 --
 -- Note:
@@ -20,7 +20,7 @@ SELECT
   COUNT(CASE WHEN SSP.Fachsemester = 2 AND SSP.Status <> 'bestanden' THEN SSP.Pseudonym ELSE null END ) as FailedSecondTerm,
   SUM(CASE WHEN SSP.Fachsemester = 2 THEN SSP.ECTS ELSE 0 END) as EctsSecondTerm,
   SUM(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE 0 END)/COUNT(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE null END) as AvgGradeAllExams,
-  CASE WHEN SUM(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE 0 END)/COUNT(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE null END) <= 2.3
+  CASE WHEN SUM(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE 0 END)/COUNT(CASE WHEN SSP.Note > 0 THEN SSP.NOTE ELSE null END) <= 2.5
     THEN 'ja' ELSE 'nein' END as MasterAdmission,
   MAX(SSP.Fachsemester) as NumTerms,
   BA.Note as BachelorGrade
