@@ -41,5 +41,5 @@ sql/CSFirstSemester.sql
 A config file `config.ini` is already available and contains the required arguments to run the prediction. To run the prediction, simply execute
 
 ```bash
-python src/main.py --config-file config.ini
+python src/main.py --config-file settings/config.ini
 ```

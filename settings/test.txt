@@ -1,6 +1,0 @@
-[Default]
-filename=data/rapp.db
-sql_filename=sql/CSFirstSemester.sql
-label_name=ECTS
-categorical="Geschlecht" "Deutsch"
-type=regression

@@ -18,11 +18,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 # ML regression methods
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import BayesianRidge
+
+# evaluation report
+from sklearn.metrics import classification_report
+from sklearn.metrics import plot_confusion_matrix
+
+# plots
+import matplotlib.pyplot as plt
 
 # tools
 from sklearn.model_selection import train_test_split
@@ -55,8 +63,21 @@ class MLPipeline(object):
                                  help="Feature selection method to reduce the amount of features. Available: variance, "
                                       "",
                                  required=False)
+        self.parser.add_argument("--save_report", type=str, default=False,
+                                 help="Boolean value whether a report should be exported",
+                                 required=False)
+        self.parser.add_argument("--plot_confusion_matrix", type=str, default=False,
+                                 help="Boolean value whether to plot confusion matrices for each classifier. "
+                                      "Is only applied for classification.",
+                                 required=False)
+
 
         self.args = self.parser.parse_args()
+
+        # TODO: True/false doesnt work. Must get boolean value
+        print(self.args.plot_confusion_matrix)
+        print(self.args.save_report)
+        print('tzest')
 
         # reading and quering database
         con = sqlite3.connect(self.args.filename)
@@ -87,7 +108,8 @@ class MLPipeline(object):
 
         # create estimators & train
         if self.args.type == 'classification':
-            self.estimators = [RandomForestClassifier(), SVC(), GaussianNB(), LogisticRegression()]
+            self.estimators = [RandomForestClassifier(), DecisionTreeClassifier(class_weight='balanced'),
+                               SVC(), GaussianNB(), LogisticRegression()]
         else:
             self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
         self.train_estimators()
@@ -101,8 +123,14 @@ class MLPipeline(object):
             self.scores = {'mae': [], 'r2': [], 'mse': []}
         self.score_estimators()
 
-        self.pretty_print()
-        self.save_report()
+        # Report results
+        self.report_dict, self.report_df = self.create_report()
+        self.print_report(self.report_df)
+        self.save_report(self.report_df)
+
+        # visualize results
+        if self.args.type == 'classification' and self.args.plot_confusion_matrix:
+            self.plot_confusion_matrix()
 
     def impute(self, method="iterative"):
         # Only impute categorical data
@@ -164,9 +192,9 @@ class MLPipeline(object):
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
                 self.scores['accuracy'].append(sk.metrics.accuracy_score(self.y_val, y_pred))
-                self.scores['f1'].append(sk.metrics.f1_score(self.y_val, y_pred, pos_label=pos_label))
-                self.scores['recall'].append(sk.metrics.recall_score(self.y_val, y_pred, pos_label=pos_label))
-                self.scores['precision'].append(sk.metrics.precision_score(self.y_val, y_pred, pos_label=pos_label))
+                self.scores['f1'].append(sk.metrics.f1_score(self.y_val, y_pred, average='weighted'))
+                self.scores['recall'].append(sk.metrics.recall_score(self.y_val, y_pred, average='weighted'))
+                self.scores['precision'].append(sk.metrics.precision_score(self.y_val, y_pred, average='weighted'))
         else:
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
@@ -177,17 +205,73 @@ class MLPipeline(object):
     def tune_estimators(self):
         pass
 
-    def pretty_print(self):
-        # iterate through metrics
-        for key_score in self.scores.keys():
-            print(key_score+':')
-            for i in range(len(self.estimators)):
-                print('{0}: {1}'.format(self.estimators[i], self.scores[key_score][i]))
+    def create_report(self):
+        """
+        Returns
+        -------
+        dict
+            Dictionary of classifiers with dictionaries of evaluation metrics
+            {'classifier1': {'precision':0.5,
+                'recall':1.0,
+                'f1-score':0.67,
+                'support':1},
+              'classifier2': { ... },
+               ...
+            }
+        """
+        report_dict = {}
+        for i in range(len(self.estimators)):
+            cur_metrics_dict = {}
+            for key_score in self.scores.keys():
+                cur_metrics_dict[key_score] = self.scores[key_score][i]
 
-            print('')
+            # add metrics to each classifier
+            report_dict[str(self.estimators[i])] = cur_metrics_dict
 
-    def save_report(self):
-        pass
+        return report_dict, pd.DataFrame.from_dict(report_dict)
+
+    def print_report(self, report_df):
+        """
+        Prints the report dataframe
+
+        Parameters
+        ----------
+        report_df: dataframe
+
+        Returns
+        -------
+        prints self.report_dict
+        """
+        print(report_df)
+
+    def save_report(self, report_df):
+        """
+        Parameters
+        ----------
+        report_df: dataframe
+
+        Returns
+        -------
+        dict
+            Dictionary of classifiers with dictionaries of evaluation metrics
+            {'classifier1': {'precision':0.5,
+                'recall':1.0,
+                'f1-score':0.67,
+                'support':1},
+              'classifier2': { ... },
+               ...
+            }
+        """
+        # TODO: User given path for export. Only export if path is specified.
+        report_df.to_csv('classification_report.csv', index=True)
+
+    def plot_confusion_matrix(self):
+        for i in range(len(self.estimators)):
+            plot_confusion_matrix(self.estimators[i], self.X_val, self.y_val,
+                                  cmap=plt.cm.Blues)
+            plt.title(str(self.estimators[i]))
+
+        plt.show()
 
 
 if __name__ == '__main__':
