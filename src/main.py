@@ -63,10 +63,10 @@ class MLPipeline(object):
                                  help="Feature selection method to reduce the amount of features. Available: variance, "
                                       "",
                                  required=False)
-        self.parser.add_argument("--save_report", type=str, default=False,
+        self.parser.add_argument("--save_report", type=str, default="False",
                                  help="Boolean value whether a report should be exported",
                                  required=False)
-        self.parser.add_argument("--plot_confusion_matrix", type=str, default=False,
+        self.parser.add_argument("--plot_confusion_matrix", type=str, default="False",
                                  help="Boolean value whether to plot confusion matrices for each classifier. "
                                       "Is only applied for classification.",
                                  required=False)
@@ -74,10 +74,9 @@ class MLPipeline(object):
 
         self.args = self.parser.parse_args()
 
-        # TODO: True/false doesnt work. Must get boolean value
+        self.args.plot_confusion_matrix = eval(self.args.plot_confusion_matrix)
         print(self.args.plot_confusion_matrix)
-        print(self.args.save_report)
-        print('tzest')
+        self.args.save_report = eval(self.args.save_report)
 
         # reading and quering database
         con = sqlite3.connect(self.args.filename)
@@ -126,7 +125,8 @@ class MLPipeline(object):
         # Report results
         self.report_dict, self.report_df = self.create_report()
         self.print_report(self.report_df)
-        self.save_report(self.report_df)
+        if self.args.save_report:
+            self.save_report(self.report_df)
 
         # visualize results
         if self.args.type == 'classification' and self.args.plot_confusion_matrix:
