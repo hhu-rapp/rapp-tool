@@ -130,7 +130,7 @@ class Window(QMainWindow):
 
         # vertical layout: main layout
         self.vlayout.addWidget(Color('red', 'Menubar'), 0)
-        self.vlayout.addWidget(Color('green', 'Menu Icons'))
+        self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
         self.h1layout.addWidget(Color('blue', 'Dataframe'))
@@ -141,7 +141,7 @@ class Window(QMainWindow):
 
         # combining layouts
         self.h1layout.addLayout(self.v2layout)
-        self.vlayout.addLayout(self.h1layout)
+        self.vlayout.addLayout(self.h1layout, 10)
 
         #self.setLayout(self.vlayout)
         wid.setLayout(self.vlayout)
