@@ -3,6 +3,7 @@ import sys
 import sqlite3
 
 # PyQt5
+import PyQt5.QtCore
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -78,14 +79,36 @@ class DataFrameModel(QtCore.QAbstractTableModel):
         return roles
 
 
+class Color(QtWidgets.QWidget):
+    # Works as a placeholder
+    def __init__(self, color, label_str='Label'):
+        super(Color, self).__init__()
+        self.setAutoFillBackground(True)
+
+        # background color
+        palette = self.palette()
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(color))
+
+        # label
+        label = QtWidgets.QLabel()
+        label.setText(label_str)
+        label.setAlignment(QtCore.Qt.AlignCenter)
+
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(label, 0, 0)
+
+        self.setLayout(layout)
+        self.setPalette(palette)
+
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.initUI()
-        self.initMenu()
-        self.retranslateUi()
-        self.initMenuAction()
+        # self.initMenu()
+        #self.retranslateUi()
+        #self.initMenuAction()
 
         self.show()
 
@@ -97,6 +120,31 @@ class Window(QMainWindow):
         self.width = 1280
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
+
+        # init layout
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)
+        self.vlayout = QtWidgets.QVBoxLayout()
+        self.h1layout = QtWidgets.QHBoxLayout()
+        self.v2layout = QtWidgets.QVBoxLayout()
+
+        # vertical layout: main layout
+        self.vlayout.addWidget(Color('red', 'Menubar'), 0)
+        self.vlayout.addWidget(Color('green', 'Menu Icons'))
+
+        # horizontal layout: pandas table and sql query
+        self.h1layout.addWidget(Color('blue', 'Dataframe'))
+
+        # vertical layout: sql and data visualization
+        self.v2layout.addWidget(Color('brown', 'SQL query textfield'))
+        self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
+
+        # combining layouts
+        self.h1layout.addLayout(self.v2layout)
+        self.vlayout.addLayout(self.h1layout)
+
+        #self.setLayout(self.vlayout)
+        wid.setLayout(self.vlayout)
 
     def initMenu(self):
         #self.vLayout = QtWidgets.QVBoxLayout(self)
@@ -180,10 +228,6 @@ class Window(QMainWindow):
         model = PandasModel(df)
         self.pandasTv.setModel(model)
         self.pandasTv.resizeColumnsToContents()
-
-    def initWidgets(self):
-        # creating a label widget
-        self.widget = QtWidgets.QLabel('No database loaded.', self)
 
 
 if __name__ == '__main__':
