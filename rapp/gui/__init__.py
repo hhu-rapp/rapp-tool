@@ -138,7 +138,6 @@ class Window(QMainWindow):
         # horizontal layout: pandas table and sql query
         self.pandasTv = DataView(self, self.__conn)
         self.h1layout.addWidget(self.pandasTv)
-        # self.h1layout.addWidget(Color('blue', 'Dataframe'))
 
         # vertical layout: sql and data visualization
         self.v2layout.addWidget(Color('brown', 'SQL query textfield'))
