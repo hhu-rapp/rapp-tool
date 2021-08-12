@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 
 # dataframe
 import pandas as pd
-from PandasModel import PandasModel
+from pdmodel import PandasModel
 
 
 class DataFrameModel(QtCore.QAbstractTableModel):
@@ -116,7 +116,7 @@ class Window(QMainWindow):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
-        # setting  the geometry of window
+        # setting the geometry of window
         self.width = 1280
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
