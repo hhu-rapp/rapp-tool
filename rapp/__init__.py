@@ -286,7 +286,3 @@ class MLPipeline(object):
             plt.title(str(self.estimators[i]))
 
         plt.show()
-
-
-if __name__ == '__main__':
-    MLPipeline()

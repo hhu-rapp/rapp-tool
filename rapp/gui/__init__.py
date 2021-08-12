@@ -1,15 +1,13 @@
 # internal Python packages
-import sys
 import sqlite3
 
 # PyQt5
-import PyQt5.QtCore
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QMainWindow
 
 # dataframe
 import pandas as pd
-from pdmodel import PandasModel
+from rapp.pdmodel import PandasModel
 
 
 class DataFrameModel(QtCore.QAbstractTableModel):
@@ -228,14 +226,3 @@ class Window(QMainWindow):
         model = PandasModel(df)
         self.pandasTv.setModel(model)
         self.pandasTv.resizeColumnsToContents()
-
-
-if __name__ == '__main__':
-    # create pyqt5 app
-    App = QApplication(sys.argv)
-
-    # create the instance of our Window
-    window = Window()
-
-    # start the app
-    sys.exit(App.exec())
