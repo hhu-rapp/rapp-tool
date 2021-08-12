@@ -198,9 +198,9 @@ class MLPipeline(object):
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
                 self.scores['Accuracy'].append(sk.metrics.accuracy_score(self.y_val, y_pred))
-                self.scores['F1'].append(sk.metrics.f1_score(self.y_val, y_pred, average='weighted'))
-                self.scores['Recall'].append(sk.metrics.recall_score(self.y_val, y_pred, average='weighted'))
-                self.scores['Precision'].append(sk.metrics.precision_score(self.y_val, y_pred, average='weighted'))
+                self.scores['F1'].append(sk.metrics.f1_score(self.y_val, y_pred, average='macro'))
+                self.scores['Recall'].append(sk.metrics.recall_score(self.y_val, y_pred, average='macro'))
+                self.scores['Precision'].append(sk.metrics.precision_score(self.y_val, y_pred, average='macro'))
         elif self.args.type == 'regression':
             for i in range(len(self.estimators)):
                 y_pred = self.estimators[i].predict(self.X_val)
