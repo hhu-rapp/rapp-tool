@@ -1,11 +1,16 @@
-from PyQt5 import QtCore
-
 import pandas as pd
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QTableWidget
 
 
 class PandasModel(QtCore.QAbstractTableModel):
-    # https://github.com/eyllanesc/stackoverflow/blob/master/questions/44603119/PandasModel.py
-    def __init__(self, df = pd.DataFrame(), parent=None):
+    """
+    TableModel to populate a PyQtTable with a Pandas DataFrame.
+    Code from:
+    https://github.com/eyllanesc/stackoverflow/blob/master/questions/44603119/PandasModel.py
+    """
+
+    def __init__(self, df=pd.DataFrame(), parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent=parent)
         self._df = df
 
@@ -57,6 +62,7 @@ class PandasModel(QtCore.QAbstractTableModel):
     def sort(self, column, order):
         colname = self._df.columns.tolist()[column]
         self.layoutAboutToBeChanged.emit()
-        self._df.sort_values(colname, ascending= order == QtCore.Qt.AscendingOrder, inplace=True)
+        self._df.sort_values(colname, ascending=order ==
+                             QtCore.Qt.AscendingOrder, inplace=True)
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()

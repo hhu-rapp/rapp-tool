@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 # dataframe
 import pandas as pd
-from rapp.pdmodel import PandasModel
+from rapp.gui.dbview import PandasModel
 
 
 class DataFrameModel(QtCore.QAbstractTableModel):
@@ -30,7 +30,8 @@ class DataFrameModel(QtCore.QAbstractTableModel):
     def dataFrame(self):
         return self._dataframe
 
-    dataFrame = QtCore.pyqtProperty(pd.DataFrame, fget=dataFrame, fset=setDataFrame)
+    dataFrame = QtCore.pyqtProperty(
+        pd.DataFrame, fget=dataFrame, fset=setDataFrame)
 
     @QtCore.pyqtSlot(int, QtCore.Qt.Orientation, result=str)
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = QtCore.Qt.DisplayRole):
@@ -52,7 +53,7 @@ class DataFrameModel(QtCore.QAbstractTableModel):
         return self._dataframe.columns.size
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
-        if not index.isValid() or not (0 <= index.row() < self.rowCount() \
+        if not index.isValid() or not (0 <= index.row() < self.rowCount()
                                        and 0 <= index.column() < self.columnCount()):
             return QtCore.QVariant()
         row = self._dataframe.index[index.row()]
@@ -105,8 +106,11 @@ class Window(QMainWindow):
 
         self.initUI()
         # self.initMenu()
-        #self.retranslateUi()
-        #self.initMenuAction()
+        # self.retranslateUi()
+        # self.initMenuAction()
+
+        self.loadDatabase("data/rapp.db")  # Hardcoded for now.
+        self.displayData('SELECT * FROM Einschreibung')
 
         self.show()
 
@@ -131,7 +135,9 @@ class Window(QMainWindow):
         self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
-        self.h1layout.addWidget(Color('blue', 'Dataframe'))
+        self.pandasTv = QtWidgets.QTableView(self)
+        self.h1layout.addWidget(self.pandasTv)
+        # self.h1layout.addWidget(Color('blue', 'Dataframe'))
 
         # vertical layout: sql and data visualization
         self.v2layout.addWidget(Color('brown', 'SQL query textfield'))
@@ -141,7 +147,7 @@ class Window(QMainWindow):
         self.h1layout.addLayout(self.v2layout)
         self.vlayout.addLayout(self.h1layout, 10)
 
-        #self.setLayout(self.vlayout)
+        # self.setLayout(self.vlayout)
         wid.setLayout(self.vlayout)
 
     def initMenu(self):
@@ -189,13 +195,9 @@ class Window(QMainWindow):
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
 
-        # Table view
-        self.pandasTv = QtWidgets.QTableView(self)
-        self.pandasTv.move(0, 24)
-
         # arrange layout
-        #self.vLayout.addWidget(self.menubar)
-        #self.vLayout.addWidget(self.pandasTv)
+        # self.vLayout.addWidget(self.menubar)
+        # self.vLayout.addWidget(self.pandasTv)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -204,11 +206,14 @@ class Window(QMainWindow):
         self.menuEdit.setTitle(_translate("Window", "Edit"))
 
         self.actionOpen_Database.setText(_translate("Window", "Open Database"))
-        self.actionOpen_Database.setStatusTip(_translate("Window", "Opens SQLite Database. File type is \'.db\'"))
+        self.actionOpen_Database.setStatusTip(_translate(
+            "Window", "Opens SQLite Database. File type is \'.db\'"))
         self.actionOpen_Database.setShortcut(_translate("Window", "Ctrl+O"))
 
-        self.actionOpen_SQLite_Query.setText(_translate("Window", "Open SQLite Query"))
-        self.actionOpen_SQLite_Query.setStatusTip(_translate("Window", "Opens an SQLite query file"))
+        self.actionOpen_SQLite_Query.setText(
+            _translate("Window", "Open SQLite Query"))
+        self.actionOpen_SQLite_Query.setStatusTip(
+            _translate("Window", "Opens an SQLite query file"))
 
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
@@ -216,13 +221,13 @@ class Window(QMainWindow):
     def initMenuAction(self):
         self.actionOpen_Database.triggered.connect(self.openDatabase)
 
-    def openDatabase(self):
-        print('Opening Database')
-        self.filepath_db = QtWidgets.QFileDialog.getOpenFileName()[0]
-        con = sqlite3.connect(self.filepath_db)
-        df = pd.read_sql_query('SELECT * FROM Einschreibung', con)
-        #df = pd.read_sql(con)
-        # df = pd.read_csv(self.filepath_db)
+    def loadDatabase(self, filepath):
+        print('Loading database')  # TODO: This should be a logging call.
+        self.filepath_db = filepath
+        self._con = sqlite3.connect(self.filepath_db)
+
+    def displayData(self, sql_query):
+        df = pd.read_sql_query(sql_query, self._con)
         model = PandasModel(df)
         self.pandasTv.setModel(model)
         self.pandasTv.resizeColumnsToContents()
