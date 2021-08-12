@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 # dataframe
 import pandas as pd
-from rapp.gui.dbview import PandasModel
+from rapp.gui.dbview import DataView
 
 
 class DataFrameModel(QtCore.QAbstractTableModel):
@@ -104,13 +104,14 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.__conn = None  # Database connection.
+
         self.initUI()
         # self.initMenu()
         # self.retranslateUi()
         # self.initMenuAction()
 
-        self.loadDatabase("data/rapp.db")  # Hardcoded for now.
-        self.displayData('SELECT * FROM Einschreibung')
+        self.connectDatabase("data/rapp.db")  # Hardcoded for now.
 
         self.show()
 
@@ -135,7 +136,7 @@ class Window(QMainWindow):
         self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
-        self.pandasTv = QtWidgets.QTableView(self)
+        self.pandasTv = DataView(self, self.__conn)
         self.h1layout.addWidget(self.pandasTv)
         # self.h1layout.addWidget(Color('blue', 'Dataframe'))
 
@@ -197,7 +198,6 @@ class Window(QMainWindow):
 
         # arrange layout
         # self.vLayout.addWidget(self.menubar)
-        # self.vLayout.addWidget(self.pandasTv)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -221,13 +221,12 @@ class Window(QMainWindow):
     def initMenuAction(self):
         self.actionOpen_Database.triggered.connect(self.openDatabase)
 
-    def loadDatabase(self, filepath):
-        print('Loading database')  # TODO: This should be a logging call.
+    def connectDatabase(self, filepath):
+        print('Connecting to database')  # TODO: This should be a logging call.
         self.filepath_db = filepath
-        self._con = sqlite3.connect(self.filepath_db)
+        self.__conn = sqlite3.connect(self.filepath_db)
+        self.pandasTv.set_connection(self.__conn)
 
     def displayData(self, sql_query):
-        df = pd.read_sql_query(sql_query, self._con)
-        model = PandasModel(df)
-        self.pandasTv.setModel(model)
-        self.pandasTv.resizeColumnsToContents()
+        df = pd.read_sql_query(sql_query, self.__conn)
+        self.pandasTv.display_dataframe(df)

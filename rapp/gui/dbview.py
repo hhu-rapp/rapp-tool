@@ -1,6 +1,6 @@
 import pandas as pd
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QTableWidget
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableView
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -66,3 +66,56 @@ class PandasModel(QtCore.QAbstractTableModel):
                              QtCore.Qt.AscendingOrder, inplace=True)
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
+
+
+class DataView(QWidget):
+
+    def __init__(self, parent=None, sql_conn=None):
+        super(DataView, self).__init__(parent)
+
+        self.combo = QComboBox(self)
+        self.combo.currentIndexChanged.connect(self.selection_changed)
+
+        self.table = QTableView(self)
+        self.table.setSortingEnabled(True)
+        self.table.resizeColumnsToContents()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.combo)
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
+        if sql_conn != None:
+            self.set_connection(sql_conn)
+
+
+    def set_connection(self, sql_connection):
+        self.__conn = sql_connection
+
+        cursor = self.__conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+        self.combo.clear()
+        for (tbl,) in cursor.fetchall():
+            # we ignore some specifics here
+            if tbl in ["migrate_version", "sqlite_sequence"]:
+                continue
+            self.combo.addItem(tbl)
+
+        if self.combo.count() > 0:
+            self.combo.itemText(0)
+
+    def selection_changed(self, index):
+        tbl = self.combo.itemText(index)
+        print("Loading", tbl, "table")  ## Todo: proper logging
+
+        sql_query = f'SELECT * FROM {tbl}'
+        df = pd.read_sql_query(sql_query, self.__conn)
+        self.display_dataframe(df)
+
+    def display_dataframe(self, df):
+        """
+        Display the given Pandas DataFrame in the widget.
+        """
+        model = PandasModel(df)
+        self.table.setModel(model)
