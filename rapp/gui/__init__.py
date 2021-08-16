@@ -130,7 +130,7 @@ class Window(QMainWindow):
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
 
-        # init layout
+        # init layout. TODO: Restructure code?
         wid = QtWidgets.QWidget(self)
         self.setCentralWidget(wid)
         self.vlayout = QtWidgets.QVBoxLayout()
@@ -146,16 +146,22 @@ class Window(QMainWindow):
 
         # vertical layout: sql and data visualization
         # add menu buttons for SQL query
-        self.hlayout_sqlButtons = QtWidgets.QHBoxLayout()
-        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Execute'))
-        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Undo'))
-        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Redo'))
-        self.v2layout.addLayout(self.hlayout_sqlButtons)
+        self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
+        self.qPushButtonExcuteSql = QtWidgets.QPushButton('Execute')
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonExcuteSql)
+        self.hlayoutSqlButtons.addWidget(QtWidgets.QPushButton('Undo'))
+        self.hlayoutSqlButtons.addWidget(QtWidgets.QPushButton('Redo'))
+        self.v2layout.addLayout(self.hlayoutSqlButtons)
 
         # add SQL textbox
         self.sqlTbox = QtWidgets.QPlainTextEdit()
         self.v2layout.addWidget(self.sqlTbox)
         self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
+
+        try:
+            self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displayData(self.sqlTbox.toPlainText()))
+        except Exception as e:
+            self.statusbar.setStatusTip(str(e))
 
         # combining layouts
         self.h1layout.addLayout(self.v2layout)
