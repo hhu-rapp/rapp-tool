@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QMainWindow
 # dataframe
 import pandas as pd
 from rapp.gui.dbview import DataView
+from rapp.gui.menubar import MenuBar
 
 
 class DataFrameModel(QtCore.QAbstractTableModel):
@@ -107,9 +108,14 @@ class Window(QMainWindow):
         self.__conn = None  # Database connection.
 
         self.initUI()
-        # self.initMenu()
-        # self.retranslateUi()
-        # self.initMenuAction()
+        # set menubar
+        self.menubar = MenuBar(self)
+        self.setMenuBar(self.menubar)
+
+        # set status bar
+        self.statusbar = QtWidgets.QStatusBar(self)
+        self.statusbar.setObjectName("statusbar")
+        self.setStatusBar(self.statusbar)
 
         self.connectDatabase("data/rapp.db")  # Hardcoded for now.
 
@@ -132,7 +138,6 @@ class Window(QMainWindow):
         self.v2layout = QtWidgets.QVBoxLayout()
 
         # vertical layout: main layout
-        self.vlayout.addWidget(Color('red', 'Menubar'), 0)
         self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
@@ -140,7 +145,16 @@ class Window(QMainWindow):
         self.h1layout.addWidget(self.pandasTv)
 
         # vertical layout: sql and data visualization
-        self.v2layout.addWidget(Color('brown', 'SQL query textfield'))
+        # add menu buttons for SQL query
+        self.hlayout_sqlButtons = QtWidgets.QHBoxLayout()
+        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Execute'))
+        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Undo'))
+        self.hlayout_sqlButtons.addWidget(QtWidgets.QPushButton('Redo'))
+        self.v2layout.addLayout(self.hlayout_sqlButtons)
+
+        # add SQL textbox
+        self.sqlTbox = QtWidgets.QPlainTextEdit()
+        self.v2layout.addWidget(self.sqlTbox)
         self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
 
         # combining layouts
@@ -149,76 +163,6 @@ class Window(QMainWindow):
 
         # self.setLayout(self.vlayout)
         wid.setLayout(self.vlayout)
-
-    def initMenu(self):
-        #self.vLayout = QtWidgets.QVBoxLayout(self)
-        #self.hLayout = QtWidgets.QHBoxLayout()
-
-        # Menubar
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, self.width, 24))
-        self.menubar.setObjectName("menubar")
-
-        # Menu
-        self.menuFile = QtWidgets.QMenu(self.menubar)
-        self.menuFile.setObjectName("menuFile")
-        self.menuEdit = QtWidgets.QMenu(self.menubar)
-        self.menuEdit.setObjectName("menuEdit")
-
-        self.setMenuBar(self.menubar)
-
-        # status bar
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-        self.setStatusBar(self.statusbar)
-
-        # setting actions for the menu
-        # File
-        self.actionOpen_Database = QtWidgets.QAction(self)
-        self.actionOpen_Database.setObjectName("actionOpen_Database")
-        self.actionOpen_SQLite_Query = QtWidgets.QAction(self)
-        self.actionOpen_SQLite_Query.setObjectName("actionOpen_SQLite_Query")
-
-        # Edit
-        self.actionCopy = QtWidgets.QAction(self)
-        self.actionCopy.setObjectName("actionCopy")
-        self.actionPaste = QtWidgets.QAction(self)
-        self.actionPaste.setObjectName("actionPaste")
-
-        # add entries to the menu
-        self.menuFile.addAction(self.actionOpen_Database)
-        self.menuFile.addAction(self.actionOpen_SQLite_Query)
-        self.menuEdit.addAction(self.actionCopy)
-        self.menuEdit.addAction(self.actionPaste)
-
-        # adding to menubar
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
-
-        # arrange layout
-        # self.vLayout.addWidget(self.menubar)
-
-    def retranslateUi(self):
-        _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Window", "MainWindow"))
-        self.menuFile.setTitle(_translate("Window", "File"))
-        self.menuEdit.setTitle(_translate("Window", "Edit"))
-
-        self.actionOpen_Database.setText(_translate("Window", "Open Database"))
-        self.actionOpen_Database.setStatusTip(_translate(
-            "Window", "Opens SQLite Database. File type is \'.db\'"))
-        self.actionOpen_Database.setShortcut(_translate("Window", "Ctrl+O"))
-
-        self.actionOpen_SQLite_Query.setText(
-            _translate("Window", "Open SQLite Query"))
-        self.actionOpen_SQLite_Query.setStatusTip(
-            _translate("Window", "Opens an SQLite query file"))
-
-        self.actionCopy.setText(_translate("Window", "Copy"))
-        self.actionPaste.setText(_translate("Window", "Paste"))
-
-    def initMenuAction(self):
-        self.actionOpen_Database.triggered.connect(self.openDatabase)
 
     def connectDatabase(self, filepath):
         print('Connecting to database')  # TODO: This should be a logging call.

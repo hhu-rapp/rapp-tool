@@ -88,7 +88,7 @@ class DataView(QWidget):
         if sql_conn != None:
             self.set_connection(sql_conn)
 
-
+    # TODO: Delete old database to insert new databaes?
     def set_connection(self, sql_connection):
         self.__conn = sql_connection
 
