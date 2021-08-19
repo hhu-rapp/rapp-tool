@@ -40,6 +40,7 @@ import configargparse
 
 class MLPipeline(object):
 
+    # TODO: optional argument for configuration path?
     def __init__(self):
         self.parser = configargparse.ArgParser()
         self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')

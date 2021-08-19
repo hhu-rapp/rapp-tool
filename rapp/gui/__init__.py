@@ -193,7 +193,11 @@ class Window(QMainWindow):
         self.dataExplorationTab.setLayout(self.vlayout)
 
     def initMLTab(self):
+        self.vlayoutMainML = QtWidgets.QVBoxLayout()
         self.gridlayoutMainML = QtWidgets.QGridLayout()
+
+        self.vlayoutMainML.addWidget(Color('green', 'Menu Icons. Train. Validate. Stop.'))
+        self.vlayoutMainML.addLayout(self.gridlayoutMainML)
 
         # labels
         self.labelName = QtWidgets.QLabel()
@@ -208,28 +212,42 @@ class Window(QMainWindow):
         self.labelReportPath = QtWidgets.QLabel()
         self.labelReportPath.setText('Report Path:')
 
+        self.labelImputation = QtWidgets.QLabel()
+        self.labelImputation.setText('Imputation Method:')
+
+        self.labelFSM = QtWidgets.QLabel()
+        self.labelFSM.setText('Feature Selection Method:')
+
         # create menus for configuration
         self.qleName = QtWidgets.QLineEdit()
         self.qleCVariables = QtWidgets.QLineEdit()
         self.cbType = QtWidgets.QComboBox()
-        self.cbType.addItem('classification')
-        self.cbType.addItem('regression')
+        self.cbType.addItem('Classification')
+        self.cbType.addItem('Regression')
         self.qlePath = QtWidgets.QLineEdit()
+        self.cbImputation = QtWidgets.QComboBox()
+        self.cbImputation.addItem('Iterative')
+        self.cbFSM = QtWidgets.QComboBox()
+        self.cbFSM.addItem('Variance')
 
         # add labels to the grid
         self.gridlayoutMainML.addWidget(self.labelName, 0, 0)
         self.gridlayoutMainML.addWidget(self.labelCVariables, 1, 0)
         self.gridlayoutMainML.addWidget(self.labelType, 2, 0)
         self.gridlayoutMainML.addWidget(self.labelReportPath, 3, 0)
+        self.gridlayoutMainML.addWidget(self.labelImputation, 4, 0)
+        self.gridlayoutMainML.addWidget(self.labelFSM, 5, 0)
 
         # add options to the grid
         self.gridlayoutMainML.addWidget(self.qleName, 0, 1)
         self.gridlayoutMainML.addWidget(self.qleCVariables, 1, 1)
         self.gridlayoutMainML.addWidget(self.cbType, 2, 1)
         self.gridlayoutMainML.addWidget(self.qlePath, 3, 1)
+        self.gridlayoutMainML.addWidget(self.cbImputation, 4, 1)
+        self.gridlayoutMainML.addWidget(self.cbFSM, 5, 1)
 
         # add to tab layout
-        self.MLTab.setLayout(self.gridlayoutMainML)
+        self.MLTab.setLayout(self.vlayoutMainML)
 
     def initXAITab(self):
         pass
