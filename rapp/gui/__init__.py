@@ -130,9 +130,28 @@ class Window(QMainWindow):
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
 
-        # init layout. TODO: Restructure code?
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)
+        # init tab and main widget
+        self.tabs = QtWidgets.QTabWidget()
+        self.setCentralWidget(self.tabs)
+
+        # create tabs
+        self.dataExplorationTab = QtWidgets.QWidget()
+        self.MLTab = QtWidgets.QWidget()
+        self.XAITab = QtWidgets.QWidget()
+        self.FairnessTab = QtWidgets.QWidget()
+
+        # add tabs
+        self.tabs.addTab(self.dataExplorationTab, 'Data Exploration')
+        self.tabs.addTab(self.MLTab, 'Machine Learning')
+        self.tabs.addTab(self.XAITab, 'Explainable AI')
+        self.tabs.addTab(self.FairnessTab, 'Fairness')
+
+        self.initDataExplorationTab()
+        self.initMLTab()
+        self.initXAITab()
+        self.initFairnessTab()
+
+    def initDataExplorationTab(self):
         self.vlayout = QtWidgets.QVBoxLayout()
         self.h1layout = QtWidgets.QHBoxLayout()
         self.v2layout = QtWidgets.QVBoxLayout()
@@ -167,8 +186,16 @@ class Window(QMainWindow):
         self.h1layout.addLayout(self.v2layout)
         self.vlayout.addLayout(self.h1layout, 10)
 
-        # self.setLayout(self.vlayout)
-        wid.setLayout(self.vlayout)
+        self.dataExplorationTab.setLayout(self.vlayout)
+
+    def initMLTab(self):
+        pass
+
+    def initXAITab(self):
+        pass
+
+    def initFairnessTab(self):
+        pass
 
     def connectDatabase(self, filepath):
         print('Connecting to database')  # TODO: This should be a logging call.
