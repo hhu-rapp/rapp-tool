@@ -152,6 +152,8 @@ class Window(QMainWindow):
         self.initFairnessTab()
 
     def initDataExplorationTab(self):
+        # TODO: scope? global variables via self or local?
+
         self.vlayout = QtWidgets.QVBoxLayout()
         self.h1layout = QtWidgets.QHBoxLayout()
         self.v2layout = QtWidgets.QVBoxLayout()
@@ -180,16 +182,54 @@ class Window(QMainWindow):
         try:
             self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displayData(self.sqlTbox.toPlainText()))
         except Exception as e:
+            # TODO: Why doesnt it work? Faulty sql queries will crash the program
             self.statusbar.setStatusTip(str(e))
 
         # combining layouts
         self.h1layout.addLayout(self.v2layout)
         self.vlayout.addLayout(self.h1layout, 10)
 
+        # add to tab layout
         self.dataExplorationTab.setLayout(self.vlayout)
 
     def initMLTab(self):
-        pass
+        self.gridlayoutMainML = QtWidgets.QGridLayout()
+
+        # labels
+        self.labelName = QtWidgets.QLabel()
+        self.labelName.setText('Dependent Variable:')
+
+        self.labelCVariables = QtWidgets.QLabel()
+        self.labelCVariables.setText('Categorical Variables:')
+
+        self.labelType = QtWidgets.QLabel()
+        self.labelType.setText('Type:')
+
+        self.labelReportPath = QtWidgets.QLabel()
+        self.labelReportPath.setText('Report Path:')
+
+        # create menus for configuration
+        self.qleName = QtWidgets.QLineEdit()
+        self.qleCVariables = QtWidgets.QLineEdit()
+        self.cbType = QtWidgets.QComboBox()
+        self.cbType.addItem('classification')
+        self.cbType.addItem('regression')
+        self.qlePath = QtWidgets.QLineEdit()
+
+        # add labels to the grid
+        self.gridlayoutMainML.addWidget(self.labelName, 0, 0)
+        self.gridlayoutMainML.addWidget(self.labelCVariables, 1, 0)
+        self.gridlayoutMainML.addWidget(self.labelType, 2, 0)
+        self.gridlayoutMainML.addWidget(self.labelReportPath, 3, 0)
+
+        # add options to the grid
+        self.gridlayoutMainML.addWidget(self.qleName, 0, 1)
+        self.gridlayoutMainML.addWidget(self.qleCVariables, 1, 1)
+        self.gridlayoutMainML.addWidget(self.cbType, 2, 1)
+        self.gridlayoutMainML.addWidget(self.qlePath, 3, 1)
+
+        # add to tab layout
+        self.MLTab.setLayout(self.gridlayoutMainML)
 
     def initXAITab(self):
         pass
