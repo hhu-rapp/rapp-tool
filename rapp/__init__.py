@@ -35,52 +35,12 @@ import matplotlib.pyplot as plt
 
 # tools
 from sklearn.model_selection import train_test_split
-import configargparse
 
 
 class MLPipeline(object):
 
-    # TODO: optional argument for configuration path?
-    def __init__(self):
-        self.parser = configargparse.ArgParser()
-        self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
-
-        # parsing arguments from the config file
-        self.parser.add_argument('-f', '--filename', type=str, help='Location of the .db file.',
-                                 required=True)
-        self.parser.add_argument('-s', '--sql_filename', type=str, help='Location of the sql query file.',
-                                 required=True)
-        self.parser.add_argument('-l', '--label_name', type=str, help='Column name of the prediction label.',
-                                 required=True)
-        self.parser.add_argument('-c', '--categorical', nargs='+', help='List of categorical columns.',
-                                 required=True)
-        self.parser.add_argument('-t', '--type', type=str, default='classification',
-                                 choices=['classification', 'regression'],
-                                 help='classification or regression. Default: classification',
-                                 required=True)
-        self.parser.add_argument('--imputation', type=str, default='iterative',
-                                 choices=['knn', 'iterative', 'mean', 'median', 'most_frequent'],
-                                 help='Imputation method for non-categorical data. Available: knn, iterative, mean, '
-                                      'median, most_frequent',
-                                 required=False)
-        self.parser.add_argument('--feature_selection', type=str, default='variance',
-                                 choices=['variance'],
-                                 help='Feature selection method to reduce the amount of features. Available: variance, '
-                                      '',
-                                 required=False)
-        self.parser.add_argument('--save_report', type=str, default='True',
-                                 choices=['True', 'False'],
-                                 help='Boolean value whether a report should be exported',
-                                 required=False)
-        self.parser.add_argument('--report_path', type=str, default='',
-                                 help='Path destination of report file. If path is given, then the report file will '
-                                      'be saved in path/results_report.csv. Note: Relative path to working directory.')
-        self.parser.add_argument('--plot_confusion_matrix', type=str, default='False',
-                                 help='Boolean value whether to plot confusion matrices for each classifier. '
-                                      'Is only applied for classification.',
-                                 required=False)
-
-        self.args = self.parser.parse_args()
+    def __init__(self, args):
+        self.args = args
 
         self.args.plot_confusion_matrix = eval(self.args.plot_confusion_matrix)
         self.args.save_report = eval(self.args.save_report)

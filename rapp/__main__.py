@@ -1,4 +1,4 @@
-from rapp import MLPipeline
+from rapp.parser import RappConfigParser
 
 if __name__ == "__main__":
-    MLPipeline()
+    RappConfigParser()
