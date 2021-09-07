@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QMainWindow
 
 # dataframe
 import pandas as pd
+from pandas.io.sql import DatabaseError
 from rapp.gui.dbview import DataView
 from rapp.gui.menubar import MenuBar
 
@@ -186,11 +187,7 @@ class Window(QMainWindow):
         self.v2layout.addWidget(self.sqlTbox)
         self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
 
-        try:
-            self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
-        except Exception as e:
-            # TODO: Why doesnt it work? Faulty sql queries will crash the program
-            self.statusbar.setStatusTip(str(e))
+        self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
 
         # combining layouts
         self.h1layout.addLayout(self.v2layout)
@@ -316,4 +313,8 @@ class Window(QMainWindow):
         self.pandasTv.set_connection(self.__conn)
 
     def displaySql(self, sql_query=None):
-        self.pandasTv.set_custom_sql(sql_query)
+        try:
+            self.pandasTv.set_custom_sql(sql_query)
+        except (DatabaseError, TypeError) as e:
+            self.statusbar.setStatusTip(str(e))
+            print("Error in SQL code:", e)
