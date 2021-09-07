@@ -187,7 +187,7 @@ class Window(QMainWindow):
         self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
 
         try:
-            self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displayData(self.sqlTbox.toPlainText()))
+            self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
         except Exception as e:
             # TODO: Why doesnt it work? Faulty sql queries will crash the program
             self.statusbar.setStatusTip(str(e))
@@ -315,6 +315,5 @@ class Window(QMainWindow):
         self.__conn = sqlite3.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
 
-    def displayData(self, sql_query):
-        df = pd.read_sql_query(sql_query, self.__conn)
-        self.pandasTv.display_dataframe(df)
+    def displaySql(self, sql_query=None):
+        self.pandasTv.set_custom_sql(sql_query)

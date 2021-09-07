@@ -85,6 +85,9 @@ class DataView(QWidget):
         layout.addWidget(self.table)
         self.setLayout(layout)
 
+        self.__sql_query = None
+        self.__sql_idx = 0
+
         if sql_conn != None:
             self.set_connection(sql_conn)
 
@@ -102,16 +105,24 @@ class DataView(QWidget):
                 continue
             self.combo.addItem(tbl)
 
-        if self.combo.count() > 0:
-            self.combo.itemText(0)
+        self.__sql_idx = self.combo.count()
+        self.combo.addItem("SQL")
+        self.combo.setCurrentIndex(0)
 
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
         print("Loading", tbl, "table")  ## Todo: proper logging
 
-        sql_query = f'SELECT * FROM {tbl}'
-        df = pd.read_sql_query(sql_query, self.__conn)
-        self.display_dataframe(df)
+        if tbl != "SQL":
+            sql_query = f'SELECT * FROM {tbl}'
+            df = pd.read_sql_query(sql_query, self.__conn)
+            self.display_dataframe(df)
+        elif self.__sql_query:
+            df = pd.read_sql_query(self.__sql_query, self.__conn)
+            self.display_dataframe(df)
+        else:
+            self.display_dataframe(pd.DataFrame(columns=["Empty"]))
+
 
     def display_dataframe(self, df):
         """
@@ -119,3 +130,11 @@ class DataView(QWidget):
         """
         model = PandasModel(df)
         self.table.setModel(model)
+
+
+    def set_custom_sql(self, sql_query):
+        df = pd.read_sql_query(sql_query, self.__conn)
+        model = PandasModel(df)
+        self.table.setModel(model)
+        self.__sql_query = sql_query
+        self.combo.setCurrentIndex(self.__sql_idx)
