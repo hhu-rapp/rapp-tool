@@ -14,7 +14,6 @@ SELECT
   S.Geburtsjahr,
   S.Geschlecht,
   S.Deutsch,
-  SSP.Pseudonym,
   case when LA.Bestanden IS NOT NULL then LA.Bestanden else 0 end as LABestanden,
   case when LA.Versuche IS NOT NULL then LA.Versuche else 0 end as LAVersuche,
   case when Prog.Bestanden IS NOT NULL then Prog.Bestanden else 0 end as ProgBestanden,
