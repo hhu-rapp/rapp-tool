@@ -241,3 +241,4 @@ superx/*
 ## Generated database file
 rapp.db
 tmp.db
+data/*.csv
