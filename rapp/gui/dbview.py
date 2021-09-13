@@ -2,6 +2,8 @@ import pandas as pd
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableView
 
+from rapp import data
+
 
 class PandasModel(QtCore.QAbstractTableModel):
     """
@@ -115,10 +117,10 @@ class DataView(QWidget):
 
         if tbl != "SQL":
             sql_query = f'SELECT * FROM {tbl}'
-            df = pd.read_sql_query(sql_query, self.__conn)
+            df = data.query_sql(sql_query, self.__conn)
             self.display_dataframe(df)
         elif self.__sql_query:
-            df = pd.read_sql_query(self.__sql_query, self.__conn)
+            df = data.query_sql(self.__sql_query, self.__conn)
             self.display_dataframe(df)
         else:
             self.display_dataframe(pd.DataFrame(columns=["Empty"]))
@@ -133,7 +135,7 @@ class DataView(QWidget):
 
 
     def set_custom_sql(self, sql_query):
-        df = pd.read_sql_query(sql_query, self.__conn)
+        df = data.query_sql(sql_query, self.__conn)
         model = PandasModel(df)
         self.table.setModel(model)
         self.__sql_query = sql_query

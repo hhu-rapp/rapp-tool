@@ -1,12 +1,13 @@
 # internal Python packages
 import os
 from datetime import datetime
-import sqlite3
 import argparse
 
 # rapp
 from rapp.parser import parse_rapp_args
 from rapp import MLPipeline
+
+from rapp import data
 
 # PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -309,7 +310,7 @@ class Window(QMainWindow):
     def connectDatabase(self, filepath):
         print('Connecting to database')  # TODO: This should be a logging call.
         self.filepath_db = filepath
-        self.__conn = sqlite3.connect(self.filepath_db)
+        self.__conn = data.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
 
     def displaySql(self, sql_query=None):
