@@ -1,11 +1,11 @@
 -- Features:
 --  Binary markers whether Linear Algebra, Programming (Info 1), and
---  Algorithms (Info 3) where passed and how many attempts where used.
+--  Algorithms (Info 3) were passed and how many attempts were used.
 --  Last achieved grade in Programming and Algorithms. Linear Algebra does not
 --  have any recorded grades for CS students besides 0.0 (passed) and 5.0
 --  (failed).
 -- Target variables:
---  Number of credits in fourth term
+--  Dropout defined as "no exam written in last 3 semesters"
 -- Note:
 --  In 2018 PO computer science switched what the first term modules are for
 --  students, and to be more relevant for future data, we consider these new
