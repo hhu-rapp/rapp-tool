@@ -42,6 +42,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Lineare Algebra', 'Lineare Algebra I')
+      AND SSP.Fachsemester <= 1
     GROUP BY SSP.Pseudonym
     ) as LA
   ON LA.Pseudonym = SSP.Pseudonym
@@ -56,6 +57,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Programmierung ', 'Grundlagen der Softwareentwicklung und Programmierung')
+      AND SSP.Fachsemester <= 1
     GROUP BY SSP.Pseudonym
     ) as Prog
   ON Prog.Pseudonym = SSP.Pseudonym
@@ -70,6 +72,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Programmierung ', 'Grundlagen der Softwareentwicklung und Programmierung')
+      AND SSP.Fachsemester <= 1
     ORDER BY SSP.Pseudonym
     ) as ProgNote
   ON Prog.Pseudonym = ProgNote.Pseudonym AND Prog.Versuche = ProgNote.Versuch
@@ -84,6 +87,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Algorithmen und Datenstrukturen', 'Grundlagen der Algorithmen und Datenstrukturen')
+      AND SSP.Fachsemester <= 1
     GROUP BY SSP.Pseudonym
     ) as Algo
   ON Algo.Pseudonym = SSP.Pseudonym
@@ -98,6 +102,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Algorithmen und Datenstrukturen', 'Grundlagen der Algorithmen und Datenstrukturen')
+      AND SSP.Fachsemester <= 1
     ORDER BY SSP.Pseudonym
     ) as AlgoNote
   ON Algo.Pseudonym = AlgoNote.Pseudonym AND Algo.Versuche = AlgoNote.Versuch

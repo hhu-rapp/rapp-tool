@@ -47,6 +47,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('AP Erhebungsverfahren I (Klausur)', 'Erhebungsverfahren I')
+      AND SSP.Fachsemester <= 2
     GROUP BY SSP.Pseudonym
     ) as EV_AP
   ON EV_AP.Pseudonym = SSP.Pseudonym
@@ -62,6 +63,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('AP Erhebungsverfahren II (Klausur)', 'Erhebungsverfahren II')
+      AND SSP.Fachsemester <= 2
     GROUP BY SSP.Pseudonym
     ) as EV2_AP
   ON EV2_AP.Pseudonym = SSP.Pseudonym
@@ -77,6 +79,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('AP Basismodul Soziologie (Klausur)', 'Soziologie')
+      AND SSP.Fachsemester <= 2
     GROUP BY SSP.Pseudonym
     ) as Sozi_AP
   ON Sozi_AP.Pseudonym = SSP.Pseudonym
@@ -92,6 +95,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('AP Basismodul Politikwissenschaft (Klausur)', 'Politikwissenschaft')
+      AND SSP.Fachsemester <= 2
     GROUP BY SSP.Pseudonym
     ) as Polit_AP
   ON Polit_AP.Pseudonym = SSP.Pseudonym
@@ -108,6 +112,7 @@ LEFT JOIN
       AND P.Version = SSP.Version
       AND P.Modul IN ('AP Basismodul Kommunikations- und Medienwissenschaft (Klausur)',
                       'Kommunikations- und Medienwissenschaft')
+      AND SSP.Fachsemester <= 2
     GROUP BY SSP.Pseudonym
     ) as Komm_AP
   ON Komm_AP.Pseudonym = SSP.Pseudonym
