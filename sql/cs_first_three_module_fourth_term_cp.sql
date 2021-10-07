@@ -1,6 +1,6 @@
 -- Features:
---  Binary markers whether Linear Algebra, Programming (Info 1), and
---  Algorithms (Info 3) where passed and how many attempts where used.
+--  Binary markers whether Linear Algebra, Analysis I, Programming (Info 1),
+--  and Algorithms (Info 3) where passed and how many attempts where used.
 --  Last achieved grade in Programming and Algorithms. Linear Algebra does not
 --  have any recorded grades for CS students besides 0.0 (passed) and 5.0
 --  (failed).
@@ -22,6 +22,8 @@ SELECT
   case when Algo.Bestanden IS NOT NULL then Algo.Bestanden else 0 end as AlgoBestanden,
   case when Algo.Versuche IS NOT NULL then Algo.Versuche else 0 end as AlgoVersuche,
   case when AlgoNote.Note IS NOT NULL then AlgoNote.Note else 5. end as AlgoNote,
+  case when Ana.Bestanden IS NOT NULL then Ana.Bestanden else 0 end as AnaBestanden,
+  case when Ana.Versuche IS NOT NULL then Ana.Versuche else 0 end as AnaVersuche,
   SUM(CASE WHEN SSP.Fachsemester <= 4 THEN SSP.ECTS ELSE 0 END) as FourthTermCP
   -- SUM(CASE WHEN SSP.Fachsemester <= 6 THEN SSP.ECTS ELSE 0 END) as SixthTermCP
 FROM
@@ -41,9 +43,26 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Lineare Algebra', 'Lineare Algebra I')
+      AND SSP.Fachsemester = 1
     GROUP BY SSP.Pseudonym
     ) as LA
   ON LA.Pseudonym = SSP.Pseudonym
+LEFT JOIN
+  ( SELECT
+      -- SSP.Note as Note,
+      max(CASE WHEN SSP.Status = 'bestanden' then 1 else 0 end) as Bestanden,
+      max(SSP.Versuch) as Versuche,
+      SSP.Pseudonym
+    FROM
+      Student_schreibt_Pruefung as SSP,
+      Pruefung as P
+    WHERE P.Nummer = SSP.Nummer
+      AND P.Version = SSP.Version
+      AND P.Modul IN ('Analysis I')
+      AND SSP.Fachsemester = 1
+    GROUP BY SSP.Pseudonym
+    ) as Ana
+  ON Ana.Pseudonym = SSP.Pseudonym
 LEFT JOIN
   ( SELECT
       max(CASE WHEN SSP.Status = 'bestanden' then 1 else 0 end) as Bestanden,
@@ -55,6 +74,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Programmierung ', 'Grundlagen der Softwareentwicklung und Programmierung')
+      AND SSP.Fachsemester = 1
     GROUP BY SSP.Pseudonym
     ) as Prog
   ON Prog.Pseudonym = SSP.Pseudonym
@@ -69,6 +89,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Programmierung ', 'Grundlagen der Softwareentwicklung und Programmierung')
+      AND SSP.Fachsemester = 1
     ORDER BY SSP.Pseudonym
     ) as ProgNote
   ON Prog.Pseudonym = ProgNote.Pseudonym AND Prog.Versuche = ProgNote.Versuch
@@ -83,6 +104,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Algorithmen und Datenstrukturen', 'Grundlagen der Algorithmen und Datenstrukturen')
+      AND SSP.Fachsemester = 1
     GROUP BY SSP.Pseudonym
     ) as Algo
   ON Algo.Pseudonym = SSP.Pseudonym
@@ -97,6 +119,7 @@ LEFT JOIN
     WHERE P.Nummer = SSP.Nummer
       AND P.Version = SSP.Version
       AND P.Modul IN ('Algorithmen und Datenstrukturen', 'Grundlagen der Algorithmen und Datenstrukturen')
+      AND SSP.Fachsemester = 1
     ORDER BY SSP.Pseudonym
     ) as AlgoNote
   ON Algo.Pseudonym = AlgoNote.Pseudonym AND Algo.Versuche = AlgoNote.Versuch
@@ -109,7 +132,7 @@ WHERE S.Pseudonym = SSP.Pseudonym
   AND SSP.Studienfach = "Informatik"
   AND SSP.Abschluss = "Bachelor"
   -- Make sure we only have students which took part in at least one of these
-  AND NOT (LA.Versuche IS NULL AND Prog.Versuche IS NULL AND Algo.Versuche IS NULL)
+  AND NOT (LA.Versuche IS NULL AND ANA.Versuche IS NULL AND Prog.Versuche IS NULL AND Algo.Versuche IS NULL)
   -- Need People who are enrolled since at least 4 semesters
   AND '2019-04-01' >= date(E.Immatrikulationsdatum)
   -- Only consider since PO 2007
