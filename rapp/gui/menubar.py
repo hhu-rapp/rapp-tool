@@ -67,7 +67,20 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionPaste.setText(_translate("Window", "Paste"))
 
     def initMenuAction(self):
+        # file
+        self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
         self.actionOpen_Database.triggered.connect(self.openDatabase)
+
+    def openSQLQuery(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                            "Database Files (*.sql);;All Files (*)", options=options)
+
+        if fileName:
+            with open(fileName, 'r') as file:
+                data = file.read()
+                self.qMainWindow.sqlTbox.setPlainText(data)
 
     def openDatabase(self):
         options = QtWidgets.QFileDialog.Options()
@@ -77,4 +90,5 @@ class MenuBar(QtWidgets.QMenuBar):
         if fileName:
             print(os.path.normpath(fileName))
 
+            # TODO: Bug
             self.qMainWindow.connectDatabase(os.path.normpath(fileName))

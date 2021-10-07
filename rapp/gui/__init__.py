@@ -19,6 +19,7 @@ from pandas.io.sql import DatabaseError
 from rapp.gui.dbview import DataView
 from rapp.gui.menubar import MenuBar
 
+db_filepath = "data/rapp.db"
 
 class DataFrameModel(QtCore.QAbstractTableModel):
     """
@@ -126,7 +127,7 @@ class Window(QMainWindow):
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-        self.connectDatabase("data/rapp.db")  # Hardcoded for now.
+        self.connectDatabase(db_filepath)  # Hardcoded for now.
 
         self.show()
 
@@ -168,7 +169,7 @@ class Window(QMainWindow):
         self.v2layout = QtWidgets.QVBoxLayout()
 
         # vertical layout: main layout
-        self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
+        #self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
         self.pandasTv = DataView(self, self.__conn)
@@ -177,10 +178,12 @@ class Window(QMainWindow):
         # vertical layout: sql and data visualization
         # add menu buttons for SQL query
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
-        self.qPushButtonExcuteSql = QtWidgets.QPushButton('Execute')
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonExcuteSql)
-        self.hlayoutSqlButtons.addWidget(QtWidgets.QPushButton('Undo'))
-        self.hlayoutSqlButtons.addWidget(QtWidgets.QPushButton('Redo'))
+        self.qPushButtonExecuteSql = QtWidgets.QPushButton('Execute')
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
+        self.qPushButtonUndoSql = QtWidgets.QPushButton('Undo')
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
+        self.qPushButtonRedoSql = QtWidgets.QPushButton('Redo')
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.v2layout.addLayout(self.hlayoutSqlButtons)
 
         # add SQL textbox
@@ -188,7 +191,10 @@ class Window(QMainWindow):
         self.v2layout.addWidget(self.sqlTbox)
         self.v2layout.addWidget(Color('yellow', 'plots, visuals with tabs'))
 
-        self.qPushButtonExcuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
+        # button actions
+        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
+        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlTbox.undo())
+        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlTbox.redo())
 
         # combining layouts
         self.h1layout.addLayout(self.v2layout)
@@ -287,7 +293,7 @@ class Window(QMainWindow):
             text_file.write(self.sqlTbox.toPlainText())
 
         args = argparse.Namespace()
-        args.filename = 'data/rapp.db'
+        args.filename = db_filepath
         args.sql_filename = sqlQueryTempPath
         args.label_name = self.leName.text()
         args.categorical = self.leCVariables.text().replace(' ', '').split(',')
