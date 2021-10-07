@@ -41,5 +41,11 @@ sql/CSFirstSemester.sql
 A config file `config.ini` is already available and contains the required arguments to run the prediction. To run the prediction, simply execute
 
 ```bash
-python -m rapp --config-file settings/config.ini
+python -m rapp --config-file settings/pipeline/config.ini
 ```
+
+### Explainable AI (Decision Tree)
+
+```bash
+python -m rapp.explain --config-file settings/explain/CSDropout.ini
+``

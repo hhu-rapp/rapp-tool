@@ -5,7 +5,7 @@ import argparse
 
 # rapp
 from rapp.parser import parse_rapp_args
-from rapp import MLPipeline
+from rapp.pipeline import MLPipeline
 
 from rapp import data
 
@@ -304,7 +304,6 @@ class Window(QMainWindow):
         args.report_path = ''
         args.save_report = 'True'
 
-        # try:
         MLPipeline(args)
 
         # remove temporary files
