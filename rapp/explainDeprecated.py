@@ -1,13 +1,19 @@
-# RAPP_Prediction library
-
-# standard library
-import sqlite3
+# internal Python packages
 import os
+from datetime import datetime
+import argparse
+import configargparse
+import sqlite3
 
-# common
+# rapp
+from rapp.pipeline import MLPipeline
+from rapp.parser import parse_rapp_args
+
+# data analysis
 import numpy as np
 import pandas as pd
 import sklearn as sk
+import oapackage
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
@@ -31,16 +37,25 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import plot_confusion_matrix
 
 # plots
+from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
+# plt.rcParams['figure.figsize'] = [60, 20]
 
 # tools
 from sklearn.model_selection import train_test_split
 
+db_filepath = "data/rapp.db"
 
-class MLPipeline(object):
 
-    def __init__(self, args):
-        self.args = args
+class ExplainDeprecated(object):
+
+    def __init__(self):
+        self.parser = configargparse.ArgParser()
+        self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
+
+        # parsing arguments from the config file
+        self.parser = parse_rapp_args(self.parser)
+        self.args = self.parser.parse_args()
 
         self.args.plot_confusion_matrix = eval(self.args.plot_confusion_matrix)
         self.args.save_report = eval(self.args.save_report)
@@ -65,35 +80,16 @@ class MLPipeline(object):
         # transform data, normalization
         self.transform()
 
-        # feature selection, dimensionality reduction
-        # self.feature_selection(self.args.feature_selection)
-
         # split datasets
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y,
                                                                               train_size=0.8, random_state=42)
 
         # create estimators & train
-        if self.args.classifier is not None:
-            if self.args.classifier == 'RF':
-                self.estimators = [RandomForestClassifier(random_state=0)]
-            elif self.args.classifier == 'DT':
-                self.estimators = [DecisionTreeClassifier(random_state=0, class_weight='balanced')]
-            elif self.args.classifier == 'SVM':
-                self.estimators = [SVC(random_state=0)]
-            elif self.args.classifier == 'NB':
-                self.estimators = [GaussianNB(random_state=0)]
-            elif self.args.classifier == 'LR':
-                self.estimators = [LogisticRegression(random_state=0)]
-            else:
-                self.estimators = [DecisionTreeClassifier(random_state=0, class_weight='balanced')]
-            self.train_estimators()
-        else:
-            if self.args.type == 'classification':
-                self.estimators = [RandomForestClassifier(), DecisionTreeClassifier(class_weight='balanced'),
-                                   SVC(), GaussianNB(), LogisticRegression()]
-            elif self.args.type == 'regression':
-                self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
-            self.train_estimators()
+        if self.args.type == 'classification':
+            self.estimators = [DecisionTreeClassifier(class_weight='balanced')]
+        elif self.args.type == 'regression':
+            self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
+        self.train_estimators()
 
         # hyperparameter tuning, boosting, bagging
         self.tune_estimators()
@@ -113,9 +109,6 @@ class MLPipeline(object):
         # visualize results
         if self.args.type == 'classification' and self.args.plot_confusion_matrix:
             self.plot_confusion_matrix()
-
-    def get_estimators(self):
-        return self.estimators
 
     def impute(self, method='iterative'):
         # Only impute categorical data
@@ -149,22 +142,6 @@ class MLPipeline(object):
         """
         self.X = pd.get_dummies(data=self.X, columns=self.args.categorical)
 
-    def feature_selection(self, method='variance'):
-        """
-        Selects the most important features based on the used strategy
-
-        Returns
-        -------
-        None
-        """
-
-        if method == 'variance':
-            sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
-            self.X = sel.fit_transform(self.X)
-        else:
-            sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
-            self.X = sel.fit_transform(self.X)
-
     def train_estimators(self):
         for i in range(len(self.estimators)):
             self.estimators[i].fit(self.X_train, self.y_train)
@@ -188,7 +165,44 @@ class MLPipeline(object):
                 self.scores['R2'].append(sk.metrics.r2_score(self.y_val, y_pred))
 
     def tune_estimators(self):
-        pass
+        # getting hyperparameter space
+        ccp_alphas = self.estimators[0].cost_complexity_pruning_path(self.X_train, self.y_train).ccp_alphas
+
+        # testing hyperparameter
+        clfs = []
+        for ccp_alpha in ccp_alphas:
+            clf = DecisionTreeClassifier(random_state=0, ccp_alpha=ccp_alpha,
+                                         class_weight="balanced", min_impurity_decrease=0.001)
+            clf.fit(self.X_train, self.y_train)
+            clfs.append(clf)
+
+        acc_scores = [sk.metrics.balanced_accuracy_score(self.y_val, clf.predict(self.X_val)) for clf in clfs]
+
+        # find pareto optima
+        datapoints = np.array([ccp_alphas, acc_scores]).T
+        plt.scatter(datapoints[0,:], datapoints[1,:], s=1)
+        plt.show()
+
+        pareto = oapackage.ParetoDoubleLong()
+        for ii in range(0, datapoints.shape[1]):
+            w = oapackage.doubleVector((datapoints[0, ii], datapoints[1, ii]))
+            pareto.addvalue(w, ii)
+
+        # list of indexes of pareto optimal solutions
+        lst = pareto.allindices()
+
+        # train with selected hyperparameter
+        selected_ccp = datapoints[0, lst][0]
+        clf = DecisionTreeClassifier(random_state=0, class_weight="balanced", min_impurity_decrease=0.001,
+                               ccp_alpha=selected_ccp)
+
+        clf.fit(self.X_train, self.y_train)
+
+        # save estimator into estimators
+        self.estimators = [clf]
+
+        plot_tree(clf, feature_names=self.X_train.columns, class_names=["nein", "ja"])
+        plt.show()
 
     def create_report(self):
         """
@@ -265,3 +279,7 @@ class MLPipeline(object):
             plt.title(str(self.estimators[i]))
 
         plt.show()
+
+
+if __name__ == '__main__':
+    Explain()

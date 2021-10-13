@@ -30,6 +30,7 @@ def parse_rapp_args(parser):
     ArgParser
     """
 
+    # methodical settings
     parser.add_argument('-f', '--filename', type=str, help='Location of the .db file.',
                              required=True)
     parser.add_argument('-s', '--sql_filename', type=str, help='Location of the sql query file.',
@@ -41,7 +42,7 @@ def parse_rapp_args(parser):
     parser.add_argument('-t', '--type', type=str, default='classification',
                              choices=['classification', 'regression'],
                              help='classification or regression. Default: classification',
-                             required=True)
+                             required=False)
     parser.add_argument('--imputation', type=str, default='iterative',
                              choices=['knn', 'iterative', 'mean', 'median', 'most_frequent'],
                              help='Imputation method for non-categorical data. Available: knn, iterative, mean, '
@@ -52,6 +53,8 @@ def parse_rapp_args(parser):
                              help='Feature selection method to reduce the amount of features. Available: variance, '
                                   '',
                              required=False)
+
+    # additional settings
     parser.add_argument('--save_report', type=str, default='True',
                              choices=['True', 'False'],
                              help='Boolean value whether a report should be exported',
@@ -63,5 +66,9 @@ def parse_rapp_args(parser):
                              help='Boolean value whether to plot confusion matrices for each classifier. '
                                   'Is only applied for classification.',
                              required=False)
+    parser.add_argument('--classifier', type=str, default=None,
+                        choices=['RF', 'DT', 'SVM', 'NB', 'LR'],
+                        help='If given then --type is ignored. Takes a single classifier to train on. Choices: RF, DT, '
+                             'SVM, NB, LR')
 
     return parser

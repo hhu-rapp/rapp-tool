@@ -45,6 +45,7 @@ python -m rapp --config-file settings/pipeline/config.ini
 ```
 
 ### Explainable AI (Decision Tree)
+Example configuration files for the explainability modules are located in `settings/explain/`. To run the prediction and get xAI results, execute
 
 ```bash
 python -m rapp.explain --config-file settings/explain/CSDropout.ini
