@@ -33,7 +33,7 @@ class Explain(object):
 
     def explain_dt(self):
         # getting hyperparameter space
-        ccp_alphas = self.estimator.cost_complexity_pruning_path(self.X_train, self.y_train).ccp_alphas
+        ccp_alphas = self.estimator.cost_complexity_pruning_path(self.X_train, self.y_train).ccp_alphas[:-1]
 
         # testing hyperparameter
         clfs = []
