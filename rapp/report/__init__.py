@@ -12,11 +12,15 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
-
 from rapp.fair.notions import clf_fairness
 from rapp.fair.notions import group_fairness
 from rapp.fair.notions import equality_of_opportunity
 from rapp.fair.notions import predictive_equality
+
+import os
+import json
+
+from datetime import datetime
 
 
 class ClassifierReport(object):
@@ -91,10 +95,10 @@ class ClassifierReport(object):
         scorings['scores'] = self.get_score_dict(y, pred)
         tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
         scorings['confusion_matrix'] = {
-            'tp': tp,
-            'fp': fp,
-            'tn': tn,
-            'fn': fn,
+            'tp': int(tp),
+            'fp': int(fp),
+            'tn': int(tn),
+            'fn': int(fn),
         }
 
         fairness = {}
@@ -109,3 +113,40 @@ class ClassifierReport(object):
         for scoring_name, fun in self.used_scores.items():
             score_dict[scoring_name] = fun(y, pred)
         return score_dict
+
+    def write_report(self, report_data, path=None):
+        if path is None:
+            sql_base_name = os.path.splitext(
+                os.path.basename(self.cf_args.sql_filename))[0]
+            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
+            path = f"reports/{sql_base_name}-testing/"
+
+        try:
+            os.makedirs(path, exist_ok=True)
+        except OSError as e:
+            print(f"Could not write report to {path}:", e)
+
+        with open(path+"/report.json", 'w') as r:
+            json.dump(report_data, r, indent=2)
+
+        for est, data in report_data['estimators'].items():
+            self.write_classifier_report(est, data, path)
+
+    def write_classifier_report(self, est_name, est_data, path):
+        data_pre = path + '/' + est_name + "_"
+
+        scores_file = data_pre + 'scores.csv'
+        with open(scores_file, 'w') as scr:
+            scr.write("Metric,Train,Test\n")
+            for metric in est_data["train"]["scores"].keys():
+                scr.write(metric + ",")
+                scr.write(str(est_data["train"]["scores"][metric]) + ",")
+                scr.write(str(est_data["test"]["scores"][metric]) + "\n")
+
+        cm_file = data_pre + 'confusion_matrix.json'
+        with open(cm_file, 'w') as f:
+            confusion_dict = {
+                'train': est_data["train"]["confusion_matrix"],
+                'test': est_data["test"]["confusion_matrix"]
+            }
+            json.dump(confusion_dict, f, indent=2)

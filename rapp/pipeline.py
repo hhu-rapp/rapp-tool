@@ -3,8 +3,6 @@
 import sqlite3
 import pandas as pd
 
-import pprint
-
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
@@ -64,8 +62,8 @@ class MLPipeline(object):
         report = ClassifierReport(self.estimators, self.args)
         report_data = report.calculate_reports(
             self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
-        pp = pprint.PrettyPrinter()
-        pp.pprint(report_data)
+
+        report.write_report(report_data)
 
     def calc_sensitive_attributes(self, X_data):
         cols = []
@@ -120,7 +118,7 @@ class MLPipeline(object):
 
         # split datasets
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y,
-                                                                              train_size=0.8, random_state=42)
+                                                                                train_size=0.8, random_state=42)
 
         # Save protected attribute
         self.Z_train = self.X_train[self.args.sensitive_attributes]

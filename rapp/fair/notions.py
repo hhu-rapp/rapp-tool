@@ -50,10 +50,10 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
 def __get_confusion_matrix(y_true, y_pred):
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     return {
-        'tp': tp,
-        'fp': fp,
-        'tn': tn,
-        'fn': fn,
+        'tp': int(tp),
+        'fp': int(fp),
+        'tn': int(tn),
+        'fn': int(fn),
     }
 
 
