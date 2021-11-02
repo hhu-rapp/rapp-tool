@@ -36,7 +36,7 @@ class RappConfigParser(object):
         parser.add_argument('-c', '--categorical', nargs='+', help='List of categorical columns.',
                                 required=False, default=[])
         parser.add_argument('-i', '--ignore', nargs='+', help='List of columns to ignore.',
-                                required=True)
+                                required=False, default=[])
         parser.add_argument('--sensitive_attributes', nargs='+', help='List of sensitive attributes',
                                 required=False, default=[])
         parser.add_argument('--privileged_groups', nargs='+', help='List of privileged group values; one for each sensitive attribute. The order must match.',

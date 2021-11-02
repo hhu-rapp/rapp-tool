@@ -1,48 +1,17 @@
-# internal Python packages
-import os
-from datetime import datetime
-import argparse
-import configargparse
-import sqlite3
-
 # rapp
 from rapp.pipeline import MLPipeline
-from rapp.parser import parse_rapp_args
+from rapp.parser import RappConfigParser
 
 # data analysis
 import numpy as np
-import pandas as pd
 import sklearn as sk
 import oapackage
 
-# imputation
-from sklearn.experimental import enable_iterative_imputer  # noqa
-from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
-from sklearn.feature_selection import VarianceThreshold
-
-# ML classifiers
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-
-# ML regression methods
-from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import BayesianRidge
-
-# evaluation report
-from sklearn.metrics import classification_report
-from sklearn.metrics import plot_confusion_matrix
-
 # plots
 from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
 # plt.rcParams['figure.figsize'] = [60, 20]
-
-# tools
-from sklearn.model_selection import train_test_split
 
 db_filepath = "data/rapp.db"
 
@@ -50,23 +19,13 @@ db_filepath = "data/rapp.db"
 class Explain(object):
 
     def __init__(self):
-        self.parser = configargparse.ArgParser()
-        self.parser.add('-cf', '--config-file', required=True, is_config_file=True, help='config file path')
-
-        # parsing arguments from the config file
-        self.parser = parse_rapp_args(self.parser)
-        self.args = self.parser.parse_args()
-
-        # change additional settings for explainability
-        self.args.save_report = 'False'
-        self.args.plot_confusion_matrix = 'False'
-
-        self.pipeline = MLPipeline(self.args)
+        parser = RappConfigParser()
+        self.pipeline = MLPipeline(parser.parse_args())
 
         # getting objects from MLPipeline
         self.estimator = self.pipeline.get_estimators()[0]
         self.X_train, self.y_train = self.pipeline.X_train, self.pipeline.y_train
-        self.X_val, self.y_val = self.pipeline.X_val, self.pipeline.y_val
+        self.X_test, self.y_test = self.pipeline.X_test, self.pipeline.y_test
 
     def explain(self):
         if self.pipeline.args.classifier == 'DT':
@@ -84,7 +43,7 @@ class Explain(object):
             clf.fit(self.X_train, self.y_train)
             clfs.append(clf)
 
-        acc_scores = [sk.metrics.balanced_accuracy_score(self.y_val, clf.predict(self.X_val)) for clf in clfs]
+        acc_scores = [sk.metrics.balanced_accuracy_score(self.y_test, clf.predict(self.X_test)) for clf in clfs]
 
         # find pareto optima
         datapoints = np.array([ccp_alphas, acc_scores]).T
