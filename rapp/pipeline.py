@@ -5,26 +5,29 @@ import sqlite3
 import os
 
 # common
-import numpy as np
 import pandas as pd
 import sklearn as sk
+
+# Metrics
+# Classification
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
+# Regression
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
 from sklearn.feature_selection import VarianceThreshold
 
-# ML classifiers
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-
-# ML regression methods
-from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import BayesianRidge
+import rapp.models as models
 
 # evaluation report
 from sklearn.metrics import classification_report
@@ -55,9 +58,6 @@ class MLPipeline(object):
         # fill missing values
         self.impute(self.args.imputation)
 
-        # delete label from categorical if it is contained
-        self.args.categorical = [x for x in self.args.categorical if x != self.args.label_name]
-
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
         self.y = self.df[self.args.label_name]
@@ -74,34 +74,50 @@ class MLPipeline(object):
 
         # create estimators & train
         if self.args.classifier is not None:
-            if self.args.classifier == 'RF':
-                self.estimators = [RandomForestClassifier(random_state=0)]
-            elif self.args.classifier == 'DT':
-                self.estimators = [DecisionTreeClassifier(random_state=0, class_weight='balanced')]
-            elif self.args.classifier == 'SVM':
-                self.estimators = [SVC(random_state=0)]
-            elif self.args.classifier == 'NB':
-                self.estimators = [GaussianNB(random_state=0)]
-            elif self.args.classifier == 'LR':
-                self.estimators = [LogisticRegression(random_state=0)]
-            else:
-                self.estimators = [DecisionTreeClassifier(random_state=0, class_weight='balanced')]
+            self.estimators = [models.get(self.args.classifier)]
             self.train_estimators()
         else:
             if self.args.type == 'classification':
-                self.estimators = [RandomForestClassifier(), DecisionTreeClassifier(class_weight='balanced'),
-                                   SVC(), GaussianNB(), LogisticRegression()]
+                self.estimators = [
+                    models.get('RF'),
+                    models.get('DT'),
+                    models.get('SVM'),
+                    models.get('NB'),
+                    models.get('LR'),
+                ]
             elif self.args.type == 'regression':
-                self.estimators = [LinearRegression(), ElasticNet(), BayesianRidge()]
+                self.estimators = [
+                    models.get_regressor('LR'),
+                    models.get_regressor('EL'),
+                    models.get_regressor('BR'),
+                ]
             self.train_estimators()
 
         # hyperparameter tuning, boosting, bagging
         self.tune_estimators()
 
         if self.args.type == 'classification':
-            self.scores = {'Accuracy': [], 'F1': [], 'Recall': [], 'Precision': []}
+            self.used_scores = {
+                'Accuracy': accuracy_score,
+                'Balanced Accuracy': balanced_accuracy_score,
+                'F1': lambda x, y: f1_score(x, y, average='macro'),
+                'Recall': lambda x, y: recall_score(x, y, average='macro'),
+                'Precision': lambda x, y: precision_score(x, y, average='macro'),
+                'Area under ROC': roc_auc_score,
+            }
         else:
-            self.scores = {'Mean Absolute Error': [], 'Mean Squared Error': [], 'R2': []}
+            self.used_scores = {
+                'Mean Absolute Error': mean_absolute_error,
+                'Mean Squared Error': mean_squared_error,
+                'R2': r2_score,
+            }
+
+        self.scores = {}
+        for est in self.estimators:
+            self.scores[est] = {}
+            for sc_name in self.used_scores.keys():
+                self.scores[est][sc_name] = None
+
         self.score_estimators()
 
         # Report results
@@ -120,7 +136,8 @@ class MLPipeline(object):
     def impute(self, method='iterative'):
         # Only impute categorical data
         self.df[self.args.categorical] = \
-            SimpleImputer(strategy='most_frequent').fit_transform(self.df[self.args.categorical])
+            SimpleImputer(strategy='most_frequent').fit_transform(
+                self.df[self.args.categorical])
 
         # impute non-categorical data
         if method == 'knn':
@@ -147,7 +164,11 @@ class MLPipeline(object):
         -------
         None
         """
-        self.X = pd.get_dummies(data=self.X, columns=self.args.categorical)
+
+        columns = [x for x in self.args.categorical if x != self.args.label_name]
+        self.X = pd.get_dummies(data=self.X, columns=columns)
+
+
 
     def feature_selection(self, method='variance'):
         """
@@ -170,22 +191,12 @@ class MLPipeline(object):
             self.estimators[i].fit(self.X_train, self.y_train)
 
     def score_estimators(self):
-        # most common class as the positive label to use for metrics
-        pos_label = self.df[self.args.label_name].value_counts()[:1].index.tolist()[0]
 
-        if self.args.type == 'classification':
-            for i in range(len(self.estimators)):
-                y_pred = self.estimators[i].predict(self.X_val)
-                self.scores['Accuracy'].append(sk.metrics.accuracy_score(self.y_val, y_pred))
-                self.scores['F1'].append(sk.metrics.f1_score(self.y_val, y_pred, average='macro'))
-                self.scores['Recall'].append(sk.metrics.recall_score(self.y_val, y_pred, average='macro'))
-                self.scores['Precision'].append(sk.metrics.precision_score(self.y_val, y_pred, average='macro'))
-        elif self.args.type == 'regression':
-            for i in range(len(self.estimators)):
-                y_pred = self.estimators[i].predict(self.X_val)
-                self.scores['Mean Absolute Error'].append(sk.metrics.mean_absolute_error(self.y_val, y_pred))
-                self.scores['Mean Squared Error'].append(sk.metrics.mean_squared_error(self.y_val, y_pred))
-                self.scores['R2'].append(sk.metrics.r2_score(self.y_val, y_pred))
+        for est in self.estimators:
+            y_pred = est.predict(self.X_val)
+            for sc_name, sc_fun in self.used_scores.items():
+                self.scores[est][sc_name] = sc_fun(self.y_val, y_pred)
+
 
     def tune_estimators(self):
         pass
@@ -204,14 +215,7 @@ class MLPipeline(object):
                ...
             }
         """
-        report_dict = {}
-        for i in range(len(self.estimators)):
-            cur_metrics_dict = {}
-            for key_score in self.scores.keys():
-                cur_metrics_dict[key_score] = self.scores[key_score][i]
-
-            # add metrics to each classifier
-            report_dict[str(self.estimators[i])] = cur_metrics_dict
+        report_dict = self.scores
 
         return report_dict, pd.DataFrame.from_dict(report_dict)
 
