@@ -242,3 +242,6 @@ superx/*
 rapp.db
 tmp.db
 data/*.csv
+
+## Report files
+reports/
