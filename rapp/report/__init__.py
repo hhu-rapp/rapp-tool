@@ -13,6 +13,12 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
 
+from rapp.fair.notions import clf_fairness
+from rapp.fair.notions import group_fairness
+from rapp.fair.notions import equality_of_opportunity
+from rapp.fair.notions import predictive_equality
+
+
 class ClassifierReport(object):
 
     def __init__(self, estimators, config_args) -> None:
@@ -28,7 +34,7 @@ class ClassifierReport(object):
         self.estimators = estimators
         self.cf_args = config_args
 
-        self.sensitive = config_args.sensitive_attribute
+        self.sensitive = config_args.sensitive_attributes
 
         self.used_scores = {
             'Accuracy': accuracy_score,
@@ -39,25 +45,46 @@ class ClassifierReport(object):
             'Area under ROC': roc_auc_score,
         }
 
+        self.used_fairnesses = {
+            "Statistical Parity": group_fairness,
+            "Predictive Equality": predictive_equality,
+            "Equality of Opportunity": equality_of_opportunity,
+        }
 
-    def calculate_reports(self, X_train, y_train, X_test, y_test):
+    def calculate_reports(self, X_train, y_train, z_train, X_test, y_test, z_test):
         reports = {}
+        sets = [('train', X_train, y_train, z_train),
+                ('test', X_test, y_test, z_test)]
 
+        for (set_name, X, y, z) in sets:
+            set_rep = self.calculate_set_statistics(X, y, z)
+            reports[set_name] = set_rep
+
+        estimator_reports = {}
         for est in self.estimators:
             est_rep = {}
-            for (set_name, X, y) in [('train', X_train, y_train),
-                                     ('test', X_test, y_test)]:
-                est_rep[set_name] = self.calculate_single_set_report(est, X, y)
-            reports[self.clf_name(est)] = est_rep
+            for (set_name, X, y, z) in sets:
+                est_rep[set_name] = self.calculate_single_set_report(est, X, y, z)
+            estimator_reports[self.clf_name(est)] = est_rep
+        reports['estimators'] = estimator_reports
 
         return reports
-
 
     def clf_name(self, estimator):
         return estimator.__class__.__name__
 
+    def calculate_set_statistics(self, X, y, z):
+        set_stats = {'total': len(y),
+                     'outcomes': {}}
 
-    def calculate_single_set_report(self, estimator, X, y):
+        values = y.unique()
+        for v in values:
+            num = len(y[y == v])
+            set_stats['outcomes'][v] = num
+
+        return set_stats
+
+    def calculate_single_set_report(self, estimator, X, y, z):
         pred = estimator.predict(X)
 
         scorings = {}
@@ -69,6 +96,11 @@ class ClassifierReport(object):
             'tn': tn,
             'fn': fn,
         }
+
+        fairness = {}
+        for notion, fun in self.used_fairnesses.items():
+            fairness[notion] = clf_fairness(estimator, fun, X, y, z, pred)
+        scorings["fairness"] = fairness
 
         return scorings
 

@@ -21,7 +21,6 @@ from sklearn.model_selection import train_test_split
 from rapp.report import ClassifierReport
 
 
-
 class MLPipeline(object):
 
     def __init__(self, args):
@@ -39,19 +38,7 @@ class MLPipeline(object):
         # fill missing values
         self.impute(self.args.imputation)
 
-        # create data
-        self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
-        self.y = self.df[self.args.label_name]
-
-        # transform data, normalization
-        self.transform()
-
-        # feature selection, dimensionality reduction
-        # self.feature_selection(self.args.feature_selection)
-
-        # split datasets
-        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X, self.y,
-                                                                              train_size=0.8, random_state=42)
+        self.prepare_datasets()
 
         # create estimators & train
         if self.args.classifier is not None:
@@ -74,52 +61,75 @@ class MLPipeline(object):
                 ]
             self.train_estimators()
 
-
         report = ClassifierReport(self.estimators, self.args)
-        report_data = report.calculate_reports(self.X_train, self.y_train, self.X_val, self.y_val)
+        report_data = report.calculate_reports(
+            self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
         pp = pprint.PrettyPrinter()
         pp.pprint(report_data)
 
+    def calc_sensitive_attributes(self, X_data):
+        cols = []
+        for i, sensitive in self.args.sensitive_attributes.enumerate():
+            if sensitive in self.args.categorical:
+                col_name = sensitive + '_' + self.args.privileged_groups[i]
 
     def get_estimators(self):
         return self.estimators
 
     def impute(self, method='iterative'):
         # Only impute categorical data
-        self.df[self.args.categorical] = \
-            SimpleImputer(strategy='most_frequent').fit_transform(
-                self.df[self.args.categorical])
+        if self.args.categorical != []:
+            self.df[self.args.categorical] = \
+                SimpleImputer(strategy='most_frequent').fit_transform(
+                    self.df[self.args.categorical])
 
-        # impute non-categorical data
-        if method == 'knn':
-            imputer = KNNImputer(n_neighbors=5, weights='distance')
-        elif method == 'iterative':
-            imputer = IterativeImputer()
-        elif method == 'mean':
-            imputer = SimpleImputer(strategy='mean')
-        elif method == 'median':
-            imputer = SimpleImputer(strategy='median')
-        elif method == 'most_frequent':
-            imputer = SimpleImputer(strategy='most_frequent')
-        else:
-            imputer = KNNImputer(n_neighbors=5, weights='distance')
+            # impute non-categorical data
+            if method == 'knn':
+                imputer = KNNImputer(n_neighbors=5, weights='distance')
+            elif method == 'iterative':
+                imputer = IterativeImputer()
+            elif method == 'mean':
+                imputer = SimpleImputer(strategy='mean')
+            elif method == 'median':
+                imputer = SimpleImputer(strategy='median')
+            elif method == 'most_frequent':
+                imputer = SimpleImputer(strategy='most_frequent')
+            else:
+                imputer = KNNImputer(n_neighbors=5, weights='distance')
 
-        self.df[self.df.columns.difference(self.args.categorical)] \
-            = imputer.fit_transform(self.df[self.df.columns.difference(self.args.categorical)])
+            self.df[self.df.columns.difference(self.args.categorical)] \
+                = imputer.fit_transform(self.df[self.df.columns.difference(self.args.categorical)])
 
-    def transform(self):
-        """
-        Transforms categorical columns to multiple columns (one-hot)
+    def prepare_datasets(self):
+        # create data
+        self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
+        self.y = self.df[self.args.label_name]
 
-        Returns
-        -------
-        None
-        """
+        # Adapt to categorical data.
+        columns = [x for x in self.args.categorical if x !=
+                   self.args.label_name]
+        categorical = pd.get_dummies(data=self.X[columns], columns=columns)
+        self.X = pd.concat([self.X, categorical], axis=1)
+        # For now we kept the original version. This is due to it maybe being a
+        # sensitive attribute as well. These need to be treated differently.
+        # We will fix this below after the train_test_split as to not lose the
+        # relation between sensitive attributes and individuals.
 
-        columns = [x for x in self.args.categorical if x != self.args.label_name]
-        self.X = pd.get_dummies(data=self.X, columns=columns)
+        # feature selection, dimensionality reduction
+        # self.feature_selection(self.args.feature_selection)
 
+        # split datasets
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y,
+                                                                              train_size=0.8, random_state=42)
 
+        # Save protected attribute
+        self.Z_train = self.X_train[self.args.sensitive_attributes]
+        self.Z_test = self.X_test[self.args.sensitive_attributes]
+        # Remove categorical attributes from input features
+        self.X_train = self.X_train.drop(columns, axis=1)
+        self.X_test = self.X_test.drop(columns, axis=1)
+
+        # TODO: Unawareness. If user so desires, drop all info of sensitive attributes.
 
     def feature_selection(self, method='variance'):
         """
@@ -136,7 +146,6 @@ class MLPipeline(object):
         else:
             sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
             self.X = sel.fit_transform(self.X)
-
 
     def train_estimators(self):
         for i in range(len(self.estimators)):
