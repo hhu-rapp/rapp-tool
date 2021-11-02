@@ -35,6 +35,10 @@ class RappConfigParser(object):
                                 required=True)
         parser.add_argument('-c', '--categorical', nargs='+', help='List of categorical columns.',
                                 required=True)
+        parser.add_argument('-i', '--ignore', nargs='+', help='List of columns to ignore.',
+                                required=True)
+        parser.add_argument('--sensitive_attribute', nargs='+', help='List of sensitive attributes',
+                                required=False, default=[])
         parser.add_argument('-t', '--type', type=str, default='classification',
                                 choices=['classification', 'regression'],
                                 help='classification or regression. Default: classification',
@@ -58,10 +62,6 @@ class RappConfigParser(object):
         parser.add_argument('--report_path', type=str, default='',
                                 help='Path destination of report file. If path is given, then the report file will '
                                         'be saved in path/results_report.csv. Note: Relative path to working directory.')
-        parser.add_argument('--plot_confusion_matrix', type=str, default='False',
-                                help='Boolean value whether to plot confusion matrices for each classifier. '
-                                        'Is only applied for classification.',
-                                required=False)
         parser.add_argument('--classifier', type=str, default=None,
                             choices=['RF', 'DT', 'SVM', 'NB', 'LR'],
                             help='If given then --type is ignored. Takes a single classifier to train on. Choices: RF, DT, '
