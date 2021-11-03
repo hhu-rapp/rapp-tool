@@ -1,3 +1,5 @@
+import numpy as np
+
 # Metrics
 # Classification
 from sklearn.metrics import accuracy_score
@@ -46,7 +48,7 @@ class ClassifierReport(object):
             'F1': lambda x, y: f1_score(x, y, average='macro'),
             'Recall': lambda x, y: recall_score(x, y, average='macro'),
             'Precision': lambda x, y: precision_score(x, y, average='macro'),
-            'Area under ROC': roc_auc_score,
+            # 'Area under ROC': lambda x, y: roc_auc_score(x, y, multi_class='ovr')
         }
 
         self.used_fairnesses = {
@@ -93,14 +95,17 @@ class ClassifierReport(object):
 
         scorings = {}
         scorings['scores'] = self.get_score_dict(y, pred)
-        tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
+        C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
+        # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
+        '''
         scorings['confusion_matrix'] = {
             'tp': int(tp),
             'fp': int(fp),
             'tn': int(tn),
             'fn': int(fn),
         }
-
+        '''
+        scorings['confusion_matrix'] = {'C': C.tolist()}
         fairness = {}
         for notion, fun in self.used_fairnesses.items():
             fairness[notion] = clf_fairness(estimator, fun, X, y, z, pred)
@@ -111,7 +116,7 @@ class ClassifierReport(object):
     def get_score_dict(self, y, pred):
         score_dict = {}
         for scoring_name, fun in self.used_scores.items():
-            score_dict[scoring_name] = fun(y, pred)
+            score_dict[scoring_name] = fun(np.round(y).astype(int), np.round(pred).astype(int))
         return score_dict
 
     def write_report(self, report_data, path=None):
@@ -127,6 +132,8 @@ class ClassifierReport(object):
             print(f"Could not write report to {path}:", e)
 
         with open(path+"/report.json", 'w') as r:
+            #print(type(report_data))
+            print(report_data)
             json.dump(report_data, r, indent=2)
 
         for est, data in report_data['estimators'].items():

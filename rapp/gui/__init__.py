@@ -285,13 +285,15 @@ class Window(QMainWindow):
 
         """
         parser = argparse.ArgumentParser(RappConfigParser().parse_args())
+        args = parser.parse_args()
+
         # temporarily save currenty sql query
         sqlQueryTempPath = os.getcwd()+'sqlTemp'+datetime.now().time().strftime("%b-%d-%Y")+'.sql'
         print(sqlQueryTempPath)
         with open(sqlQueryTempPath, "w") as text_file:
             text_file.write(self.sqlTbox.toPlainText())
 
-        args = argparse.Namespace()
+        # args = argparse.Namespace()
         args.filename = db_filepath
         args.sql_filename = sqlQueryTempPath
         args.label_name = self.leName.text()
