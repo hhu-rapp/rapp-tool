@@ -32,6 +32,66 @@ class Explain(object):
             self.explain_dt()
 
     def explain_dt(self):
+        depths = np.arange(1, 8)
+
+        # testing hyperparameter
+        clfs = []
+        for depth in depths:
+            clf = DecisionTreeClassifier(random_state=0, max_depth=depth,
+                                         class_weight="balanced", min_impurity_decrease=0.001)
+            clf.fit(self.X_train, self.y_train)
+            clfs.append(clf)
+
+        acc_scores = [sk.metrics.balanced_accuracy_score(self.y_test, clf.predict(self.X_test)) for clf in clfs]
+
+        # find pareto optima
+        datapoints = np.array([-depths, acc_scores]).T
+        pareto = oapackage.ParetoDoubleLong()
+        for ii in range(0, datapoints.shape[0]):
+            w = oapackage.doubleVector((datapoints[ii, 0], datapoints[ii, 1]))
+            pareto.addvalue(w, ii)
+
+        # list of indexes of pareto optimal solutions
+        lst = pareto.allindices()  # [0]
+
+        self.selected_idx = None
+
+        # user selects pareto-optimal solution
+        def mouse_move(event):
+            x, y = event.xdata, event.ydata
+            if event.dblclick:
+                pareto_points = datapoints[lst, :]
+                dists = np.linalg.norm(np.array([x, y]) - pareto_points, axis=1)
+                self.selected_idx = np.argmin(dists)
+                print(dists)
+                plt.close()
+
+        # scatter pareto optimal solutions
+        plt.connect('motion_notify_event', mouse_move)
+        plt.connect('button_press_event', mouse_move)
+        plt.scatter(datapoints[:, 0], datapoints[:, 1], s=8, c='blue', label='Non Pareto-optimal')
+        plt.scatter(datapoints[lst, 0], datapoints[lst, 1], s=12, c='red', label='Pareto optimal')
+        plt.xlabel('Max Depth')
+        plt.ylabel('Accuracy (balanced)')
+        plt.show()
+
+        # train with selected hyperparameter
+        selected_depth = -datapoints[lst[self.selected_idx], 0]
+        print(selected_depth)
+        clf = DecisionTreeClassifier(random_state=0, class_weight="balanced", min_impurity_decrease=0.001,
+                                     max_depth=selected_depth)
+
+        clf.fit(self.X_train, self.y_train)
+
+        # save estimator into estimators
+        self.estimator = clf
+
+        plt.figure(figsize=(12, 8))
+        plot_tree(clf, feature_names=self.X_train.columns, class_names=["nein", "ja"])
+        plt.show()
+
+
+    def explain_dt_ccpalpha(self):
         # getting hyperparameter space
         ccp_alphas = self.estimator.cost_complexity_pruning_path(self.X_train, self.y_train).ccp_alphas[:-1]
 
