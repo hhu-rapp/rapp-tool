@@ -87,7 +87,8 @@ class Explain(object):
         self.estimator = clf
 
         plt.figure(figsize=(12, 8))
-        plot_tree(clf, feature_names=self.X_train.columns, class_names=["nein", "ja"])
+        print(clf.classes_)
+        plot_tree(clf, feature_names=self.X_train.columns, class_names=list(map(str, clf.classes_)))
         plt.show()
 
 
