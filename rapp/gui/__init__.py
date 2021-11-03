@@ -4,7 +4,7 @@ from datetime import datetime
 import argparse
 
 # rapp
-from rapp.parser import parse_rapp_args
+from rapp.parser import RappConfigParser
 from rapp.pipeline import MLPipeline
 
 from rapp import data
@@ -20,6 +20,7 @@ from rapp.gui.dbview import DataView
 from rapp.gui.menubar import MenuBar
 
 db_filepath = "data/rapp.db"
+
 
 class DataFrameModel(QtCore.QAbstractTableModel):
     """
@@ -283,9 +284,7 @@ class Window(QMainWindow):
         -------
 
         """
-        parser = argparse.ArgumentParser()
-        parser = parse_rapp_args(parser)
-
+        parser = argparse.ArgumentParser(RappConfigParser().parse_args())
         # temporarily save currenty sql query
         sqlQueryTempPath = os.getcwd()+'sqlTemp'+datetime.now().time().strftime("%b-%d-%Y")+'.sql'
         print(sqlQueryTempPath)

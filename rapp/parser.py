@@ -10,10 +10,8 @@ class RappConfigParser(object):
     def __init__(self):
         self.parser = self.setup_parser()
 
-
     def parse_args(self):
         return self.parser.parse_args()
-
 
     def setup_parser(self):
         """
