@@ -1,0 +1,26 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{booktabs}
+\usepackage{subcaption}
+
+\begin{document}
+
+\section{Overview}
+
+tbd.
+
+{{#estimators}}
+\section{ {{estimator_name}} }
+
+\subsection{Vorhersagemessungen}
+{{{metrics_table}}}
+
+\subsection{Fairness}
+{{{fairness_evaluation}}}
+{{/estimators}}
+
+
+\end{document}

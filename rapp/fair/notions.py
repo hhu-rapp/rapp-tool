@@ -25,7 +25,7 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
     fairness: Fairness function from `rapp.fair.notions`.
     X: Feature values of the input data, assumed as Pandas data frame.
     y: Ground-truth labels of the input data.
-    Z: Dataframe of sensitive attributes for input data.
+    Z: Sensitive attributes for input data.
     pred: (default=None)
         Predictions from classifier for X. If `pred=None`, `clf.predict(X)` will be called.
     fav_label: (default=1)
@@ -38,13 +38,10 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
     if pred is None:
         pred = clf.predict(X)
 
-    fair_results = {}
-    for c in Z.columns:
-        fair_results[c] = {}
-        fair_results[c]['outcomes'] = fairness(X, y, Z[c], pred, fav_label)
+    fair_results = fairness(X, y, Z, pred, fav_label)
 
 
-    return fair_results
+    return {'outcomes': fair_results}
 
 
 def __get_confusion_matrix(y_true, y_pred):

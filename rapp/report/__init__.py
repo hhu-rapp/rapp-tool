@@ -21,6 +21,7 @@ import os
 import json
 
 from datetime import datetime
+from rapp.report import latex
 
 
 class ClassifierReport(object):
@@ -46,7 +47,7 @@ class ClassifierReport(object):
             'F1': lambda x, y: f1_score(x, y, average='macro'),
             'Recall': lambda x, y: recall_score(x, y, average='macro'),
             'Precision': lambda x, y: precision_score(x, y, average='macro'),
-            'Area under ROC': roc_auc_score,
+            'Area under Curve': roc_auc_score,
         }
 
         self.used_fairnesses = {
@@ -102,8 +103,11 @@ class ClassifierReport(object):
         }
 
         fairness = {}
-        for notion, fun in self.used_fairnesses.items():
-            fairness[notion] = clf_fairness(estimator, fun, X, y, z, pred)
+        for group in z.columns:
+            fairness[group] = {}
+            for notion, fun in self.used_fairnesses.items():
+                fairness[group][notion] = \
+                    clf_fairness(estimator, fun, X, y, z[group], pred)
         scorings["fairness"] = fairness
 
         return scorings
@@ -128,6 +132,10 @@ class ClassifierReport(object):
 
         with open(path+"/report.json", 'w') as r:
             json.dump(report_data, r, indent=2)
+
+        with open(path+"/report.tex", 'w') as f:
+            tex = latex.tex_classification_report(report_data)
+            f.write(tex)
 
         for est, data in report_data['estimators'].items():
             self.write_classifier_report(est, data, path)
