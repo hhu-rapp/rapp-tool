@@ -1,0 +1,14 @@
+\begin{table}[ht]
+  \centering
+  \caption{Performance-Messungen für {{title}}. }
+
+  \begin{tabular}{lrr}
+    \toprule
+    \bf Metric & \bf Train & \bf Test \\
+    \midrule
+    {{#metrics}}
+      {{name}} & {{train}} & {{test}} \\
+    {{/metrics}}
+    \bottomrule
+  \end{tabular}
+\end{table}
