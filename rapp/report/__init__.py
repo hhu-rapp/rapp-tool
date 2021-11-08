@@ -95,7 +95,8 @@ class ClassifierReport(object):
 
         scorings = {}
         scorings['scores'] = self.get_score_dict(y, pred)
-        C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
+        C = confusion_matrix(y, pred)
+        #C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
         # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
         '''
         scorings['confusion_matrix'] = {
@@ -116,7 +117,7 @@ class ClassifierReport(object):
     def get_score_dict(self, y, pred):
         score_dict = {}
         for scoring_name, fun in self.used_scores.items():
-            score_dict[scoring_name] = fun(np.round(y).astype(int), np.round(pred).astype(int))
+            score_dict[scoring_name] = fun(y, pred)
         return score_dict
 
     def write_report(self, report_data, path=None):

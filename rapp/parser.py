@@ -1,5 +1,4 @@
 # RAPP_Prediction library
-from rapp.pipeline import MLPipeline
 
 # system
 import configargparse
