@@ -7,9 +7,9 @@
     \subcaption{Trainingset}
     \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
       \toprule
-      & \multicolumn{2}{c}{\bf {{group}} } \\
+      & \multicolumn{2}{c}{ {{group}} } \\
       \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
-      \bf Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& \bf Diff.{{/has_diff}} \\
+      Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
       \midrule
       {{#notions}}
       {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\
@@ -19,14 +19,15 @@
   \end{subtable}
   {{/train}}
   {{#test}}
+  \par\bigskip
   \begin{subtable}{\linewidth}
     \centering
     \subcaption{Testset}
     \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
       \toprule
-      & \multicolumn{2}{c}{\bf {{group}} } \\
+      & \multicolumn{2}{c}{ {{group}} } \\
       \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
-      \bf Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& \bf Diff.{{/has_diff}} \\
+      Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
       \midrule
       {{#notions}}
       {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\

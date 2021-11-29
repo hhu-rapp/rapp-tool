@@ -10,7 +10,6 @@ def tex_dataset_report(report):
     #                 'group_size': int,
     #                 'start_column': int,
     #                 'end_column': int,
-    #                 'group_total': int,
     #                 'subgroups': list({'sub_name': str, 'sub_count': int})}),
     #  'labels': list({'label': any,
     #                  'label_total': int,
@@ -29,7 +28,6 @@ def tex_dataset_report(report):
         start_col_counter = 2
         for group in dataset["groups"].keys():
             group_data = {'group_name': group,
-                          'group_total': dataset["total"],
                           'subgroups': []}
             for sub in dataset["groups"][group].keys():
                 sub_data = {
@@ -37,7 +35,7 @@ def tex_dataset_report(report):
                     "sub_count": dataset["groups"][group][sub]["total"]
                 }
                 group_data["subgroups"].append(sub_data)
-            group_data["size"] = len(group_data["subgroups"])+1 # +1 for all-column
+            group_data["size"] = len(group_data["subgroups"])
             group_data["start_column"] = start_col_counter
             group_data["end_column"] = start_col_counter + group_data["size"] -1
             start_col_counter = group_data["end_column"] + 1
