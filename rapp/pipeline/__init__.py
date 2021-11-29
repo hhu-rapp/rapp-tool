@@ -1,5 +1,3 @@
-# RAPP_Prediction library
-
 import sqlite3
 import pandas as pd
 
@@ -17,6 +15,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 from rapp.report import ClassifierReport
+from rapp.pipeline import training
 
 
 class MLPipeline(object):
@@ -58,6 +57,11 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
             self.train_estimators()
+
+        # Create a dictionary yielding possibly additionally trained models
+        # for each classifier. List of additional models can be empty.
+        self.additional_models = \
+            dict(map(lambda clf: (clf, []), self.estimators, ))
 
         report = ClassifierReport(self.estimators, self.args)
 
@@ -147,5 +151,8 @@ class MLPipeline(object):
             self.X = sel.fit_transform(self.X)
 
     def train_estimators(self):
-        for i in range(len(self.estimators)):
-            self.estimators[i].fit(self.X_train, self.y_train)
+        for est in self.estimators:
+            est.fit(self.X_train, self.y_train)
+
+            training.get_additional_models(
+                est, self.X_train, self.y_train, self.X_test, self.y_test)
