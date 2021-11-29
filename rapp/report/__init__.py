@@ -71,7 +71,8 @@ class ClassifierReport(object):
         for est in self.estimators:
             est_rep = {}
             for (set_name, X, y, z) in sets:
-                est_rep[set_name] = self.calculate_single_set_report(est, X, y, z)
+                est_rep[set_name] = self.calculate_single_set_report(
+                    est, X, y, z)
             estimator_reports[self.clf_name(est)] = est_rep
         reports['estimators'] = estimator_reports
 
@@ -82,12 +83,25 @@ class ClassifierReport(object):
 
     def calculate_set_statistics(self, X, y, z):
         set_stats = {'total': len(y),
-                     'outcomes': {}}
+                     'outcomes': {},
+                     'groups': {}}
 
         values = y.unique()
         for v in values:
             num = len(y[y == v])
             set_stats['outcomes'][v] = num
+
+        for g in z.columns:
+            group_stats = {}
+            for gvalue in z[g].unique():
+                data = y[z[g] == gvalue]
+                group_stats[gvalue] = {'total': len(data),
+                                        'outcomes': {}}
+                for v in values:
+                    num = len(data[y == v])
+                    group_stats[gvalue]['outcomes'][v] = num
+            set_stats['groups'][g] = group_stats
+
 
         return set_stats
 
@@ -97,7 +111,7 @@ class ClassifierReport(object):
         scorings = {}
         scorings['scores'] = self.get_score_dict(y, pred)
         C = confusion_matrix(y, pred)
-        #C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
+        # C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
         # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
         '''
         scorings['confusion_matrix'] = {

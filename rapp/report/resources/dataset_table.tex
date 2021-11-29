@@ -1,0 +1,34 @@
+\begin{table}[ht]
+  \caption{Überblick über den Datensatz.}
+  {{#modes}}
+  \begin{subtable}{\linewidth}
+    \centering
+    \subcaption{ {{mode}}set}
+    \begin{tabular}{r{{#groups}}r{{#subgroups}}r{{/subgroups}}{{/groups}}r}
+      \toprule
+      {{#groups}}&\multicolumn{ {{size}} }{c}{ {{group_name}} }{{/groups}}&\\
+      {{#groups}}\cmidrule(lr){ {{start_column}}-{{end_column}} }{{/groups}}
+      Labels
+        {{#groups}}
+        & all {{#subgroups}}& {{sub_name}}{{/subgroups}}{{/groups}}
+        & \(\Sigma\)\\
+      \midrule
+      all
+        {{#groups}}
+        & {{group_total}} % Do we need this entry?
+        {{#subgroups}}& {{sub_count}}{{/subgroups}}{{/groups}}
+        & {{total}}\\
+      {{#labels}}
+      {{label}}
+        {{#label_groups}}
+        & {{label_group_total}}
+        {{#label_subgroups}}
+        & {{label_sub_count}}{{/label_subgroups}}{{/label_groups}}
+        & {{label_total}}\\
+      {{/labels}}
+      \bottomrule
+    \end{tabular}
+  \end{subtable}
+  \par\bigskip
+  {{/modes}}
+\end{table}
