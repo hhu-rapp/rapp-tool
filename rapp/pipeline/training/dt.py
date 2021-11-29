@@ -44,7 +44,8 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         tree-depth vs. scoring method.
     """
 
-    alphas = estimator.cost_complexity_pruning_path(X_train, y_train)["ccp_alphas"]
+    ccp_path = estimator.cost_complexity_pruning_path(X_train, y_train)
+    alphas = ccp_path["ccp_alphas"][:-1]
 
     models = []
     for alpha in alphas:

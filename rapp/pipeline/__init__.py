@@ -40,7 +40,6 @@ class MLPipeline(object):
         # create estimators & train
         if self.args.classifier is not None:
             self.estimators = [models.get(self.args.classifier)]
-            self.train_estimators()
         else:
             if self.args.type == 'classification':
                 self.estimators = [
@@ -56,14 +55,11 @@ class MLPipeline(object):
                     models.get_regressor('EL'),
                     models.get_regressor('BR'),
                 ]
-            self.train_estimators()
 
-        # Create a dictionary yielding possibly additionally trained models
-        # for each classifier. List of additional models can be empty.
-        self.additional_models = \
-            dict(map(lambda clf: (clf, []), self.estimators, ))
+        self.train_estimators()
+        self.train_additional_models()
 
-        report = ClassifierReport(self.estimators, self.args)
+        report = ClassifierReport(self.estimators, self.args, self.additional_models)
 
         report_data = report.calculate_reports(
             self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
@@ -154,5 +150,13 @@ class MLPipeline(object):
         for est in self.estimators:
             est.fit(self.X_train, self.y_train)
 
-            training.get_additional_models(
-                est, self.X_train, self.y_train, self.X_test, self.y_test)
+    def train_additional_models(self):
+        # Create a dictionary yielding possibly additionally trained models
+        # for each classifier. List of additional models can be empty.
+        self.additional_models = \
+            dict(map(lambda clf: (clf, []), self.estimators, ))
+
+        for est in self.estimators:
+            self.additional_models[est] = \
+                training.get_additional_models(
+                    est, self.X_train, self.y_train, self.X_test, self.y_test)

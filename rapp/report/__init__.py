@@ -28,18 +28,31 @@ from rapp.report import latex
 
 class ClassifierReport(object):
 
-    def __init__(self, estimators, config_args) -> None:
+    def __init__(self, estimators, config_args, additional_models={}) -> None:
         """
         Parameters
         ----------
         estimators: list of already trained classifiers.
 
         config_args: Parser arguments from parser.RappConfigParser.
+
+        additional_models : dict
+            Dictionary with estimators as keys. Behind each key is a list of
+            {'model': trained_model, ...} dictionaries which where additionally
+            trained for the key estimator.
+            Lists might be empty.
         """
         super().__init__()
 
         self.estimators = estimators
         self.cf_args = config_args
+
+        # Ensure that additional_models has each estimator as key.
+        for est in estimators:
+            if est not in additional_models.keys():
+                additional_models[est] = []
+
+        self.additional_models = additional_models
 
         self.sensitive = config_args.sensitive_attributes
 
@@ -73,6 +86,17 @@ class ClassifierReport(object):
             for (set_name, X, y, z) in sets:
                 est_rep[set_name] = self.calculate_single_set_report(
                     est, X, y, z)
+            # Also do this for any additionally trained classifiers.
+            est_rep["additional_models"] = []
+            for add_est in self.additional_models[est]:
+                add_info = {key: add_est[key] for key in add_est
+                            if key != 'model'}
+                # Measure performances as well
+                for (set_name, X, y, z) in sets:
+                    add_info[set_name] = self.calculate_single_set_report(
+                        add_est['model'], X, y, z)
+                est_rep["additional_models"].append(add_info)
+
             estimator_reports[self.clf_name(est)] = est_rep
         reports['estimators'] = estimator_reports
 
@@ -96,12 +120,11 @@ class ClassifierReport(object):
             for gvalue in z[g].unique():
                 data = y[z[g] == gvalue]
                 group_stats[gvalue] = {'total': len(data),
-                                        'outcomes': {}}
+                                       'outcomes': {}}
                 for v in values:
                     num = len(data[y == v])
                     group_stats[gvalue]['outcomes'][v] = num
             set_stats['groups'][g] = group_stats
-
 
         return set_stats
 
