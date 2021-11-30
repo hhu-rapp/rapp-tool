@@ -14,7 +14,8 @@ def tex_performance(estimator, results):
                 }
         metrics.append(res)
     mtbl = chevron.render(mtbl, {'metrics': metrics,
-                                    'title': estimator})
+                                 'title': estimator,
+                                 'label': results.get('label', False)})
     return mtbl
 
 
@@ -79,6 +80,7 @@ def tex_fairness(estimator, data):
                 group_dict[set]['notions'].append(notion_dict)
         fairness['groups'].append(group_dict)
 
+    fairness['label'] = data.get('label', False)
     tex = rc.get_text("fairness_table.tex")
     tex = chevron.render(tex, fairness)
     return tex

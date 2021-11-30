@@ -30,6 +30,12 @@
 {{#pareto_front}}
 \clearpage
 \subsubsection{ {{title}} }
+\Cref{tab:{{label}}-performance} zeigt die Klassifikations-Performance.
+Die Fairness-Ergebnisse sind in
+\cref{%
+  {{#fairness_groups}}tab:{{label}}-{{group}}-fairness,{{/fairness_groups}}%
+  }
+
 {{{performance_table}}}
 {{{fairness_table}}}
 {{/pareto_front}}

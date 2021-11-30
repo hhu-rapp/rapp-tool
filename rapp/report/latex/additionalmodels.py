@@ -71,14 +71,21 @@ def tex_ccp(model_data):
 
     pareto_mustache = []
     for pareto in pareto_front:
-        estimator = rf"DecisionTreeClassifier (\(\alpha={pareto['alpha']}\))"
+        alpha = pareto['alpha']
+        estimator = rf"DecisionTreeClassifier (\(\alpha={alpha}\))"
+        pareto["label"] = rf"dt-{alpha}"
         performance = tex_performance(estimator, pareto)
         fairness = tex_fairness(estimator, pareto)
+
+        fairness_groups = [{'group': group}
+                           for group in pareto["train"]["fairness"].keys()]
 
         pareto_mustache.append({
             "title": estimator,
             "performance_table": performance,
-            "fairness_table": fairness
+            "fairness_table": fairness,
+            "fairness_groups": fairness_groups,
+            "label": pareto["label"]
         })
 
     mustache["pareto_front"] = pareto_mustache
