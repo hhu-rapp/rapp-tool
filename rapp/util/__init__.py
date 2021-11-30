@@ -15,6 +15,6 @@ def pareto_front(costs):
     # Adapted from https://stackoverflow.com/a/40239615
     is_efficient = np.ones(costs.shape[0], dtype = bool)
     for i, c in enumerate(costs):
-        is_efficient[i] = np.all(np.any(costs[:i]<=c, axis=1)) and np.all(np.any(costs[i+1:]<=c, axis=1))
+        is_efficient[i] = np.all(np.any(costs[:i]<=c, axis=1)) and np.all(np.any(costs[i+1:]<c, axis=1))
     idxs, = np.nonzero(is_efficient)
     return idxs
