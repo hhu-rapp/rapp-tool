@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import os
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
@@ -58,6 +59,12 @@ class MLPipeline(object):
 
         self.train_estimators()
         self.train_additional_models()
+
+        if self.args.report_path is None:
+            sql_base_name = os.path.splitext(
+                os.path.basename(self.args.sql_filename))[0]
+            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
+            self.args.report_path = f"reports/{sql_base_name}/"
 
         report = ClassifierReport(self.estimators, self.args, self.additional_models)
 

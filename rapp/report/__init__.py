@@ -1,5 +1,3 @@
-import numpy as np
-
 # Metrics
 # Classification
 from sklearn.metrics import accuracy_score
@@ -22,7 +20,6 @@ from rapp.fair.notions import predictive_equality
 import os
 import json
 
-from datetime import datetime
 from rapp.report import latex
 
 
@@ -163,10 +160,7 @@ class ClassifierReport(object):
 
     def write_report(self, report_data, path=None):
         if path is None:
-            sql_base_name = os.path.splitext(
-                os.path.basename(self.cf_args.sql_filename))[0]
-            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
-            path = f"reports/{sql_base_name}-testing/"
+            path = self.cf_args.report_path
 
         try:
             os.makedirs(path, exist_ok=True)
