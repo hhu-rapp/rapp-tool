@@ -82,27 +82,34 @@ def tex_classification_report(report):
 
     for estimator, results in report["estimators"].items():
         est_dict = {'estimator_name': estimator}
-        # Metrics table
-        mtbl = rc.get_text("metrics_table.tex")
-        metrics = []
-        for m in results["train"]["scores"].keys():
-            res = {'name': m,
-                   'train': f"{results['train']['scores'][m]:.3f}",
-                   'test': f"{results['test']['scores'][m]:.3f}",
-                   }
-            metrics.append(res)
-        mtbl = chevron.render(mtbl, {'metrics': metrics,
-                                     'title': estimator})
+
+        mtbl = tex_performance(estimator, results)
+        est_dict['metrics_table'] = mtbl
 
         fair = tex_fairness(estimator, results)
         est_dict['fairness_evaluation'] = fair
 
-        est_dict['metrics_table'] = mtbl
         mustache['estimators'].append(est_dict)
 
     tex = rc.get_text("report.tex")
     tex = chevron.render(tex, mustache)
     return tex
+
+
+def tex_performance(estimator, results):
+    # Metrics table
+    mtbl = rc.get_text("metrics_table.tex")
+    metrics = []
+    for m in results["train"]["scores"].keys():
+        res = {'name': m,
+                'train': f"{results['train']['scores'][m]:.3f}",
+                'test': f"{results['test']['scores'][m]:.3f}",
+                }
+        metrics.append(res)
+    mtbl = chevron.render(mtbl, {'metrics': metrics,
+                                    'title': estimator})
+    return mtbl
+
 
 
 def tex_fairness(estimator, data):
