@@ -23,16 +23,20 @@ def _default_dispatch(additional_model_info):
     return ""
 
 
-def tex_additional_models(model_name, additional_model_data: list):
+def tex_additional_models(model_name, additional_model_data: list,
+                          feature_names=None, class_names=None):
     global dispatcher
 
     if len(additional_model_data) == 0:
         return ""
 
-    return dispatcher.get(model_name, _default_dispatch)(additional_model_data)
+    return dispatcher.get(model_name, _default_dispatch)(
+        additional_model_data,
+        feature_names,
+        class_names)
 
 
-def tex_ccp(model_data):
+def tex_ccp(model_data, feature_names=None, class_names=None):
     """
     Translates the additional model data from cost-complexity pruning
     of a DecisionTreeClassifier into LaTeX code.
@@ -101,7 +105,9 @@ def tex_ccp(model_data):
         if graphviz_installed and "save_path" in pareto:
             clf_path = pareto["save_path"]["full"]
             clf: DecisionTreeClassifier = joblib.load(clf_path)
-            dot = tree.export_graphviz(clf)
+            dot = tree.export_graphviz(clf,
+                                       feature_names=feature_names,
+                                       class_names=class_names)
 
             graph = graphviz.Source(dot)
             graph.format = "pdf"

@@ -68,8 +68,14 @@ class MLPipeline(object):
         self.train_estimators()
         self.train_additional_models()
 
+        feature_names = self.X_train.columns
+        class_names = sorted(self.y_train.unique())
+        if len(class_names) == 2:
+            class_names = ["Nein", "Ja"]
+
         report = ClassifierReport(
-            self.estimators, self.args, self.additional_models)
+            self.estimators, self.args, self.additional_models,
+            feature_names=feature_names, class_names=class_names)
 
         report_data = report.calculate_reports(
             self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)

@@ -40,7 +40,8 @@ def tex_dataset_report(report):
                 group_data["subgroups"].append(sub_data)
             group_data["size"] = len(group_data["subgroups"])
             group_data["start_column"] = start_col_counter
-            group_data["end_column"] = start_col_counter + group_data["size"] -1
+            group_data["end_column"] = start_col_counter + \
+                group_data["size"] - 1
             start_col_counter = group_data["end_column"] + 1
             groups.append(group_data)
 
@@ -69,9 +70,9 @@ def tex_dataset_report(report):
             labels.append(label_data)
 
         mode_data = {"mode": mode.capitalize(),
-                    "total": dataset["total"],
-                    "groups": groups,
-                    "labels": labels}
+                     "total": dataset["total"],
+                     "groups": groups,
+                     "labels": labels}
         mustache["modes"].append(mode_data)
 
     template = rc.get_text("dataset_table.tex")
@@ -79,7 +80,7 @@ def tex_dataset_report(report):
     return tex
 
 
-def tex_classification_report(report):
+def tex_classification_report(report, feature_names=None, class_names=None):
     mustache = {'estimators': [],
                 'datasets': tex_dataset_report(report)}
 
@@ -94,7 +95,8 @@ def tex_classification_report(report):
 
         add_models = results.get("additional_models", [])
         est_dict["additional_model_info"] = \
-            tex_additional_models(estimator, add_models)
+            tex_additional_models(estimator, add_models,
+                                  feature_names, class_names)
 
         mustache['estimators'].append(est_dict)
 

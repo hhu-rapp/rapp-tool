@@ -25,7 +25,9 @@ from rapp.report import latex
 
 class ClassifierReport(object):
 
-    def __init__(self, estimators, config_args, additional_models={}) -> None:
+    def __init__(self, estimators, config_args, additional_models={},
+                 feature_names=None,
+                 class_names=None) -> None:
         """
         Parameters
         ----------
@@ -33,16 +35,25 @@ class ClassifierReport(object):
 
         config_args: Parser arguments from parser.RappConfigParser.
 
-        additional_models : dict
+        additional_models : dict, optional
             Dictionary with estimators as keys. Behind each key is a list of
             {'model': trained_model, ...} dictionaries which where additionally
             trained for the key estimator.
             Lists might be empty.
+
+        feature_names: list(str), optional
+            Names of the features in order used to train the estimators.
+
+        class_names: list(str), optional
+            Names of the classes in order predicted by the estimators.
         """
         super().__init__()
 
         self.estimators = estimators
         self.cf_args = config_args
+
+        self.features = feature_names
+        self.classes = class_names
 
         # Ensure that additional_models has each estimator as key.
         for est in estimators:
@@ -171,7 +182,8 @@ class ClassifierReport(object):
             json.dump(report_data, r, indent=2)
 
         with open(path+"/report.tex", 'w') as f:
-            tex = latex.tex_classification_report(report_data)
+            tex = latex.tex_classification_report(report_data,
+                                                  self.features, self.classes)
             f.write(tex)
 
         for est, data in report_data['estimators'].items():
