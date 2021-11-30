@@ -34,7 +34,6 @@ class MLPipeline(object):
             # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
             self.args.report_path = f"reports/{sql_base_name}/"
 
-
         # reading and quering database
         con = sqlite3.connect(self.args.filename)
         with open(self.args.sql_filename) as f:
@@ -69,7 +68,8 @@ class MLPipeline(object):
         self.train_estimators()
         self.train_additional_models()
 
-        report = ClassifierReport(self.estimators, self.args, self.additional_models)
+        report = ClassifierReport(
+            self.estimators, self.args, self.additional_models)
 
         report_data = report.calculate_reports(
             self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
@@ -161,13 +161,12 @@ class MLPipeline(object):
             est.fit(self.X_train, self.y_train)
 
             # Save model
-            target_path = os.path.join(self.args.report_path,  est.__class__.__name__)
+            target_path = os.path.join(
+                self.args.report_path,  est.__class__.__name__)
             os.makedirs(target_path, exist_ok=True)
             model_path = os.path.join(target_path, "model.joblib")
 
             joblib.dump(est, model_path)
-
-
 
     def train_additional_models(self):
         # Create a dictionary yielding possibly additionally trained models
@@ -189,10 +188,10 @@ class MLPipeline(object):
                 save = m.get('save_model', True)
                 if save:
                     model = m["model"]
-                    path = os.path.join(self.args.report_path,
-                                est.__class__.__name__,
-                                "additional_models",
-                                f"{id}.joblib")
+                    rel_path = os.path.join(est.__class__.__name__,
+                                            "additional_models",
+                                            f"{id}.joblib")
+                    path = os.path.join(self.args.report_path, rel_path)
                     os.makedirs(os.path.dirname(path), exist_ok=True)
                     joblib.dump(model, path)
-                    m["save_path"] = path
+                    m["save_path"] = {"full": path, "relative": rel_path}

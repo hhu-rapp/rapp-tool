@@ -6,7 +6,14 @@ into TeX files.
 # Note: The dispatcher is at the bottom of the file.
 # If you need to introduce another call, add it there.
 
+import os
 import chevron
+from graphviz.backend.execute import ExecutableNotFound
+import joblib
+import graphviz
+
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
 
 import rapp.report.resources as rc
 from rapp.report.latex.tables import tex_performance, tex_fairness
@@ -69,6 +76,15 @@ def tex_ccp(model_data):
     pareto_front = sorted(pareto_front,
                           key=lambda p: p["alpha"])
 
+    # Check whether we can create graphviz trees.
+    graphviz_installed = False
+    try:
+        graphviz.version()
+        graphviz_installed = True
+    except ExecutableNotFound:
+        # Todo: Proper logging
+        print("Not able to visualise decision trees. Make sure Graphviz is installed.")
+
     pareto_mustache = []
     for pareto in pareto_front:
         alpha = pareto['alpha']
@@ -80,12 +96,30 @@ def tex_ccp(model_data):
         fairness_groups = [{'group': group}
                            for group in pareto["train"]["fairness"].keys()]
 
+        # Plot the tree.
+        figure = None
+        if graphviz_installed and "save_path" in pareto:
+            clf_path = pareto["save_path"]["full"]
+            clf: DecisionTreeClassifier = joblib.load(clf_path)
+            dot = tree.export_graphviz(clf)
+
+            graph = graphviz.Source(dot)
+            graph.format = "pdf"
+            outfile = os.path.join(os.path.dirname(clf_path),
+                                   f'{pareto["id"]}.pdf')
+            graph.render(outfile=outfile)
+            figure = os.path.join(
+                os.path.dirname(pareto["save_path"]["relative"]),
+                f'{pareto["id"]}.pdf')
+
         pareto_mustache.append({
             "title": estimator,
+            "titel": estimator,
             "performance_table": performance,
             "fairness_table": fairness,
             "fairness_groups": fairness_groups,
-            "label": pareto["label"]
+            "label": pareto["label"],
+            "figure": figure
         })
 
     mustache["pareto_front"] = pareto_mustache

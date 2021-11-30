@@ -35,7 +35,22 @@ Die Fairness-Ergebnisse sind in
 \cref{%
   {{#fairness_groups}}tab:{{label}}-{{group}}-fairness,{{/fairness_groups}}%
   }
+{{#figure}}
+Der trainierte Baum ist in \cref{fig:{{label}}-tree} abgebildet.
+{{/figure}}
+
 
 {{{performance_table}}}
 {{{fairness_table}}}
+
+{{#figure}}
+\begin{figure}
+  {{=<< >>=}}
+  \includegraphics[width=\linewidth]{<<figure>>}
+  <<={{ }}=>>
+  \caption{Trainierter Entscheidungsbaum für {{titel}}.}
+  \label{fig:{{label}}-tree}
+\end{figure}
+{{/figure}}
+
 {{/pareto_front}}
