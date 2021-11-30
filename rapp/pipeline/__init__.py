@@ -68,7 +68,7 @@ class MLPipeline(object):
         self.train_estimators()
         self.train_additional_models()
 
-        feature_names = self.X_train.columns
+        feature_names = list(self.X_train.columns)
         class_names = sorted(self.y_train.unique())
         if len(class_names) == 2:
             class_names = ["Nein", "Ja"]

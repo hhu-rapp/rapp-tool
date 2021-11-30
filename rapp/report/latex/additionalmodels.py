@@ -102,21 +102,30 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
 
         # Plot the tree.
         figure = None
-        if graphviz_installed and "save_path" in pareto:
+        if "save_path" in pareto:
             clf_path = pareto["save_path"]["full"]
             clf: DecisionTreeClassifier = joblib.load(clf_path)
-            dot = tree.export_graphviz(clf,
-                                       feature_names=feature_names,
-                                       class_names=class_names)
 
-            graph = graphviz.Source(dot)
-            graph.format = "pdf"
-            outfile = os.path.join(os.path.dirname(clf_path),
-                                   f'{pareto["id"]}.pdf')
-            graph.render(outfile=outfile)
-            figure = os.path.join(
-                os.path.dirname(pareto["save_path"]["relative"]),
-                f'{pareto["id"]}.pdf')
+            if graphviz_installed:
+                dot = tree.export_graphviz(clf,
+                                        feature_names=feature_names,
+                                        class_names=class_names)
+
+                graph = graphviz.Source(dot)
+                graph.format = "pdf"
+                outfile = os.path.join(os.path.dirname(clf_path),
+                                    f'{pareto["id"]}.pdf')
+                graph.render(outfile=outfile)
+                figure = os.path.join(
+                    os.path.dirname(pareto["save_path"]["relative"]),
+                    f'{pareto["id"]}.pdf')
+            else:
+                graph = tree.export_text(clf,
+                                        feature_names=feature_names)
+                outfile = os.path.join(os.path.dirname(clf_path),
+                                    f'{pareto["id"]}.txt')
+                with open(outfile, 'w+') as f:
+                    f.write(graph)
 
         pareto_mustache.append({
             "title": estimator,
