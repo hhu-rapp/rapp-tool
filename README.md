@@ -22,6 +22,10 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
+Optionally, if visualisation of decision trees or alike is needed,
+make sure that [Graphviz](https://graphviz.org/download/) is installed on your
+system.
+
 ### Required Files
 
 The `superx` database is to be positioned in the `data` directory:
@@ -45,6 +49,7 @@ python -m rapp --config-file settings/pipeline/config.ini
 ```
 
 ### Explainable AI (Decision Tree)
+
 Example configuration files for the explainability modules are located in `settings/explain/`. To run the prediction and get xAI results, execute
 
 ```bash
