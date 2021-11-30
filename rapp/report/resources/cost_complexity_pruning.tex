@@ -1,0 +1,35 @@
+\subsection{Cost Complexity Pruning}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel=Baumtiefe,
+      ylabel=Balanced Accuracy,
+      legend style={anchor=south west, at={(0.04,0.04)}}
+    ]
+      \addplot+[only marks] coordinates {
+        {{#nonpareto_coords}}
+        ({{depth}}, {{performance}})
+        {{/nonpareto_coords}}
+      };
+      \addplot+[only marks] coordinates {
+        {{#pareto_coords}}
+        ({{depth}}, {{performance}}) % alpha={{alpha}}
+        {{/pareto_coords}}
+      };
+      \legend{,Paretofront}
+
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Übersicht der verschiedenen Baumtiefen und Performance-Werte
+    im CCP für verschiedene \(\alpha\)-Werte. Die Paretofront ist
+    hervorgehoben.}
+\end{figure}
+
+{{#pareto_front}}
+\clearpage
+\subsubsection{ {{title}} }
+{{{performance_table}}}
+{{{fairness_table}}}
+{{/pareto_front}}

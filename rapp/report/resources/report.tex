@@ -10,13 +10,19 @@
 \usepackage{csquotes}
 \MakeOuterQuote{"}
 
+\usepackage{tikz}
+\usepackage{pgfplots}
+
 \begin{document}
+
+\tableofcontents
 
 \section{Overview}
 
 {{{datasets}}}
 
 {{#estimators}}
+\clearpage
 \section{ {{estimator_name}} }
 
 \subsection{Vorhersagemessungen}
@@ -24,6 +30,8 @@
 
 \subsection{Fairness}
 {{{fairness_evaluation}}}
+
+{{{additional_model_info}}}
 {{/estimators}}
 
 

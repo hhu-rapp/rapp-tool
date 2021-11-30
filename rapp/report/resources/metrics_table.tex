@@ -1,7 +1,9 @@
 \begin{table}[ht]
   \centering
   \caption{Performance-Messungen für {{title}}. }
-
+  {{#label}}
+  \label{tab:{{label}}-fairness}
+  {{/label}}
   \begin{tabular}{lrr}
     \toprule
     Metric & Train & Test \\

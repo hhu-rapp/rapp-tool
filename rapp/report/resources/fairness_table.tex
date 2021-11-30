@@ -1,6 +1,9 @@
 {{#groups}}
 \begin{table}[ht]
-  \caption{Fairness-Messung über die Gruppe "{{group}}"}
+  \caption{Fairness-Messung über die Gruppe "{{group}}"}%
+  {{#label}}
+  \label{tab:{{label}}-fairness}
+  {{/label}}
   {{#train}}
   \begin{subtable}{\linewidth}
     \centering
