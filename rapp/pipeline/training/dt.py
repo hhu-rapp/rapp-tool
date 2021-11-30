@@ -58,6 +58,7 @@ def cost_complexity_pruning(estimator, X_train, y_train,
             'model': clf,
             'alpha': alpha,
             'depth': clf.tree_.max_depth,
+            'save_model': False,
             'pareto_front': False  # Will be correctly set below.
         }
         models.append(clf_info)
@@ -73,10 +74,11 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         costs.append([-depth, score])
     costs = np.array(costs)
 
-    indicies = pareto_front(costs)
+    indices = pareto_front(costs)
 
     # Update values as promised.
-    for i in indicies:
+    for i in indices:
         models[i]['pareto_front'] = True
+        models[i]['save_model'] = True
 
     return models

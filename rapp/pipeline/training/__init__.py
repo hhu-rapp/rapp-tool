@@ -9,7 +9,12 @@ def get_additional_models(estimator, X_train, y_train, X_val, y_val):
     Creates additional models based on the input estimator's type.
     Returns a (potentially empty) list of additionally trained models.
     Hereby, the models are wrapped in a dictionary with the `model` key
-    pointing to the trained model. Further keys are dependent on the
+    pointing to the trained model.
+    An `id` key may be set externally from the pipeline.
+    A key `safe_model` may be set to True or False to indicate whether the
+    model should be safed. If the key is not present, the logic defaults to
+    True.
+    Further keys are dependent on the
     base model type.
     """
     return []

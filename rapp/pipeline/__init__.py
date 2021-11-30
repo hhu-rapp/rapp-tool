@@ -2,6 +2,8 @@ import sqlite3
 import pandas as pd
 import os
 
+import joblib
+
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
@@ -25,6 +27,13 @@ class MLPipeline(object):
         self.args = args
 
         self.args.save_report = eval(self.args.save_report)
+
+        if self.args.report_path is None:
+            sql_base_name = os.path.splitext(
+                os.path.basename(self.args.sql_filename))[0]
+            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
+            self.args.report_path = f"reports/{sql_base_name}/"
+
 
         # reading and quering database
         con = sqlite3.connect(self.args.filename)
@@ -59,12 +68,6 @@ class MLPipeline(object):
 
         self.train_estimators()
         self.train_additional_models()
-
-        if self.args.report_path is None:
-            sql_base_name = os.path.splitext(
-                os.path.basename(self.args.sql_filename))[0]
-            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
-            self.args.report_path = f"reports/{sql_base_name}/"
 
         report = ClassifierReport(self.estimators, self.args, self.additional_models)
 
@@ -157,6 +160,15 @@ class MLPipeline(object):
         for est in self.estimators:
             est.fit(self.X_train, self.y_train)
 
+            # Save model
+            target_path = os.path.join(self.args.report_path,  est.__class__.__name__)
+            os.makedirs(target_path, exist_ok=True)
+            model_path = os.path.join(target_path, "model.joblib")
+
+            joblib.dump(est, model_path)
+
+
+
     def train_additional_models(self):
         # Create a dictionary yielding possibly additionally trained models
         # for each classifier. List of additional models can be empty.
@@ -167,3 +179,20 @@ class MLPipeline(object):
             self.additional_models[est] = \
                 training.get_additional_models(
                     est, self.X_train, self.y_train, self.X_test, self.y_test)
+
+            # Save the models
+            id = 0
+            for m in self.additional_models[est]:
+                m["id"] = id
+                id += 1
+
+                save = m.get('save_model', True)
+                if save:
+                    model = m["model"]
+                    path = os.path.join(self.args.report_path,
+                                est.__class__.__name__,
+                                "additional_models",
+                                f"{id}.joblib")
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    joblib.dump(model, path)
+                    m["save_path"] = path
