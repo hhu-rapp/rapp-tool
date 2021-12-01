@@ -163,14 +163,12 @@ class Window(QMainWindow):
         self.initFairnessTab()
 
     def initDataExplorationTab(self):
-        # TODO: scope? global variables via self or local?
-
         self.vlayout = QtWidgets.QVBoxLayout()
         self.h1layout = QtWidgets.QHBoxLayout()
         self.v2layout = QtWidgets.QVBoxLayout()
 
         # vertical layout: main layout
-        #self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
+        # self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
         self.pandasTv = DataView(self, self.__conn)
@@ -285,7 +283,7 @@ class Window(QMainWindow):
 
         """
         # temporarily save currenty sql query
-        sqlQueryTempPath = os.getcwd()+'sqlTemp'+datetime.now().time().strftime("%b-%d-%Y")+'.sql'
+        sqlQueryTempPath = os.getcwd() + 'sqlTemp' + datetime.now().time().strftime("%b-%d-%Y") + '.sql'
         print(sqlQueryTempPath)
         with open(sqlQueryTempPath, "w") as text_file:
             text_file.write(self.sqlTbox.toPlainText())
