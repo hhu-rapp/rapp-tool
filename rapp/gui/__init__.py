@@ -12,6 +12,8 @@ from rapp import data
 # PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
+# theme
+from qt_material import apply_stylesheet
 
 # dataframe
 import pandas as pd
@@ -129,6 +131,9 @@ class Window(QMainWindow):
         self.setStatusBar(self.statusbar)
 
         self.connectDatabase(db_filepath)  # Hardcoded for now.
+
+        # setup stylesheet
+        apply_stylesheet(self, theme='light_blue.xml')
 
         self.show()
 
