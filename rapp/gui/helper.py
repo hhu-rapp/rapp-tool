@@ -16,8 +16,8 @@ class Color(QtWidgets.QWidget):
         label.setText(label_str)
         label.setAlignment(QtCore.Qt.AlignCenter)
 
-        layout = QtWidgets.QGridLayout()
+        layout = QtWidgets.QGridLayout(self)
         layout.addWidget(label, 0, 0)
 
-        self.setLayout(layout)
+        # self.setLayout(layout)
         self.setPalette(palette)

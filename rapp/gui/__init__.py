@@ -1,12 +1,14 @@
 # internal Python packages
 import os
+import sys
 from datetime import datetime
 import argparse
+
+import numpy as np
 
 # rapp
 from rapp.parser import RappConfigParser
 from rapp.pipeline import MLPipeline
-
 from rapp import data
 
 # PyQt5
@@ -25,7 +27,7 @@ from rapp.gui.menubar import MenuBar
 from rapp.gui.helper import Color
 
 db_filepath = "data/rapp.db"
-
+max_int = 2147483647
 
 class Window(QMainWindow):
     def __init__(self):
@@ -33,8 +35,9 @@ class Window(QMainWindow):
 
         self.__conn = None  # Database connection.
 
-        self.initUI_deprecated()
-        self.initLayout()
+        self.initUI()
+        # self.initLayout()
+
         # set menubar
         self.menubar = MenuBar(self)
         self.setMenuBar(self.menubar)
@@ -47,9 +50,9 @@ class Window(QMainWindow):
         self.connectDatabase(db_filepath)  # Hardcoded for now.
 
         # setup stylesheet
-        # apply_stylesheet(self, theme='light_blue.xml')
+        apply_stylesheet(self, theme='light_blue.xml')
 
-    def initUI(self):
+    def initUI_test(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
@@ -58,10 +61,24 @@ class Window(QMainWindow):
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
 
-    def initLayout(self):
-        self.centralWidget = QtWidgets.QHBoxLayout()
+    def initLayout_test(self):
+        skeletonWidget = QtWidgets.QWidget()
+        skeletonLayout = QtWidgets.QHBoxLayout()
+        skeletonWidget.setLayout(skeletonLayout)
+        self.setCentralWidget(skeletonWidget)
 
-    def initUI_deprecated(self):
+        # create widgets
+        sqlField_ph = Color('yellow', 'SQL Field')
+        inhaltField_ph = Color('blue', 'Inhalt mit Tabs')
+
+        # add widgets
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        splitter.addWidget(sqlField_ph)
+        splitter.addWidget(inhaltField_ph)
+        splitter.setSizes([690, 690])
+        skeletonLayout.addWidget(splitter)
+
+    def initUI(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 

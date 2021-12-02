@@ -8,7 +8,7 @@
 ## Backend
 - GUI Code umorganisieren (eventuell neu implementieren)
   - Horizontal Layout Oberfläche: Menubar, Inhalt, Statusleiste
-  - Inhalt (Vertical Layout): Datenbank, Konfigurierbarer Inhalt
+  - Inhalt (Vertikal Layout): Datenbank, Konfigurierbarer Inhalt
   - Konfig. Inhalt (Horizontal Layout): Tabs
   - Neue Tab = Neue Python Datei
 - Catch Exception bei falschen Eingabewerten
