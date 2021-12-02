@@ -10,6 +10,7 @@
   - Horizontal Layout Oberfläche: Menubar, Inhalt, Statusleiste
   - Inhalt (Vertical Layout): Datenbank, Konfigurierbarer Inhalt
   - Konfig. Inhalt (Horizontal Layout): Tabs
+  - Neue Tab = Neue Python Datei
 - Catch Exception bei falschen Eingabewerten
 - Tickbox bei kategorischen Variablen
 - Dropdown Menü bei Target Variable

@@ -21,98 +21,10 @@ from pandas.io.sql import DatabaseError
 from rapp.gui.dbview import DataView
 from rapp.gui.menubar import MenuBar
 
+# gui helper
+from rapp.gui.helper import Color
+
 db_filepath = "data/rapp.db"
-
-
-class DataFrameModel(QtCore.QAbstractTableModel):
-    """
-    From stackoverflow:
-    https://stackoverflow.com/questions/44603119/how-to-display-a-pandas-data-frame-with-pyqt5-pyside2
-    """
-    DtypeRole = QtCore.Qt.UserRole + 1000
-    ValueRole = QtCore.Qt.UserRole + 1001
-
-    def __init__(self, df=pd.DataFrame(), parent=None):
-        super(DataFrameModel, self).__init__(parent)
-        self._dataframe = df
-
-    def setDataFrame(self, dataframe):
-        self.beginResetModel()
-        self._dataframe = dataframe.copy()
-        self.endResetModel()
-
-    def dataFrame(self):
-        return self._dataframe
-
-    dataFrame = QtCore.pyqtProperty(
-        pd.DataFrame, fget=dataFrame, fset=setDataFrame)
-
-    @QtCore.pyqtSlot(int, QtCore.Qt.Orientation, result=str)
-    def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
-                return self._dataframe.columns[section]
-            else:
-                return str(self._dataframe.index[section])
-        return QtCore.QVariant()
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        if parent.isValid():
-            return 0
-        return len(self._dataframe.index)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        if parent.isValid():
-            return 0
-        return self._dataframe.columns.size
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if not index.isValid() or not (0 <= index.row() < self.rowCount()
-                                       and 0 <= index.column() < self.columnCount()):
-            return QtCore.QVariant()
-        row = self._dataframe.index[index.row()]
-        col = self._dataframe.columns[index.column()]
-        dt = self._dataframe[col].dtype
-
-        val = self._dataframe.iloc[row][col]
-        if role == QtCore.Qt.DisplayRole:
-            return str(val)
-        elif role == DataFrameModel.ValueRole:
-            return val
-        if role == DataFrameModel.DtypeRole:
-            return dt
-        return QtCore.QVariant()
-
-    def roleNames(self):
-        roles = {
-            QtCore.Qt.DisplayRole: b'display',
-            DataFrameModel.DtypeRole: b'dtype',
-            DataFrameModel.ValueRole: b'value'
-        }
-        return roles
-
-
-class Color(QtWidgets.QWidget):
-    # Works as a placeholder
-    def __init__(self, color, label_str='Label'):
-        super(Color, self).__init__()
-        self.setAutoFillBackground(True)
-
-        # background color
-        palette = self.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(color))
-
-        # label
-        label = QtWidgets.QLabel()
-        label.setText(label_str)
-        label.setAlignment(QtCore.Qt.AlignCenter)
-
-        layout = QtWidgets.QGridLayout()
-        layout.addWidget(label, 0, 0)
-
-        self.setLayout(layout)
-        self.setPalette(palette)
-
 
 class Window(QMainWindow):
     def __init__(self):
@@ -120,7 +32,8 @@ class Window(QMainWindow):
 
         self.__conn = None  # Database connection.
 
-        self.initUI()
+        self.initUI_deprecated()
+        self.initLayout()
         # set menubar
         self.menubar = MenuBar(self)
         self.setMenuBar(self.menubar)
@@ -133,11 +46,21 @@ class Window(QMainWindow):
         self.connectDatabase(db_filepath)  # Hardcoded for now.
 
         # setup stylesheet
-        apply_stylesheet(self, theme='light_blue.xml')
-
-        self.show()
+        # apply_stylesheet(self, theme='light_blue.xml')
 
     def initUI(self):
+        # set the title
+        self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
+
+        # setting the geometry of window
+        self.width = 1280
+        self.height = 720
+        self.setGeometry(100, 60, self.width, self.height)
+
+    def initLayout(self):
+        pass
+
+    def initUI_deprecated(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
