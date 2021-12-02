@@ -50,8 +50,8 @@ class MenuBar(QtWidgets.QMenuBar):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Window", "MainWindow"))
-        self.menuFile.setTitle(_translate("Window", "File"))
-        self.menuEdit.setTitle(_translate("Window", "Edit"))
+        self.menuFile.setTitle(_translate("Window", "&File"))
+        self.menuEdit.setTitle(_translate("Window", "&Edit"))
 
         self.actionOpen_Database.setText(_translate("Window", "Open Database"))
         self.actionOpen_Database.setStatusTip(_translate(

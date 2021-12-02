@@ -26,6 +26,7 @@ from rapp.gui.helper import Color
 
 db_filepath = "data/rapp.db"
 
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -58,7 +59,7 @@ class Window(QMainWindow):
         self.setGeometry(100, 60, self.width, self.height)
 
     def initLayout(self):
-        pass
+        self.centralWidget = QtWidgets.QHBoxLayout()
 
     def initUI_deprecated(self):
         # set the title
