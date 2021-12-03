@@ -1,8 +1,10 @@
 import pandas as pd
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QComboBox, QTableView
+# from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QTableView
+from PyQt5 import QtWidgets
 
 from rapp import data
+from rapp.gui.helper import Color
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -23,13 +25,13 @@ class PandasModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             try:
                 return self._df.columns.tolist()[section]
-            except (IndexError, ):
+            except (IndexError,):
                 return QtCore.QVariant()
         elif orientation == QtCore.Qt.Vertical:
             try:
                 # return self.df.index.tolist()
                 return self._df.index.tolist()[section]
-            except (IndexError, ):
+            except (IndexError,):
                 return QtCore.QVariant()
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
@@ -65,24 +67,24 @@ class PandasModel(QtCore.QAbstractTableModel):
         colname = self._df.columns.tolist()[column]
         self.layoutAboutToBeChanged.emit()
         self._df.sort_values(colname, ascending=order ==
-                             QtCore.Qt.AscendingOrder, inplace=True)
+                                                QtCore.Qt.AscendingOrder, inplace=True)
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
 
-class DataView(QWidget):
+class DataView(QtWidgets.QWidget):
 
     def __init__(self, parent=None, sql_conn=None):
         super(DataView, self).__init__(parent)
 
-        self.combo = QComboBox(self)
+        self.combo = QtWidgets.QComboBox(self)
         self.combo.currentIndexChanged.connect(self.selection_changed)
 
-        self.table = QTableView(self)
+        self.table = QtWidgets.QTableView(self)
         self.table.setSortingEnabled(True)
         self.table.resizeColumnsToContents()
 
-        layout = QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.combo)
         layout.addWidget(self.table)
         self.setLayout(layout)
@@ -125,7 +127,6 @@ class DataView(QWidget):
         else:
             self.display_dataframe(pd.DataFrame(columns=["Empty"]))
 
-
     def display_dataframe(self, df):
         """
         Display the given Pandas DataFrame in the widget.
@@ -133,10 +134,45 @@ class DataView(QWidget):
         model = PandasModel(df)
         self.table.setModel(model)
 
-
     def set_custom_sql(self, sql_query):
         df = data.query_sql(sql_query, self.__conn)
         model = PandasModel(df)
         self.table.setModel(model)
         self.__sql_query = sql_query
         self.combo.setCurrentIndex(self.__sql_idx)
+
+
+class DatabaseLayoutWidget(QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        super(DatabaseLayoutWidget, self).__init__()
+        self.initUI()
+
+        self.filepath_db = "data/rapp.db"
+        self.__conn = None  # Database connection.
+        # self.connectDatabase(self.filepath_db)
+
+    def initUI(self):
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        # create widgets
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        # self.pandasTv = DataView(self, self.__conn)
+        self.pandasTv = Color('green', 'Database')
+        sqlEditor = Color('blue', 'SQL Editor')
+        actionbuttons = Color('yellow', 'Action buttons')
+
+        # add widgets
+        splitter.addWidget(self.pandasTv)
+        splitter.addWidget(sqlEditor)
+
+        # add to layout
+        layout.addWidget(splitter)
+        layout.addWidget(actionbuttons)
+
+    def connectDatabase(self, filepath):
+        print('Connecting to database')  # TODO: This should be a logging call.
+        self.filepath_db = filepath
+        self.__conn = data.connect(self.filepath_db)
+        self.pandasTv.set_connection(self.__conn)

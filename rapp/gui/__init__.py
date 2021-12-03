@@ -23,11 +23,14 @@ from pandas.io.sql import DatabaseError
 from rapp.gui.dbview import DataView
 from rapp.gui.menubar import MenuBar
 
-# gui helper
+# import rapp gui widgets
 from rapp.gui.helper import Color
+from rapp.gui.dbview import DatabaseLayoutWidget
+from rapp.gui.mltab import MLTab
 
-db_filepath = "data/rapp.db"
 max_int = 2147483647
+db_filepath = "data/rapp.db"
+
 
 class Window(QMainWindow):
     def __init__(self):
@@ -36,7 +39,7 @@ class Window(QMainWindow):
         self.__conn = None  # Database connection.
 
         self.initUI()
-        # self.initLayout()
+        self.initLayout()
 
         # set menubar
         self.menubar = MenuBar(self)
@@ -47,12 +50,12 @@ class Window(QMainWindow):
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-        self.connectDatabase(db_filepath)  # Hardcoded for now.
+        # self.connectDatabase(db_filepath)  # Hardcoded for now.
 
         # setup stylesheet
-        apply_stylesheet(self, theme='light_blue.xml')
+        # apply_stylesheet(self, theme='dark_blue.xml')
 
-    def initUI_test(self):
+    def initUI(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
@@ -61,24 +64,24 @@ class Window(QMainWindow):
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
 
-    def initLayout_test(self):
+    def initLayout(self):
         skeletonWidget = QtWidgets.QWidget()
         skeletonLayout = QtWidgets.QHBoxLayout()
         skeletonWidget.setLayout(skeletonLayout)
         self.setCentralWidget(skeletonWidget)
 
         # create widgets
-        sqlField_ph = Color('yellow', 'SQL Field')
-        inhaltField_ph = Color('blue', 'Inhalt mit Tabs')
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        databaseLayoutWidget = DatabaseLayoutWidget()
+        mlLayoutWidget = MLTab()
 
         # add widgets
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        splitter.addWidget(sqlField_ph)
-        splitter.addWidget(inhaltField_ph)
+        splitter.addWidget(databaseLayoutWidget)
+        splitter.addWidget(mlLayoutWidget)
         splitter.setSizes([690, 690])
         skeletonLayout.addWidget(splitter)
 
-    def initUI(self):
+    def initUI_old(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
