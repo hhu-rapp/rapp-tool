@@ -1,44 +1,74 @@
-{{#groups}}
+% {{#groups}}
+% \begin{table}[ht]
+%   \caption{Fairness-Messung über die Gruppe "{{group}}"
+%     für {{title}} }%
+%   {{#label}}
+%   \label{tab:{{label}}-{{group}}-fairness}
+%   {{/label}}
+%   {{#train}}
+%   \begin{subtable}{\linewidth}
+%     \centering
+%     \subcaption{Trainingset}
+%     \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
+%       \toprule
+%       & \multicolumn{2}{c}{ {{group}} } \\
+%       \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
+%       Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
+%       \midrule
+%       {{#notions}}
+%       {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\
+%       {{/notions}}
+%       \bottomrule
+%     \end{tabular}
+%   \end{subtable}
+%   {{/train}}
+%   {{#test}}
+%   \par\bigskip
+%   \begin{subtable}{\linewidth}
+%     \centering
+%     \subcaption{Testset}
+%     \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
+%       \toprule
+%       & \multicolumn{2}{c}{ {{group}} } \\
+%       \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
+%       Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
+%       \midrule
+%       {{#notions}}
+%       {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\
+%       {{/notions}}
+%       \bottomrule
+%     \end{tabular}
+%   \end{subtable}
+%   {{/test}}
+% \end{table}
+% {{/groups}}
+
 \begin{table}[ht]
-  \caption{Fairness-Messung über die Gruppe "{{group}}"
-    für {{title}} }%
+  \caption{Fairness-Messung für {{title}} }%
   {{#label}}
-  \label{tab:{{label}}-{{group}}-fairness}
+  \label{tab:{{label}}-fairness}
   {{/label}}
-  {{#train}}
-  \begin{subtable}{\linewidth}
-    \centering
-    \subcaption{Trainingset}
-    \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
-      \toprule
-      & \multicolumn{2}{c}{ {{group}} } \\
-      \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
-      Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
-      \midrule
+  \begin{tabular}{ll{{#groups}}{{#subgroups}}r{{/subgroups}}{{#has_diff}}r{{/has_diff}}{{/groups}}}
+    \toprule
+    & {{#groups}}& \multicolumn{ {{num_cols}} }{c}{ {{group}} }{{/groups}} \\
+    {{#groups}}\cmidrule(l{{^is_last}}r{{/is_last}}){ {{start_column}}-{{end_column}}}{{/groups}}
+    Set & Fairness
+    {{#groups}}{{#subgroups}}& {{subgroup}} {{/subgroups}} {{#has_diff}}& Diff.{{/has_diff}}{{/groups}} \\
+    \midrule
+    {{#modes}}
+      {{mode}}\\
       {{#notions}}
-      {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\
+      & {{notion}}
+      {{#group_measures}}
+      % {{group}}
+      {{#measures}}
+      & {{value}} % {{subgroup}}
+      {{/measures}}
+      {{#difference}}& {{difference}} {{/difference}}
+      {{/group_measures}}
+      \\
       {{/notions}}
-      \bottomrule
-    \end{tabular}
-  \end{subtable}
-  {{/train}}
-  {{#test}}
-  \par\bigskip
-  \begin{subtable}{\linewidth}
-    \centering
-    \subcaption{Testset}
-    \begin{tabular}{l{{#outs}}r{{/outs}}{{#has_diff}}r{{/has_diff}}}
-      \toprule
-      & \multicolumn{2}{c}{ {{group}} } \\
-      \cmidrule(l{{#has_diff}}r{{/has_diff}}){2-{{last_out_col}} }
-      Fairness {{#outs}}& {{output_name}} {{/outs}} {{#has_diff}}& Diff.{{/has_diff}} \\
-      \midrule
-      {{#notions}}
-      {{notion}} {{#measures}}& {{value}} {{/measures}}{{#has_diff}} & {{difference}}{{/has_diff}}\\
-      {{/notions}}
-      \bottomrule
-    \end{tabular}
-  \end{subtable}
-  {{/test}}
+    {{/modes}}
+    \bottomrule
+  \end{tabular}
 \end{table}
-{{/groups}}

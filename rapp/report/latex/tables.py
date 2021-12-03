@@ -3,15 +3,16 @@ import chevron
 
 import rapp.report.resources as rc
 
+
 def tex_performance(estimator, results):
     # Metrics table
     mtbl = rc.get_text("metrics_table.tex")
     metrics = []
     for m in results["train"]["scores"].keys():
         res = {'name': m,
-                'train': f"{results['train']['scores'][m]:.3f}",
-                'test': f"{results['test']['scores'][m]:.3f}",
-                }
+               'train': f"{results['train']['scores'][m]:.3f}",
+               'test': f"{results['test']['scores'][m]:.3f}",
+               }
         metrics.append(res)
     mtbl = chevron.render(mtbl, {'metrics': metrics,
                                  'title': estimator,
@@ -19,66 +20,80 @@ def tex_performance(estimator, results):
     return mtbl
 
 
-
 def tex_fairness(estimator, data):
     fairness = {'title': estimator,
-                'groups': []}
+                'groups': [],
+                'modes': []}
 
     # Building a dictionary of the following form
     # {'title': estimator_name,
-    #  'groups': [
-    #      # for each group
-    #      {'group': group_label,
-    #       'train': {'notions': [
-    #           # for each notion
-    #           {'notion': notion_name,
-    #            'measures': [{'value': value}, ...],
-    #            'difference': difference_if_binary},
-    #           ...]},
-    #       'test': {'notions': [
-    #           # for each notion
-    #           {'notion': notion_name,
-    #            'measures': [{'value': value}, ...],
-    #            'difference': difference_if_binary},
-    #           ...]}}]}
-    for group in data["train"]["fairness"].keys():
-        group_dict = {'group': group,
-                      'train': {'notions': []},
-                      'test': {'notions': []},
-                      'outs': [],
-                      }
-        for notion in data["train"]["fairness"][group].keys():
-            for set in ["train", "test"]:
-                fair_data = data[set]["fairness"]
+    #  'modes': [{'mode': string,
+    #             'notions': [{'notion': string,
+    #                          'group_measures': [{
+    #                            'group': string,
+    #                            'measures': [{'value': double,
+    #                                          'subgroup': string},
+    #                                         ...]
+    #                            'difference': difference_if_binary}, ...]},
+    #             ...]}, ...],
+    #  'groups': [{'group': string,
+    #              'subgroups': [{'subgroup': string}, ...],
+    #              'has_diff': bool,
+    #              'start_column': int,
+    #              'end_column': int,
+    #              'num_cols': int,
+    #              'is_last': bool}]
+    # }
 
-                out_data = fair_data[group][notion]['outcomes']
+    groups = data["train"]["fairness"].keys()
+    notions = None  # Filled below.
+    next_start = 3  # Two columns in front of first group info.
+    for group in groups:
+        group_dict = {'group': group}
 
-                outs = list(out_data.keys())
-                # Add outputs exactly once.
-                if len(group_dict["outs"]) == 0:
-                    for o in outs:
-                        group_dict["outs"].append({'output_name': o})
-                    group_dict["last_out_col"] = len(outs)+1
+        if notions is None:
+            notions = list(data["train"]["fairness"][group].keys())
 
-                if len(outs) == 2:
-                    group_dict["has_diff"] = True
-                    diff = abs(out_data[outs[0]]["affected_percent"]
-                               - out_data[outs[1]]["affected_percent"])
-                else:
-                    diff = "-"
+        subgroups = data["train"]["fairness"][group][notions[0]
+                                                     ]["outcomes"].keys()
+        group_dict['subgroups'] = [{'subgroup': sub} for sub in subgroups]
+        group_dict['has_diff'] = (len(subgroups) == 2)
 
-                measures = []
-                for o in outs:
-                    measures.append({'value':
-                                     f"{out_data[o]['affected_percent']:.3f}"})
-
-                notion_dict = {
-                    'notion': notion,
-                    'measures': measures,
-                    'difference': f"{diff:.3f}"
-                }
-                group_dict[set]['notions'].append(notion_dict)
         fairness['groups'].append(group_dict)
+
+        group_dict['start_column'] = next_start
+        # If binary, we add a difference column. Hence at least three cols.
+        num_colums = max(len(subgroups), 3)
+        next_start += num_colums
+        group_dict['end_column'] = next_start - 1
+        group_dict['num_cols'] = num_colums
+    fairness['groups'][-1]['is_last'] = True
+
+    for mode in ['train', 'test']:
+        mode_dict = {'mode': mode.capitalize(),
+                     'notions': []}
+        for notion in notions:
+            notion_dict = {'notion': notion,
+                           'group_measures': []}
+            for group_dict in fairness['groups']:
+                group = group_dict['group']
+                subgroups = group_dict['subgroups']
+
+                outcomes = data[mode]["fairness"][group][notion]["outcomes"]
+                measures_dict = {
+                    'group': group,
+                    'measures': [{'value':
+                                  f"{outcomes[sub['subgroup']]['affected_percent']:.3f}",
+                                  'subgroup': sub['subgroup']}
+                                 for sub in subgroups],
+                    'difference': "-" if len(subgroups) != 2 else
+                    f"{(abs(outcomes[subgroups[0]['subgroup']]['affected_percent']) - abs(outcomes[subgroups[1]['subgroup']]['affected_percent'])):.3f}"
+
+                }
+
+                notion_dict['group_measures'].append(measures_dict)
+            mode_dict['notions'].append(notion_dict)
+        fairness["modes"].append(mode_dict)
 
     fairness['label'] = data.get('label', False)
     tex = rc.get_text("fairness_table.tex")
