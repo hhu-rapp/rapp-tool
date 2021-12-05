@@ -30,16 +30,22 @@ from rapp.gui.mltab import MLTab
 
 max_int = 2147483647
 db_filepath = "data/rapp.db"
+new_layout = True
 
 
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.__conn = None  # Database connection.
+        self.__conn = None # Database connection.
 
-        self.initUI()
-        self.initLayout()
+        if new_layout:
+
+            self.initUI_new()
+            self.initLayout()
+        else:
+            self.initUI()
+            self.connectDatabase(db_filepath) # Hardcoded for now.
 
         # set menubar
         self.menubar = MenuBar(self)
@@ -50,12 +56,10 @@ class Window(QMainWindow):
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-        # self.connectDatabase(db_filepath)  # Hardcoded for now.
-
         # setup stylesheet
         # apply_stylesheet(self, theme='dark_blue.xml')
 
-    def initUI(self):
+    def initUI_new(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
@@ -81,7 +85,7 @@ class Window(QMainWindow):
         splitter.setSizes([690, 690])
         skeletonLayout.addWidget(splitter)
 
-    def initUI_old(self):
+    def initUI(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
