@@ -40,9 +40,9 @@ class Window(QMainWindow):
         self.__conn = None # Database connection.
 
         if new_layout:
-
             self.initUI_new()
             self.initLayout()
+            apply_stylesheet(self, theme='dark_blue.xml')
         else:
             self.initUI()
             self.connectDatabase(db_filepath) # Hardcoded for now.
@@ -56,8 +56,7 @@ class Window(QMainWindow):
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-        # setup stylesheet
-        # apply_stylesheet(self, theme='dark_blue.xml')
+
 
     def initUI_new(self):
         # set the title
@@ -68,6 +67,9 @@ class Window(QMainWindow):
         self.height = 720
         self.setGeometry(100, 60, self.width, self.height)
 
+        # setting variables
+        self.filepath_db = db_filepath
+
     def initLayout(self):
         skeletonWidget = QtWidgets.QWidget()
         skeletonLayout = QtWidgets.QHBoxLayout()
@@ -76,7 +78,7 @@ class Window(QMainWindow):
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        databaseLayoutWidget = DatabaseLayoutWidget()
+        databaseLayoutWidget = DatabaseLayoutWidget(self.filepath_db)
         mlLayoutWidget = MLTab()
 
         # add widgets

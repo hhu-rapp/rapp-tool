@@ -144,13 +144,14 @@ class DataView(QtWidgets.QWidget):
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, filepath_db):
         super(DatabaseLayoutWidget, self).__init__()
-        self.initUI()
 
-        self.filepath_db = "data/rapp.db"
+        self.filepath_db = filepath_db
         self.__conn = None  # Database connection.
-        # self.connectDatabase(self.filepath_db)
+
+        self.initUI()
+        self.connectDatabase(self.filepath_db) # init database
 
     def initUI(self):
         layout = QtWidgets.QVBoxLayout()
@@ -158,8 +159,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        # self.pandasTv = DataView(self, self.__conn)
-        self.pandasTv = Color('green', 'Database')
+        self.pandasTv = DataView(self, self.__conn)
         sqlEditor = Color('blue', 'SQL Editor')
         actionbuttons = Color('yellow', 'Action buttons')
 
