@@ -26,10 +26,10 @@ from rapp.gui.dbview import DataView
 from rapp.gui.helper import Color
 from rapp.gui.menubar import MenuBar
 from rapp.gui.dbview import DatabaseLayoutWidget
-from rapp.gui.mltab import MLTab
+from rapp.gui.tabs import Tabs
 
-max_int = 2147483647
 db_filepath = "data/rapp.db"
+sql_temp_path = "sql_temp.sql"
 new_layout = True
 
 
@@ -80,7 +80,7 @@ class Window(QMainWindow):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databaseLayoutWidget = DatabaseLayoutWidget(self.filepath_db)
-        mlLayoutWidget = MLTab()
+        mlLayoutWidget = Tabs()
 
         # add widgets
         splitter.addWidget(self.databaseLayoutWidget)
