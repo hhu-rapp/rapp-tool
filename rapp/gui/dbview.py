@@ -1,8 +1,12 @@
+# table
 import pandas as pd
+from pandas.io.sql import DatabaseError
+
+# gui
 from PyQt5 import QtCore
-# from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QTableView
 from PyQt5 import QtWidgets
 
+# rapp
 from rapp import data
 from rapp.gui.helper import Color
 
@@ -162,7 +166,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.pandasTv = DataView(self, self.__conn)
-        sqlEditor = QtWidgets.QPlainTextEdit()
+        self.sqlEditor = QtWidgets.QPlainTextEdit()
 
         # create buttons
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
@@ -170,22 +174,25 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
-        self.qPushButtonExecuteSql.setStatusTip('Execute SQL query')
+        self.qPushButtonExecuteSql.setStatusTip('Execute SQL query (Ctrl+Enter)')
         self.qPushButtonExecuteSql.setToolTip('Execute')
+        self.qPushButtonExecuteSql.setShortcut('Ctrl+Return')
 
         self.qPushButtonUndoSql = QtWidgets.QPushButton()
         self.qPushButtonUndoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowBack')))
-        self.qPushButtonUndoSql.setStatusTip('Undo text')
+        self.qPushButtonUndoSql.setStatusTip('Undo text (Ctrl+Z)')
         self.qPushButtonUndoSql.setToolTip('Undo')
+        self.qPushButtonUndoSql.setShortcut('Ctrl+Z')
 
         self.qPushButtonRedoSql = QtWidgets.QPushButton()
         self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
-        self.qPushButtonRedoSql.setStatusTip('Redo text')
+        self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setToolTip('Redo')
+        self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
         # add widgets to splitter
         splitter.addWidget(self.pandasTv)
-        splitter.addWidget(sqlEditor)
+        splitter.addWidget(self.sqlEditor)
         splitter.setSizes([400, 400])
 
         # add buttons to button layout
@@ -193,6 +200,11 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.hlayoutSqlButtons.addStretch(1)
+
+        # add button actions
+        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.displaySql(self.sqlEditor.toPlainText()))
+        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlEditor.undo())
+        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlEditor.redo())
 
         # add to layout
         layout.addWidget(splitter)
@@ -203,3 +215,10 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.filepath_db = filepath
         self.__conn = data.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
+
+    def displaySql(self, sql_query=None):
+        try:
+            self.pandasTv.set_custom_sql(sql_query)
+        except (DatabaseError, TypeError) as e:
+            self.statusbar.setStatusTip(str(e))
+            print("Error in SQL code:", e)
