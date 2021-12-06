@@ -21,10 +21,10 @@ from qt_material import apply_stylesheet
 import pandas as pd
 from pandas.io.sql import DatabaseError
 from rapp.gui.dbview import DataView
-from rapp.gui.menubar import MenuBar
 
 # import rapp gui widgets
 from rapp.gui.helper import Color
+from rapp.gui.menubar import MenuBar
 from rapp.gui.dbview import DatabaseLayoutWidget
 from rapp.gui.mltab import MLTab
 
@@ -40,16 +40,19 @@ class Window(QMainWindow):
         self.__conn = None # Database connection.
 
         if new_layout:
+            # apply_stylesheet(self, theme='dark_blue.xml')
             self.initUI_new()
             self.initLayout()
-            # apply_stylesheet(self, theme='dark_blue.xml')
+
+            self.menubar = MenuBar(self.databaseLayoutWidget)
+            self.setMenuBar(self.menubar)
         else:
             self.initUI()
             self.connectDatabase(db_filepath) # Hardcoded for now.
 
-        # set menubar
-        self.menubar = MenuBar(self)
-        self.setMenuBar(self.menubar)
+            # set menubar
+            self.menubar = MenuBar(self)
+            self.setMenuBar(self.menubar)
 
         # set status bar
         self.statusbar = QtWidgets.QStatusBar(self)
@@ -76,11 +79,11 @@ class Window(QMainWindow):
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        databaseLayoutWidget = DatabaseLayoutWidget(self.filepath_db)
+        self.databaseLayoutWidget = DatabaseLayoutWidget(self.filepath_db)
         mlLayoutWidget = MLTab()
 
         # add widgets
-        splitter.addWidget(databaseLayoutWidget)
+        splitter.addWidget(self.databaseLayoutWidget)
         splitter.addWidget(mlLayoutWidget)
         splitter.setSizes([800, 480])
         skeletonLayout.addWidget(splitter)

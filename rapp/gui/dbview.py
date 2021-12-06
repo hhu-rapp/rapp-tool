@@ -100,7 +100,7 @@ class DataView(QtWidgets.QWidget):
         if sql_conn != None:
             self.set_connection(sql_conn)
 
-    # TODO: Delete old database to insert new databaes?
+    # TODO Bug: Delete old database to insert new database
     def set_connection(self, sql_connection):
         self.__conn = sql_connection
 
@@ -166,7 +166,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.pandasTv = DataView(self, self.__conn)
-        self.sqlEditor = QtWidgets.QPlainTextEdit()
+        self.sqlTbox = QtWidgets.QPlainTextEdit()
 
         # create buttons
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
@@ -175,24 +175,24 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
         self.qPushButtonExecuteSql.setStatusTip('Execute SQL query (Ctrl+Enter)')
-        self.qPushButtonExecuteSql.setToolTip('Execute')
+        #self.qPushButtonExecuteSql.setToolTip('Execute')
         self.qPushButtonExecuteSql.setShortcut('Ctrl+Return')
 
         self.qPushButtonUndoSql = QtWidgets.QPushButton()
         self.qPushButtonUndoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowBack')))
         self.qPushButtonUndoSql.setStatusTip('Undo text (Ctrl+Z)')
-        self.qPushButtonUndoSql.setToolTip('Undo')
+        #self.qPushButtonUndoSql.setToolTip('Undo')
         self.qPushButtonUndoSql.setShortcut('Ctrl+Z')
 
         self.qPushButtonRedoSql = QtWidgets.QPushButton()
         self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
-        self.qPushButtonRedoSql.setToolTip('Redo')
+        #self.qPushButtonRedoSql.setToolTip('Redo')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
         # add widgets to splitter
         splitter.addWidget(self.pandasTv)
-        splitter.addWidget(self.sqlEditor)
+        splitter.addWidget(self.sqlTbox)
         splitter.setSizes([400, 400])
 
         # add buttons to button layout
@@ -202,9 +202,9 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addStretch(1)
 
         # add button actions
-        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.displaySql(self.sqlEditor.toPlainText()))
-        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlEditor.undo())
-        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlEditor.redo())
+        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
+        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlTbox.undo())
+        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlTbox.redo())
 
         # add to layout
         layout.addWidget(splitter)

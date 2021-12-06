@@ -62,6 +62,7 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Open SQLite Query"))
         self.actionOpen_SQLite_Query.setStatusTip(
             _translate("Window", "Opens an SQLite query file"))
+        self.actionOpen_SQLite_Query.setShortcut(_translate("Window", "Ctrl+Shift+O"))
 
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
@@ -70,6 +71,16 @@ class MenuBar(QtWidgets.QMenuBar):
         # file
         self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
         self.actionOpen_Database.triggered.connect(self.openDatabase)
+
+    def openDatabase(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                            "Database Files (*.db);;All Files (*)", options=options)
+        if fileName:
+            print(os.path.normpath(fileName))
+
+            self.qMainWindow.connectDatabase(os.path.normpath(fileName))
 
     def openSQLQuery(self):
         options = QtWidgets.QFileDialog.Options()
@@ -81,14 +92,3 @@ class MenuBar(QtWidgets.QMenuBar):
             with open(fileName, 'r') as file:
                 data = file.read()
                 self.qMainWindow.sqlTbox.setPlainText(data)
-
-    def openDatabase(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
-                                                            "Database Files (*.db);;All Files (*)", options=options)
-        if fileName:
-            print(os.path.normpath(fileName))
-
-            # TODO: Bug
-            self.qMainWindow.connectDatabase(os.path.normpath(fileName))
