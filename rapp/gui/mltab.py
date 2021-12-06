@@ -17,7 +17,7 @@ class MLTab(QtWidgets.QTabWidget):
         # add widgets
         self.addTab(self.MLTab, 'Pipeline Settings')
         self.addTab(self.XAITab, 'Explainable AI')
-        self.addTab(self.FairnessTab, 'Fairness-Aware Machine Learning')
+        self.addTab(self.FairnessTab, 'Fairness-Aware ML')
 
     def initMLTab(self):
         pass

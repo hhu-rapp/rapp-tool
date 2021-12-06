@@ -42,7 +42,7 @@ class Window(QMainWindow):
         if new_layout:
             self.initUI_new()
             self.initLayout()
-            apply_stylesheet(self, theme='dark_blue.xml')
+            # apply_stylesheet(self, theme='dark_blue.xml')
         else:
             self.initUI()
             self.connectDatabase(db_filepath) # Hardcoded for now.
@@ -56,15 +56,13 @@ class Window(QMainWindow):
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-
-
     def initUI_new(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
 
         # setting the geometry of window
         self.width = 1280
-        self.height = 720
+        self.height = 800
         self.setGeometry(100, 60, self.width, self.height)
 
         # setting variables
@@ -84,7 +82,7 @@ class Window(QMainWindow):
         # add widgets
         splitter.addWidget(databaseLayoutWidget)
         splitter.addWidget(mlLayoutWidget)
-        splitter.setSizes([690, 690])
+        splitter.setSizes([800, 480])
         skeletonLayout.addWidget(splitter)
 
     def initUI(self):
@@ -133,10 +131,12 @@ class Window(QMainWindow):
         # add menu buttons for SQL query
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.qPushButtonExecuteSql = QtWidgets.QPushButton('Execute')
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.qPushButtonUndoSql = QtWidgets.QPushButton('Undo')
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.qPushButtonRedoSql = QtWidgets.QPushButton('Redo')
+
+        # add buttons to layout
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.v2layout.addLayout(self.hlayoutSqlButtons)
 

@@ -160,16 +160,40 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.pandasTv = DataView(self, self.__conn)
-        sqlEditor = Color('blue', 'SQL Editor')
-        actionbuttons = Color('yellow', 'Action buttons')
+        sqlEditor = QtWidgets.QPlainTextEdit()
 
-        # add widgets
+        # create buttons
+        self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
+
+        self.qPushButtonExecuteSql = QtWidgets.QPushButton()
+        self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
+        self.qPushButtonExecuteSql.setStatusTip('Execute SQL query')
+        self.qPushButtonExecuteSql.setToolTip('Execute')
+
+        self.qPushButtonUndoSql = QtWidgets.QPushButton()
+        self.qPushButtonUndoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowBack')))
+        self.qPushButtonUndoSql.setStatusTip('Undo text')
+        self.qPushButtonUndoSql.setToolTip('Undo')
+
+        self.qPushButtonRedoSql = QtWidgets.QPushButton()
+        self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
+        self.qPushButtonRedoSql.setStatusTip('Redo text')
+        self.qPushButtonRedoSql.setToolTip('Redo')
+
+        # add widgets to splitter
         splitter.addWidget(self.pandasTv)
         splitter.addWidget(sqlEditor)
+        splitter.setSizes([400, 400])
+
+        # add buttons to button layout
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
+        self.hlayoutSqlButtons.addStretch(1)
 
         # add to layout
         layout.addWidget(splitter)
-        layout.addWidget(actionbuttons)
+        layout.addLayout(self.hlayoutSqlButtons)
 
     def connectDatabase(self, filepath):
         print('Connecting to database')  # TODO: This should be a logging call.
