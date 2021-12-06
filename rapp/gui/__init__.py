@@ -79,7 +79,7 @@ class Window(QMainWindow):
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        self.databaseLayoutWidget = DatabaseLayoutWidget(self.filepath_db)
+        self.databaseLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
         mlLayoutWidget = Tabs()
 
         # add widgets

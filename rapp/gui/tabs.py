@@ -37,14 +37,16 @@ class Tabs(QtWidgets.QTabWidget):
         self.vlayoutMainML.addStretch(1)
         self.vlayoutMainML.addLayout(self.menubuttonsMainML)
 
-
-        # menu buttons
+        # create buttons
         trainButton = QtWidgets.QPushButton('Train')
-        validateButton = QtWidgets.QPushButton('Validate')
-        self.menubuttonsMainML.addWidget(trainButton)
         trainButton.clicked.connect(self.train)
-        self.menubuttonsMainML.addWidget(validateButton)
+
+        validateButton = QtWidgets.QPushButton('Validate')
         validateButton.clicked.connect(self.validate)
+
+        # add buttons
+        self.menubuttonsMainML.addWidget(trainButton)
+        self.menubuttonsMainML.addWidget(validateButton)
 
         # labels
         self.labelName = QtWidgets.QLabel()

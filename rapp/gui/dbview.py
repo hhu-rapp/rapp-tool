@@ -150,9 +150,10 @@ class DataView(QtWidgets.QWidget):
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
-    def __init__(self, filepath_db):
+    def __init__(self, qmainwindow, filepath_db):
         super(DatabaseLayoutWidget, self).__init__()
 
+        self.qmainwindow = qmainwindow
         self.filepath_db = filepath_db
         self.__conn = None  # Database connection.
 
@@ -223,5 +224,5 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
                 text_file.write(self.sqlTbox.toPlainText())
 
         except (DatabaseError, TypeError) as e:
-            self.statusbar.setStatusTip(str(e))
+            self.qmainwindow.statusbar.setStatusTip(str(e))
             print("Error in SQL code:", e)
