@@ -87,6 +87,7 @@ class DataView(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.combo)
         layout.addWidget(self.table)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         self.__sql_query = None
@@ -155,6 +156,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def initUI(self):
         layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # create widgets
@@ -164,6 +166,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         # create buttons
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
+        self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
 
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
