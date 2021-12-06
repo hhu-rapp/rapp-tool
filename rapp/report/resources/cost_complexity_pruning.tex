@@ -30,21 +30,15 @@
 {{#pareto_front}}
 \clearpage
 \subsubsection{ {{title}} }
-\Cref{tab:{{label}}-performance} zeigt die Klassifikations-Performance.
-Die Fairness-Ergebnisse sind in
-\cref{%
-  {{#fairness_groups}}tab:{{label}}-{{group}}-fairness,{{/fairness_groups}}%
-  }
 {{#figure}}
-Der trainierte Baum ist in \cref{fig:{{label}}-tree} abgebildet.
+\Cref{fig:{{label}}-tree} zeigt den trainierten Baum.
 {{/figure}}
-
-
-{{{performance_table}}}
-{{{fairness_table}}}
+Die Klassifikations-Performance und die Fairness-Ergebnisse sind in
+\cref{tab:{{label}}-performance,tab:{{label}}-fairness}
+abgebildet
 
 {{#figure}}
-\begin{figure}
+\begin{figure}[ht]
   {{=<< >>=}}
   \includegraphics[width=\linewidth]{<<figure>>}
   <<={{ }}=>>
@@ -52,5 +46,9 @@ Der trainierte Baum ist in \cref{fig:{{label}}-tree} abgebildet.
   \label{fig:{{label}}-tree}
 \end{figure}
 {{/figure}}
+
+
+{{{performance_table}}}
+{{{fairness_table}}}
 
 {{/pareto_front}}
