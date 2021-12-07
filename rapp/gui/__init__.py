@@ -21,8 +21,12 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # variables before initializing gui
         self.__conn = None # Database connection.
         self.filepath_db = db_filepath
+
+        # widgets before initializing gui
+        self.loggingTextBrowser = QtWidgets.QTextBrowser()
 
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()
@@ -54,10 +58,10 @@ class Window(QMainWindow):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databaseLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
-        mlLayoutWidget = Tabs()
+        tabs = Tabs(self)
 
         # add widgets
         splitter.addWidget(self.databaseLayoutWidget)
-        splitter.addWidget(mlLayoutWidget)
+        splitter.addWidget(tabs)
         splitter.setSizes([800, 480])
         skeletonLayout.addWidget(splitter)

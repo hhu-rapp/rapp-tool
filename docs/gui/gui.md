@@ -2,6 +2,8 @@
 
 ## Oberfläche
 - [ ] Log Fenster für Fehler/Ergebnisse
+  - [ ] Prints ins Log Fenster schreiben
+  - [ ] Log Fenster hinzugefügt 
 - [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
   - [ ] Diskussion: Wo in der GUI? Was soll angezeigt werden? Klassenverteilungen?
   - [ ] Mean, Std für reelle Datentypen

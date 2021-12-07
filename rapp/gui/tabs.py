@@ -14,20 +14,31 @@ from rapp.gui.faml import FairML
 from rapp.pipeline import MLPipeline
 
 
-class Tabs(QtWidgets.QTabWidget):
+class Tabs(QtWidgets.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, qmainwindow):
         super(Tabs, self).__init__()
 
+        self.qmainwindow = qmainwindow
         self.initUI()
 
     def initUI(self):
+        # create layout
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(vLayout)
+
         # create widgets
+        self.tab = QtWidgets.QTabWidget()
         self.MLTab = Pipeline()
         self.XAITab = XAI()
         self.FairnessTab = FairML()
 
-        # add widgets
-        self.addTab(self.MLTab, 'Pipeline Settings')
-        self.addTab(self.XAITab, 'Explainable AI')
-        self.addTab(self.FairnessTab, 'Fairness-Aware ML')
+        # add widgets to tab
+        self.tab.addTab(self.MLTab, 'Pipeline Settings')
+        self.tab.addTab(self.XAITab, 'Explainable AI')
+        self.tab.addTab(self.FairnessTab, 'Fairness-Aware ML')
+
+        # add widgets to layout
+        vLayout.addWidget(self.tab)
+        vLayout.addWidget(self.qmainwindow.loggingTextBrowser)
