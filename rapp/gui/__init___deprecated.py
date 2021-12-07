@@ -125,7 +125,7 @@ class Window(QMainWindow):
         # self.vlayout.addWidget(Color('green', 'Menu Icons'), 1)
 
         # horizontal layout: pandas table and sql query
-        self.pandasTv = DataView(self, self.__conn)
+        self.pandasTv = DataView(self, sql_conn=self.__conn)
         self.h1layout.addWidget(self.pandasTv)
 
         # vertical layout: sql and data visualization

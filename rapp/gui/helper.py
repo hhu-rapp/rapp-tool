@@ -1,3 +1,5 @@
+import time
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 
@@ -21,3 +23,19 @@ class Color(QtWidgets.QWidget):
 
         # self.setLayout(layout)
         self.setPalette(palette)
+
+
+def timeLogMsg(msg):
+    """
+
+    Parameters
+    ----------
+    msg: str
+
+    Returns
+    -------
+    out: str
+        log call with time
+    """
+    timestr = time.asctime(time.localtime(time.time()))
+    return '[' + timestr + '] ' + msg

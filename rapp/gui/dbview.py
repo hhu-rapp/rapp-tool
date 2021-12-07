@@ -9,7 +9,6 @@ from PyQt5 import QtWidgets
 # rapp
 from rapp import gui
 from rapp import data
-from rapp.gui.helper import Color
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -79,8 +78,10 @@ class PandasModel(QtCore.QAbstractTableModel):
 
 class DataView(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, sql_conn=None):
+    def __init__(self, parent=None, sql_conn=None, qmainwindow=None):
         super(DataView, self).__init__(parent)
+
+        self.qmainwindow = qmainwindow
 
         self.combo = QtWidgets.QComboBox(self)
         self.combo.currentIndexChanged.connect(self.selection_changed)
@@ -122,6 +123,10 @@ class DataView(QtWidgets.QWidget):
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
         print("Loading", tbl, "table")  ## Todo: proper logging
+
+        if self.qmainwindow is not None:
+            msg = gui.helper.timeLogMsg('Loading ' + str(tbl) + ' table')
+            self.qmainwindow.loggingTextBrowser.append(msg)
 
         if tbl != "SQL":
             sql_query = f'SELECT * FROM {tbl}'
@@ -167,7 +172,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        self.pandasTv = DataView(self, self.__conn)
+        self.pandasTv = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
         self.sqlTbox = QtWidgets.QPlainTextEdit()
 
         # create buttons
@@ -211,6 +216,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def connectDatabase(self, filepath):
         print('Connecting to database')  # TODO: This should be a logging call.
+        msg = gui.helper.timeLogMsg('Connecting to database')
+        self.qmainwindow.loggingTextBrowser.append(msg)
         self.filepath_db = filepath
         self.__conn = data.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
@@ -224,5 +231,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
                 text_file.write(self.sqlTbox.toPlainText())
 
         except (DatabaseError, TypeError) as e:
-            self.qmainwindow.statusbar.setStatusTip(str(e))
-            print("Error in SQL code:", e)
+            msg = gui.helper.timeLogMsg(str(e))
+            self.qmainwindow.loggingTextBrowser.append(msg)
+            # print("Error in SQL code:", e)
