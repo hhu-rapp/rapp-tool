@@ -3,7 +3,11 @@
 ## Oberfläche
 - [ ] Log Fenster für Fehler/Ergebnisse
   - [ ] Prints ins Log Fenster schreiben
-  - [ ] Log Fenster hinzugefügt 
+    - [x] SQL Exceptions
+    - [ ] Datenbank laden
+    - [ ] SQL Anfragen laden
+    - [ ] Fehlerhafte Angaben bei der Pipeline
+  - [x] Log Fenster hinzugefügt
 - [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
   - [ ] Diskussion: Wo in der GUI? Was soll angezeigt werden? Klassenverteilungen?
   - [ ] Mean, Std für reelle Datentypen
