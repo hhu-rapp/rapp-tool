@@ -38,6 +38,7 @@ class Window(QMainWindow):
         super().__init__()
 
         self.__conn = None # Database connection.
+        self.filepath_db = db_filepath
 
         if new_layout:
             # apply_stylesheet(self, theme='dark_blue.xml')
@@ -67,9 +68,6 @@ class Window(QMainWindow):
         self.width = 1280
         self.height = 800
         self.setGeometry(100, 60, self.width, self.height)
-
-        # setting variables
-        self.filepath_db = db_filepath
 
     def initLayout(self):
         skeletonWidget = QtWidgets.QWidget()
