@@ -14,6 +14,7 @@
 
 ## Backend
 - [x] Catch Exception bei fehlerhaften SQL Anfragen
+- [ ] Fix open .db files (Ctrl+O)
 - [ ] Pipeline
     - [ ] Training implementieren
     - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)

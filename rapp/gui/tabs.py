@@ -40,5 +40,5 @@ class Tabs(QtWidgets.QWidget):
         self.tab.addTab(self.FairnessTab, 'Fairness-Aware ML')
 
         # add widgets to layout
-        vLayout.addWidget(self.tab)
-        vLayout.addWidget(self.qmainwindow.loggingTextBrowser)
+        vLayout.addWidget(self.tab, 3)
+        vLayout.addWidget(self.qmainwindow.loggingTextBrowser, 1)
