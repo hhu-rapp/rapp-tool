@@ -5,27 +5,29 @@
   - [ ] Logging TextBrowser eigenes Objekt und append wird überschrieben
   - [ ] Prints ins Log Fenster schreiben
     - [x] SQL Exceptions
-    - [ ] Datenbank laden
-    - [ ] SQL Anfragen laden
-    - [ ] Fehlerhafte Angaben bei der Pipeline
+    - [ ] Datenbank laden [Jose]
+    - [ ] SQL Anfragen laden [Jose]
+    - [ ] Fehlerhafte Angaben bei der Pipeline [Jose, hoehere Prio]
   - [x] Log Fenster hinzugefügt
 - [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
   - [ ] Diskussion: Wo in der GUI? Was soll angezeigt werden? Klassenverteilungen?
   - [ ] Mean, Std für reelle Datentypen
   - [ ] Histogramme für nominale, ordinale Datentypen
-- [ ] Title Bar als Menubar verwenden (Menüleiste an der Fensterleiste setzen)
+- [ ] Title Bar als Menubar verwenden (Menüleiste an der Fensterleiste setzen) [Jose, geringe prio]
 - [x] SQL Textfeld mit Dataframe Viewer tauschen
 - [x] Datenbank Viewer und SQL Editor sollen fix bleiben
 
 ## Backend
 - [x] Catch Exception bei fehlerhaften SQL Anfragen
 - [x] Create Layout, Create Widgets, Add Widgets in dbview.py bei der Klasse DatabaseLayoutWidget
-- [ ] Fix open .db files (Ctrl+O)
+- [ ] Fix open .db files (Ctrl+O) [Jose, hoehere Prio]
 - [ ] Pipeline
-    - [ ] Training implementieren
+    - [ ] Training implementieren/fixen [Jose, hoehere Prio]
+    - [ ] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
+      - [ ] Temporaere SQL Datei in der Zukunft weg [Jose]
     - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
-    - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline
-    - [ ] Tickbox bei kategorischen Variablen
+    - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline []
+    - [ ] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]
     - [ ] Dropdown Menü bei Target Variable
     - [ ] Einbinden von Reports an die GUI
 - [ ] Explainable AI Tab einsetzen (Jannik + Manh Khoi Austausch)
