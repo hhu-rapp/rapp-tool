@@ -30,7 +30,7 @@ class Tabs(QtWidgets.QWidget):
 
         # create widgets
         self.tab = QtWidgets.QTabWidget()
-        self.MLTab = Pipeline()
+        self.MLTab = Pipeline(self.qmainwindow)
         self.XAITab = XAI()
         self.FairnessTab = FairML()
 

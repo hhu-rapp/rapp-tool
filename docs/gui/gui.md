@@ -2,6 +2,7 @@
 
 ## Oberfläche
 - [ ] Log Fenster für Fehler/Ergebnisse
+  - [ ] Logging TextBrowser eigenes Objekt und append wird überschrieben
   - [ ] Prints ins Log Fenster schreiben
     - [x] SQL Exceptions
     - [ ] Datenbank laden
@@ -18,6 +19,7 @@
 
 ## Backend
 - [x] Catch Exception bei fehlerhaften SQL Anfragen
+- [x] Create Layout, Create Widgets, Add Widgets in dbview.py bei der Klasse DatabaseLayoutWidget
 - [ ] Fix open .db files (Ctrl+O)
 - [ ] Pipeline
     - [ ] Training implementieren

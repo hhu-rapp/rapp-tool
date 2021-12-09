@@ -6,14 +6,16 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 # rapp
 from rapp import gui
+from rapp.pipeline import MLPipeline
 
 
 class Pipeline(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, qmainwindow):
         super(Pipeline, self).__init__()
 
         # init gui
+        self.qmainwindow = qmainwindow
         self.initMLTab()
 
     def initMLTab(self):
@@ -98,7 +100,7 @@ class Pipeline(QtWidgets.QWidget):
         sqlQueryTempPath = gui.sql_temp_path
         print(sqlQueryTempPath)
         with open(sqlQueryTempPath, "w") as text_file:
-            text_file.write(self.sqlTbox.toPlainText())
+            text_file.write(self.qmainwindow.sqlTbox.toPlainText())
 
         args = argparse.Namespace()
         args.filename = gui.db_filepath

@@ -173,7 +173,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.pandasTv = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
-        self.sqlTbox = QtWidgets.QPlainTextEdit()
+        self.sqlTbox = self.qmainwindow.sqlTbox
 
         # create buttons
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
