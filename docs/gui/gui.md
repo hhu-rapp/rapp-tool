@@ -20,7 +20,7 @@
 ## Backend
 - [x] Catch Exception bei fehlerhaften SQL Anfragen
 - [x] Create Layout, Create Widgets, Add Widgets in dbview.py bei der Klasse DatabaseLayoutWidget
-- [ ] Fix open .db files (Ctrl+O) [Jose, hoehere Prio]
+- [x] Fix open .db files (Ctrl+O) [Jose, hoehere Prio]
 - [ ] Pipeline
     - [ ] Training implementieren/fixen [Jose, hoehere Prio]
     - [ ] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]

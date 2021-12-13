@@ -105,6 +105,7 @@ class DataView(QtWidgets.QWidget):
     # TODO Bug: Delete old database to insert new database
     def set_connection(self, sql_connection):
         self.__conn = sql_connection
+        self.__sql_query = None
 
         cursor = self.__conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -127,16 +128,21 @@ class DataView(QtWidgets.QWidget):
         if self.qmainwindow is not None:
             msg = gui.helper.timeLogMsg('Loading ' + str(tbl) + ' table')
             self.qmainwindow.loggingTextBrowser.append(msg)
+        try:
+            if tbl != "SQL" and tbl != "":
+                sql_query = f'SELECT * FROM {tbl}'
+                df = data.query_sql(sql_query, self.__conn)
+                self.display_dataframe(df)
+            elif self.__sql_query:
+                df = data.query_sql(self.__sql_query, self.__conn)
+                self.display_dataframe(df)
+            else:
+                self.display_dataframe(pd.DataFrame(columns=["Empty"]))
 
-        if tbl != "SQL":
-            sql_query = f'SELECT * FROM {tbl}'
-            df = data.query_sql(sql_query, self.__conn)
-            self.display_dataframe(df)
-        elif self.__sql_query:
-            df = data.query_sql(self.__sql_query, self.__conn)
-            self.display_dataframe(df)
-        else:
-            self.display_dataframe(pd.DataFrame(columns=["Empty"]))
+        except (DatabaseError, TypeError) as e:
+            msg = gui.helper.timeLogMsg(str(e))
+            self.qmainwindow.loggingTextBrowser.append(msg)
+            # print("Error in SQL code:", e)
 
     def display_dataframe(self, df):
         """
