@@ -35,11 +35,12 @@ class MLPipeline(object):
             self.args.report_path = f"reports/{sql_base_name}/"
 
         # reading and quering database
+
         con = sqlite3.connect(self.args.filename)
         with open(self.args.sql_filename) as f:
             sql_query = f.readlines()
             sql_query = ''.join(sql_query)
-        self.df = pd.read_sql_query(sql_query, con)
+        self.df = self.args.sql_df
 
         # fill missing values
         self.impute(self.args.imputation)

@@ -158,6 +158,8 @@ class DataView(QtWidgets.QWidget):
         self.__sql_query = sql_query
         self.combo.setCurrentIndex(self.__sql_idx)
 
+        return df
+
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
@@ -166,7 +168,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.qmainwindow = qmainwindow
         self.filepath_db = filepath_db
-        self.__conn = None  # Database connection.
+        self.__conn = None
+        self.sql_df = None
 
         self.initUI()
         self.connectDatabase(self.filepath_db) # init database
@@ -230,8 +233,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def displaySql(self, sql_query=None):
         try:
-            self.pandasTv.set_custom_sql(sql_query)
-
+            self.sql_df = self.pandasTv.set_custom_sql(sql_query)
+            gui.sql_df = self.sql_df
             # save temporary sql file
             with open(gui.sql_temp_path, "w") as text_file:
                 text_file.write(self.sqlTbox.toPlainText())

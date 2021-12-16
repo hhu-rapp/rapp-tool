@@ -115,6 +115,7 @@ class Pipeline(QtWidgets.QWidget):
         args.save_report = 'True'
         args.sensitive_attributes = []
         args.classifier = None
+        args.sql_df = gui.sql_df
 
         MLPipeline(args)
 

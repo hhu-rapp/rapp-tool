@@ -24,6 +24,7 @@ class Window(QMainWindow):
         # variables before initializing gui
         self.__conn = None # Database connection.
         self.filepath_db = db_filepath
+        self.sql_df = None
 
         # widgets before initializing gui
         self.loggingTextBrowser = QtWidgets.QTextBrowser()
