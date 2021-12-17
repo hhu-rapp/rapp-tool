@@ -4,7 +4,7 @@ Die als "additional models" bezeichneten Modelle in der Pipeline werden
 zusätzlich trainiert, sobald Bedarf besteht.
 
 Bedarf ist hierbei via
-`rapp.pipeline.additionalmodels.tex_additional_models` definiert.
+`rapp.pipeline.training.get_additional_models` definiert.
 
 <!-- TOC -->
 
