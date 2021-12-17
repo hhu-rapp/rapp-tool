@@ -19,8 +19,10 @@ from rapp.fair.notions import predictive_equality
 
 import os
 import json
+import shutil
 
 from rapp.report import latex
+from rapp.report import resources as rc
 
 
 class ClassifierReport(object):
@@ -185,6 +187,11 @@ class ClassifierReport(object):
             tex = latex.tex_classification_report(report_data,
                                                   self.features, self.classes)
             f.write(tex)
+
+        with rc.get_path("hhulogo.pdf") as logo:
+            shutil.copy(logo, path)
+        with rc.get_path("hhuarticle.cls") as cls_file:
+            shutil.copy(cls_file, path)
 
         for est, data in report_data['estimators'].items():
             self.write_classifier_report(est, data, path)
