@@ -1,5 +1,18 @@
 \subsection{Cost Complexity Pruning}
 
+Cost Complexity Pruning ist ein Ansatz zur Vereinfachung von
+Entscheidungsbäumen. Nach dem Training des initialen Baumes
+werden \(\alpha\)-Werte berechnet, mit denen die Tiefe des Baumes
+in einem zweiten Trainingslauf reduziert werden kann. Dies reduziert
+das Overfitting (hohe Performance auf dem Trainingset,
+niedrige auf dem Testset) und erhöht gleichzeitig die
+Generalisierbarkeit und Interpretierbarkeit.
+Die Pareto-Front über die Baumtiefe und die Balanced Accuracy
+ist über alle berechneten \(\alpha\)-Werte
+in \cref{fig:{{label}}-pareto-tree} gegeben.
+Im Folgenden sind die Ergebnisse der Pareto-optimalen Bäume im Detail
+gelistet.
+
 \begin{figure}[ht]
   \centering
   \begin{tikzpicture}
@@ -24,7 +37,8 @@
   \end{tikzpicture}
   \caption{Übersicht der verschiedenen Baumtiefen und Performance-Werte
     im CCP für verschiedene \(\alpha\)-Werte. Die Paretofront ist
-    hervorgehoben.}
+    hervorgehoben.}%
+  \label{fig:{{label}}-pareto-tree}
 \end{figure}
 
 {{#pareto_front}}
