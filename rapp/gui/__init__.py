@@ -15,6 +15,7 @@ from rapp.gui.tabs import Tabs
 
 db_filepath = "data/rapp.db"
 sql_temp_path = "sql_temp.sql"
+sql_df = None
 
 
 class Window(QMainWindow):
@@ -24,6 +25,7 @@ class Window(QMainWindow):
         # variables before initializing gui
         self.__conn = None # Database connection.
         self.filepath_db = db_filepath
+        self.sql_df = None
 
         # widgets before initializing gui
         self.loggingTextBrowser = QtWidgets.QTextBrowser()
