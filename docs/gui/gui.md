@@ -23,8 +23,8 @@
 - [x] Fix open .db files (Ctrl+O) [Jose, hoehere Prio]
 - [ ] Pipeline
     - [ ] Training implementieren/fixen [Jose, hoehere Prio]
-    - [ ] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
-      - [ ] Temporaere SQL Datei in der Zukunft weg [Jose]
+    - [x] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
+      - [x] Temporaere SQL Datei in der Zukunft weg [Jose]
     - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
     - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline []
     - [ ] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]

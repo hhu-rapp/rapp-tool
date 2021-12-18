@@ -95,16 +95,15 @@ class Pipeline(QtWidgets.QWidget):
         -------
 
         """
-        # temporarily save currenty sql query
-        # sqlQueryTempPath = os.getcwd() + 'sqlTemp' + datetime.now().time().strftime("%b-%d-%Y") + '.sql'
-        sqlQueryTempPath = gui.sql_temp_path
-        print(sqlQueryTempPath)
-        with open(sqlQueryTempPath, "w") as text_file:
-            text_file.write(self.qmainwindow.sqlTbox.toPlainText())
 
         args = argparse.Namespace()
-        args.filename = gui.db_filepath
-        args.sql_filename = sqlQueryTempPath
+
+        if self.qmainwindow.sql_df is None:
+            msg = gui.helper.timeLogMsg('No SQL query to train from')
+            self.qmainwindow.loggingTextBrowser.append(msg)
+            return
+
+        args.sql_df = self.qmainwindow.sql_df
         args.label_name = self.leName.text()
         args.categorical = self.leCVariables.text().replace(' ', '').split(',')
         args.type = self.cbType.currentText().lower()
@@ -115,12 +114,18 @@ class Pipeline(QtWidgets.QWidget):
         args.save_report = 'True'
         args.sensitive_attributes = []
         args.classifier = None
-        args.sql_df = gui.sql_df
+
+        try:
+            MLPipeline(args)
+        except Exception as e:
+            msg = gui.helper.timeLogMsg(str(e))
+            self.qmainwindow.loggingTextBrowser.append(msg)
+
+            # print("Error in SQL code:", e)
 
         MLPipeline(args)
 
-        # remove temporary files
-        os.remove(sqlQueryTempPath)
+
 
     def validate(self):
         pass

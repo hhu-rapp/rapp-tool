@@ -234,10 +234,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
     def displaySql(self, sql_query=None):
         try:
             self.sql_df = self.pandasTv.set_custom_sql(sql_query)
-            gui.sql_df = self.sql_df
-            # save temporary sql file
-            with open(gui.sql_temp_path, "w") as text_file:
-                text_file.write(self.sqlTbox.toPlainText())
+            self.qmainwindow.sql_df = self.sql_df
 
         except (DatabaseError, TypeError) as e:
             msg = gui.helper.timeLogMsg(str(e))

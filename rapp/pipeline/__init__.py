@@ -29,17 +29,9 @@ class MLPipeline(object):
         self.args.save_report = eval(self.args.save_report)
 
         if self.args.report_path is None:
-            sql_base_name = os.path.splitext(
-                os.path.basename(self.args.sql_filename))[0]
-            # path = f"reports/{sql_base_name}-{datetime.now().isoformat()}/"
-            self.args.report_path = f"reports/{sql_base_name}/"
+            # TODO Save reports with a meaningful name
+            self.args.report_path = f"reports/{datetime.now().isoformat()}/"
 
-        # reading and quering database
-
-        con = sqlite3.connect(self.args.filename)
-        with open(self.args.sql_filename) as f:
-            sql_query = f.readlines()
-            sql_query = ''.join(sql_query)
         self.df = self.args.sql_df
 
         # fill missing values
