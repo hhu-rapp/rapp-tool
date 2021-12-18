@@ -5,8 +5,9 @@
   - [ ] Logging TextBrowser eigenes Objekt und append wird überschrieben
   - [ ] Prints ins Log Fenster schreiben
     - [x] SQL Exceptions
-    - [ ] Datenbank laden [Jose]
-    - [ ] SQL Anfragen laden [Jose]
+    - [x] Datenbank laden [Jose]
+    - [x] SQL Anfragen laden [Jose]
+    - [ ] SQL Anfragen speichern [Jose]
     - [ ] Fehlerhafte Angaben bei der Pipeline [Jose, hoehere Prio]
   - [x] Log Fenster hinzugefügt
 - [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
