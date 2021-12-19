@@ -7,7 +7,7 @@
     - [x] SQL Exceptions
     - [x] Datenbank laden [Jose]
     - [x] SQL Anfragen laden [Jose]
-    - [ ] SQL Anfragen speichern [Jose]
+    - [x] SQL Anfragen speichern [Jose]
     - [ ] Fehlerhafte Angaben bei der Pipeline [Jose, hoehere Prio]
   - [x] Log Fenster hinzugefügt
 - [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen

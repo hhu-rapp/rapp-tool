@@ -30,6 +30,8 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_Database.setObjectName("actionOpen_Database")
         self.actionOpen_SQLite_Query = QtWidgets.QAction(self)
         self.actionOpen_SQLite_Query.setObjectName("actionOpen_SQLite_Query")
+        self.actionSave_SQLite_Query = QtWidgets.QAction(self)
+        self.actionSave_SQLite_Query.setObjectName("actionSave_SQLite_Query")
 
         # Edit
         self.actionCopy = QtWidgets.QAction(self)
@@ -40,6 +42,7 @@ class MenuBar(QtWidgets.QMenuBar):
         # add entries to the menu
         self.menuFile.addAction(self.actionOpen_Database)
         self.menuFile.addAction(self.actionOpen_SQLite_Query)
+        self.menuFile.addAction(self.actionSave_SQLite_Query)
         self.menuEdit.addAction(self.actionCopy)
         self.menuEdit.addAction(self.actionPaste)
 
@@ -64,12 +67,19 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Opens an SQLite query file"))
         self.actionOpen_SQLite_Query.setShortcut(_translate("Window", "Ctrl+Shift+O"))
 
+        self.actionSave_SQLite_Query.setText(
+            _translate("Window", "Save SQLite Query"))
+        self.actionSave_SQLite_Query.setStatusTip(
+            _translate("Window", "Saves an SQLite query"))
+        self.actionSave_SQLite_Query.setShortcut(_translate("Window", "Ctrl+Shift+S"))
+
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
 
     def initMenuAction(self):
         # file
         self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
+        self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
         self.actionOpen_Database.triggered.connect(self.openDatabase)
 
     def openDatabase(self):
@@ -92,3 +102,14 @@ class MenuBar(QtWidgets.QMenuBar):
             with open(fileName, 'r') as file:
                 data = file.read()
                 self.qMainWindow.sqlTbox.setPlainText(data)
+
+    def saveSQLQuery(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save SQL Query", "",
+                                                            "Database Files (*.sql);;All Files (*)", options=options)
+
+        if fileName:
+            with open(fileName, 'w') as file:
+                data = self.qMainWindow.sqlTbox.toPlainText()
+                file.write(data)
