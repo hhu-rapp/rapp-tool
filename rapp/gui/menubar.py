@@ -2,6 +2,7 @@ import os
 
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
+from PyQt5.Qt import QApplication, QClipboard
 
 
 class MenuBar(QtWidgets.QMenuBar):
@@ -82,6 +83,9 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
         self.actionOpen_Database.triggered.connect(self.openDatabase)
 
+        self.actionCopy.triggered.connect(self.copySQLQuery)
+        self.actionPaste.triggered.connect(self.pasteSQLQuery)
+
     def openDatabase(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
@@ -113,3 +117,10 @@ class MenuBar(QtWidgets.QMenuBar):
             with open(fileName, 'w') as file:
                 data = self.qMainWindow.sqlTbox.toPlainText()
                 file.write(data)
+
+    def copySQLQuery(self):
+        QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
+
+    def pasteSQLQuery(self):
+        text = QApplication.clipboard().text()
+        self.qMainWindow.sqlTbox.setPlainText(text)
