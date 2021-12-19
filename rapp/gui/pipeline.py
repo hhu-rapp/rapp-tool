@@ -1,5 +1,6 @@
 import argparse
 import os.path
+import traceback
 
 # PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -58,7 +59,7 @@ class Pipeline(QtWidgets.QWidget):
         self.labelFSM.setText('Feature Selection Method:')
 
         # create menus for configuration
-        self.leName = QtWidgets.QLineEdit()
+        self.cbName = QtWidgets.QComboBox()
         self.leCVariables = QtWidgets.QLineEdit()
         self.cbType = QtWidgets.QComboBox()
         self.cbType.addItem('Classification')
@@ -78,7 +79,7 @@ class Pipeline(QtWidgets.QWidget):
         self.gridlayoutMainML.addWidget(self.labelFSM, 5, 0)
 
         # add options to the grid
-        self.gridlayoutMainML.addWidget(self.leName, 0, 1)
+        self.gridlayoutMainML.addWidget(self.cbName, 0, 1)
         self.gridlayoutMainML.addWidget(self.leCVariables, 1, 1)
         self.gridlayoutMainML.addWidget(self.cbType, 2, 1)
         self.gridlayoutMainML.addWidget(self.lePath, 3, 1)
@@ -87,6 +88,22 @@ class Pipeline(QtWidgets.QWidget):
 
         # add to tab layout
         self.setLayout(self.vlayoutMainML)
+
+    def refresh_labels(self):
+
+        self.cbName.clear()
+        for feature in self.qmainwindow.sql_df.columns:
+            self.cbName.addItem(feature)
+
+        self.leCVariables.clear()
+        for feature in (self.qmainwindow.sql_df.select_dtypes(exclude=["number"])).columns:
+
+            text = self.leCVariables.text()
+
+            if text == '':
+                self.leCVariables.setText(feature)
+            else:
+                self.leCVariables.setText(text+','+feature)
 
     def train(self):
         """
@@ -104,7 +121,7 @@ class Pipeline(QtWidgets.QWidget):
             return
 
         args.sql_df = self.qmainwindow.sql_df
-        args.label_name = self.leName.text()
+        args.label_name = self.cbName.currentText()
         args.categorical = self.leCVariables.text().replace(' ', '').split(',')
         args.type = self.cbType.currentText().lower()
         args.imputation = self.cbImputation.currentText().lower()
@@ -120,12 +137,9 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             msg = gui.helper.timeLogMsg(str(e))
             self.qmainwindow.loggingTextBrowser.append(msg)
+            traceback.print_exc()
 
             # print("Error in SQL code:", e)
-
-        MLPipeline(args)
-
-
 
     def validate(self):
         pass

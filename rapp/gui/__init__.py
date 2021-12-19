@@ -61,10 +61,10 @@ class Window(QMainWindow):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databaseLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
-        tabs = Tabs(self)
+        self.tabs = Tabs(self)
 
         # add widgets
         splitter.addWidget(self.databaseLayoutWidget)
-        splitter.addWidget(tabs)
+        splitter.addWidget(self.tabs)
         splitter.setSizes([800, 480])
         skeletonLayout.addWidget(splitter)

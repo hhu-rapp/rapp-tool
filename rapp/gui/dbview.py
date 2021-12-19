@@ -236,7 +236,11 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             self.sql_df = self.pandasTv.set_custom_sql(sql_query)
             self.qmainwindow.sql_df = self.sql_df
 
+            # TODO find better way to do this
+            self.qmainwindow.tabs.MLTab.refresh_labels()
+
         except (DatabaseError, TypeError) as e:
             msg = gui.helper.timeLogMsg(str(e))
+
             self.qmainwindow.loggingTextBrowser.append(msg)
             # print("Error in SQL code:", e)

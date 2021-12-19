@@ -28,8 +28,9 @@
       - [x] Temporaere SQL Datei in der Zukunft weg [Jose]
     - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
     - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline []
-    - [ ] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]
-    - [ ] Dropdown Menü bei Target Variable
+    - [x] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]
+    - [ ] Kategorischen Variablen lineEdit verbessern [Jose]
+      - [x] Dropdown Menü bei Target Variable
     - [ ] Einbinden von Reports an die GUI
 - [ ] Explainable AI Tab einsetzen (Jannik + Manh Khoi Austausch)
   - [ ] Diskussion der Darstellung
