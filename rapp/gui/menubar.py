@@ -89,7 +89,7 @@ class MenuBar(QtWidgets.QMenuBar):
     def openDatabase(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQLite Database File", "",
                                                             "Database Files (*.db);;All Files (*)", options=options)
         if fileName:
             print(os.path.normpath(fileName))
@@ -99,7 +99,7 @@ class MenuBar(QtWidgets.QMenuBar):
     def openSQLQuery(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQLite Query File", "",
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:
@@ -110,7 +110,7 @@ class MenuBar(QtWidgets.QMenuBar):
     def saveSQLQuery(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save SQL Query", "",
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save SQL Query as a File", "",
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:

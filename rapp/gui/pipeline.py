@@ -31,9 +31,13 @@ class Pipeline(QtWidgets.QWidget):
         # create buttons
         trainButton = QtWidgets.QPushButton('Train')
         trainButton.clicked.connect(self.train)
+        trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
+        trainButton.setShortcut('Ctrl+t')
 
         validateButton = QtWidgets.QPushButton('Validate')
         validateButton.clicked.connect(self.validate)
+        validateButton.setStatusTip('Validate models on SQL query (Ctrl+V)')
+        validateButton.setShortcut('Ctrl+v')
 
         # add buttons
         self.menubuttonsMainML.addWidget(trainButton)
