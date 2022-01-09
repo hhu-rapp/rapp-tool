@@ -236,7 +236,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             self.sql_df = self.pandasTv.set_custom_sql(sql_query)
             self.qmainwindow.sql_df = self.sql_df
 
-            # TODO find better way to do this
+            # TODO: better way to do access the method
             self.qmainwindow.tabs.MLTab.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
