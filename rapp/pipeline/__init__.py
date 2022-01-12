@@ -28,7 +28,7 @@ class MLPipeline(object):
     def __init__(self, args):
         self.args = args
 
-        self.args.save_report = eval(self.args.save_report)
+        self.args.save_report = self.args.save_report
 
         if self.args.report_path is None:
             # TODO Save reports with a meaningful name

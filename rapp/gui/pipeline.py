@@ -69,6 +69,7 @@ class Pipeline(QtWidgets.QWidget):
         self.cbType.addItem('Classification')
         self.cbType.addItem('Regression')
         self.lePath = QtWidgets.QLineEdit()
+        self.lePath.setText("reports/")
         self.cbImputation = QtWidgets.QComboBox()
         self.cbImputation.addItem('Iterative')
         self.cbFSM = QtWidgets.QComboBox()
@@ -131,8 +132,8 @@ class Pipeline(QtWidgets.QWidget):
         args.imputation = self.cbImputation.currentText().lower()
         args.feature_selection = self.cbFSM.currentText().lower()
         args.plot_confusion_matrix = 'True'
-        args.report_path = ''
-        args.save_report = 'True'
+        args.report_path = self.lePath.text().strip()
+        args.save_report = args.report_path != ''  # Only report when path is given
         args.sensitive_attributes = []
         args.classifier = None
 
