@@ -180,10 +180,10 @@ class ClassifierReport(object):
         except OSError as e:
             print(f"Could not write report to {path}:", e)
 
-        with open(path+"/report.json", 'w') as r:
+        with open(os.path.join(path,"report.json"), 'w') as r:
             json.dump(report_data, r, indent=2)
 
-        with open(path+"/report.tex", 'w') as f:
+        with open(os.path.join(path, "report.tex"), 'w') as f:
             tex = latex.tex_classification_report(report_data,
                                                   self.features, self.classes)
             f.write(tex)
@@ -197,9 +197,9 @@ class ClassifierReport(object):
             self.write_classifier_report(est, data, path)
 
     def write_classifier_report(self, est_name, est_data, path):
-        data_pre = path + '/' + est_name + "_"
+        set_name = lambda file: os.path.join(path, est_name + file)
 
-        scores_file = data_pre + 'scores.csv'
+        scores_file = set_name('scores.csv')
         with open(scores_file, 'w') as scr:
             scr.write("Metric,Train,Test\n")
             for metric in est_data["train"]["scores"].keys():
@@ -207,7 +207,7 @@ class ClassifierReport(object):
                 scr.write(str(est_data["train"]["scores"][metric]) + ",")
                 scr.write(str(est_data["test"]["scores"][metric]) + "\n")
 
-        cm_file = data_pre + 'confusion_matrix.json'
+        cm_file = set_name('confusion_matrix.json')
         with open(cm_file, 'w') as f:
             confusion_dict = {
                 'train': est_data["train"]["confusion_matrix"],
