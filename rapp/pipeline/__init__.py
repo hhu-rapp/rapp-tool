@@ -20,6 +20,8 @@ from sklearn.model_selection import train_test_split
 from rapp.report import ClassifierReport
 from rapp.pipeline import training
 
+from datetime import datetime
+
 
 class MLPipeline(object):
 
