@@ -1,4 +1,3 @@
-import sqlite3
 from datetime import datetime
 
 import pandas as pd
@@ -12,9 +11,6 @@ from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
 from sklearn.feature_selection import VarianceThreshold
 
 import rapp.models as models
-
-# plots
-import matplotlib.pyplot as plt
 
 # tools
 from sklearn.model_selection import train_test_split

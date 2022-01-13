@@ -3,7 +3,6 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 from rapp.gui import Window
-import PyQt5
 
 if __name__ == '__main__':
     # create pyqt5 app

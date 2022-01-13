@@ -1,11 +1,8 @@
 # rapp
-from rapp.pipeline import MLPipeline
-from rapp.parser import RappConfigParser
+from rapp.pipeline.util import load_pipeline_from_config
 from rapp.util import pareto_front
 
-import sqlite3
 import numpy as np
-import pandas as pd
 import sklearn as sk
 
 from sklearn.tree import DecisionTreeClassifier
@@ -20,16 +17,7 @@ db_filepath = "data/rapp.db"
 class Explain(object):
 
     def __init__(self):
-        parser = RappConfigParser()
-        args = parser.parse_args()
-
-        con = sqlite3.connect(args.filename)
-        with open(args.sql_filename) as f:
-            sql_query = f.readlines()
-            sql_query = ''.join(sql_query)
-        args.sql_df = pd.read_sql_query(sql_query, con)
-
-        self.pipeline = MLPipeline(args)
+        self.pipeline = load_pipeline_from_config()
 
         # getting objects from MLPipeline
         self.estimator = self.pipeline.get_estimators()[0]
