@@ -25,6 +25,65 @@ class Color(QtWidgets.QWidget):
         self.setPalette(palette)
 
 
+class CheckableComboBox(QtWidgets.QComboBox):
+    def __init__(self):
+        super().__init__()
+        self._changed = False
+        self.view().pressed.connect(self.handle_item_pressed)
+
+    def setItemChecked(self, index, checked=True):
+
+        item = self.model().item(index, self.modelColumn())  # QStandardItem object
+
+        if checked:
+            item.setCheckState(QtCore.Qt.Checked)
+        else:
+            item.setCheckState(QtCore.Qt.Unchecked)
+
+    def handle_item_pressed(self, index):
+
+        item = self.model().itemFromIndex(index)
+        self._changed = True
+
+        if item.checkState() == QtCore.Qt.Checked:
+            item.setCheckState(QtCore.Qt.Unchecked)
+        else:
+            item.setCheckState(QtCore.Qt.Checked)
+
+    def hidePopup(self):
+
+        if not self._changed:
+            super().hidePopup()
+        self._changed = False
+
+    def _item_checked(self, index):
+        item = self.model().item(index)
+        return item.checkState() == QtCore.Qt.Checked
+
+    def get_checked_items(self):
+        items = []
+        for i in range(super().count()):
+            if self._item_checked(i):
+                items.append(super().itemText(i))
+
+        return items
+
+    def check_items(self, options):
+
+        for index in range(super().count()):
+            item = self.model().item(index)
+            item.setCheckState(QtCore.Qt.Unchecked)
+
+        for option in options:
+            item = self.model().findItems(option)
+
+            if len(item) == 0:
+                print(f"Could not find Item: {option}")
+                continue
+
+            item[0].setCheckState(QtCore.Qt.Checked)
+
+
 def timeLogMsg(msg):
     """
 
