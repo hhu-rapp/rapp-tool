@@ -25,7 +25,7 @@ class Explain(object):
         self.X_test, self.y_test = self.pipeline.X_test, self.pipeline.y_test
 
     def explain(self):
-        if self.pipeline.args.classifier == 'DT':
+        if self.pipeline.args.classifier == ['DT']:
             self.explain_dt()
 
     def explain_dt(self):
