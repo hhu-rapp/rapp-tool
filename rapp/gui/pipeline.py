@@ -7,6 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 # rapp
 from rapp import gui
+from rapp.gui import helper
 from rapp.pipeline import MLPipeline
 
 
@@ -56,6 +57,9 @@ class Pipeline(QtWidgets.QWidget):
         self.labelCVariables = QtWidgets.QLabel()
         self.labelCVariables.setText('Categorical Variables:')
 
+        self.labelSAttributes = QtWidgets.QLabel()
+        self.labelSAttributes.setText('Sensitive Attributes:')
+
         self.labelType = QtWidgets.QLabel()
         self.labelType.setText('Type:')
 
@@ -68,10 +72,16 @@ class Pipeline(QtWidgets.QWidget):
         self.labelFSM = QtWidgets.QLabel()
         self.labelFSM.setText('Feature Selection Method:')
 
+        self.labelEstimator = QtWidgets.QLabel()
+        self.labelEstimator.setText('Estimators:')
+
         # create menus for configuration
         self.cbName = QtWidgets.QComboBox()
         self.leCVariables = QtWidgets.QLineEdit()
-        self.cbType = QtWidgets.QComboBox()
+        self.cbSAttributes = helper.CheckableComboBox()
+        self.cbEstimator = helper.CheckableComboBox()
+        self.cbType = QtWidgets.QComboBox(self)
+        self.cbType.currentIndexChanged.connect(self.update_estimators)
         self.cbType.addItem('Classification')
         self.cbType.addItem('Regression')
         self.lePath = QtWidgets.QLineEdit()
@@ -120,7 +130,43 @@ class Pipeline(QtWidgets.QWidget):
             if text == '':
                 self.leCVariables.setText(feature)
             else:
-                self.leCVariables.setText(text+','+feature)
+                self.leCVariables.setText(text + ',' + feature)
+
+        self.update_estimators()
+        self.update_sensitive_attributes()
+
+    def update_sensitive_attributes(self):
+
+        self.cbSAttributes.clear()
+        for index, feature in enumerate(self.qmainwindow.sql_df.columns):
+            self.cbSAttributes.addItem(feature)
+            self.cbSAttributes.setItemChecked(index, checked=False)
+
+    def update_estimators(self):
+
+        # classifiers = ["Random Forest","Support Vector Machine","Decision Tree","Naive Bayes","Logistic Regression"]
+        # reggressors = ['Elastic Net','Linear Regression','Bayesian Ridge']
+        classifiers = ['RF', 'SVM', 'DT', 'NB', 'LR']
+        reggressors = ['EL', 'LR', 'BR']
+
+        self.cbEstimator.clear()
+        if self.cbType.currentText().lower() == 'classification':
+            estimators = classifiers
+        if self.cbType.currentText().lower() == 'regression':
+            estimators = reggressors
+
+        for index, estimator in enumerate(estimators):
+            self.cbEstimator.addItem(estimator)
+            self.cbEstimator.setItemChecked(index)
+
+    def set_report_path(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        options |= QtWidgets.QFileDialog.ShowDirsOnly
+        path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a Folder", "",
+                                                            options=options)
+
+        self.lePath.setText(path)
 
     def train(self):
         """
@@ -137,6 +183,11 @@ class Pipeline(QtWidgets.QWidget):
             self.qmainwindow.loggingTextBrowser.append(msg)
             return
 
+        if len(self.cbEstimator.get_checked_items()) == 0:
+            msg = gui.helper.timeLogMsg('No Estimator selected')
+            self.qmainwindow.loggingTextBrowser.append(msg)
+            return
+
         args.sql_df = self.qmainwindow.sql_df
         args.label_name = self.cbName.currentText()
         args.categorical = self.leCVariables.text().replace(' ', '').split(',')
@@ -146,8 +197,8 @@ class Pipeline(QtWidgets.QWidget):
         args.plot_confusion_matrix = 'True'
         args.report_path = self.lePath.text()
         args.save_report = 'True'
-        args.sensitive_attributes = []
-        args.classifier = None
+        args.sensitive_attributes = self.cbSAttributes.get_checked_items()
+        args.classifier = self.cbEstimator.get_checked_items()
 
         try:
             MLPipeline(args)
