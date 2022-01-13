@@ -1,11 +1,12 @@
 # rapp
 from rapp.pipeline import MLPipeline
 from rapp.parser import RappConfigParser
+from rapp.util import pareto_front
 
-# data analysis
+import sqlite3
 import numpy as np
+import pandas as pd
 import sklearn as sk
-import oapackage
 
 from sklearn.tree import DecisionTreeClassifier
 # plots
@@ -20,7 +21,15 @@ class Explain(object):
 
     def __init__(self):
         parser = RappConfigParser()
-        self.pipeline = MLPipeline(parser.parse_args())
+        args = parser.parse_args()
+
+        con = sqlite3.connect(args.filename)
+        with open(args.sql_filename) as f:
+            sql_query = f.readlines()
+            sql_query = ''.join(sql_query)
+        args.sql_df = pd.read_sql_query(sql_query, con)
+
+        self.pipeline = MLPipeline(args)
 
         # getting objects from MLPipeline
         self.estimator = self.pipeline.get_estimators()[0]
@@ -44,15 +53,9 @@ class Explain(object):
 
         acc_scores = [sk.metrics.balanced_accuracy_score(self.y_test, clf.predict(self.X_test)) for clf in clfs]
 
-        # find pareto optima
-        datapoints = np.array([-depths, acc_scores]).T
-        pareto = oapackage.ParetoDoubleLong()
-        for ii in range(0, datapoints.shape[0]):
-            w = oapackage.doubleVector((datapoints[ii, 0], datapoints[ii, 1]))
-            pareto.addvalue(w, ii)
-
-        # list of indexes of pareto optimal solutions
-        lst = pareto.allindices()  # [0]
+        # find pareto optima; negative depth to allow minimising over it
+        datapoints = np.array([depths, acc_scores]).T
+        pareto_points = _find_tree_optima(datapoints)
 
         self.selected_idx = None
 
@@ -60,7 +63,6 @@ class Explain(object):
         def mouse_move(event):
             x, y = event.xdata, event.ydata
             if event.dblclick:
-                pareto_points = datapoints[lst, :]
                 dists = np.linalg.norm(np.array([x, y]) - pareto_points, axis=1)
                 self.selected_idx = np.argmin(dists)
                 print(dists)
@@ -70,13 +72,13 @@ class Explain(object):
         plt.connect('motion_notify_event', mouse_move)
         plt.connect('button_press_event', mouse_move)
         plt.scatter(datapoints[:, 0], datapoints[:, 1], s=8, c='blue', label='Non Pareto-optimal')
-        plt.scatter(datapoints[lst, 0], datapoints[lst, 1], s=12, c='red', label='Pareto optimal')
+        plt.scatter(pareto_points[:, 0], pareto_points[:, 1], s=12, c='red', label='Pareto optimal')
         plt.xlabel('Max Depth')
         plt.ylabel('Accuracy (balanced)')
         plt.show()
 
         # train with selected hyperparameter
-        selected_depth = -datapoints[lst[self.selected_idx], 0]
+        selected_depth = pareto_points[self.selected_idx, 0]
         print(selected_depth)
         clf = DecisionTreeClassifier(random_state=0, class_weight="balanced", min_impurity_decrease=0.001,
                                      max_depth=selected_depth)
@@ -92,64 +94,25 @@ class Explain(object):
         plt.show()
 
 
-    def explain_dt_ccpalpha(self):
-        # getting hyperparameter space
-        ccp_alphas = self.estimator.cost_complexity_pruning_path(self.X_train, self.y_train).ccp_alphas[:-1]
+def _find_tree_optima(datapoints):
+    """
+    Parameters
+    ----------
+    datapoints: np.array (n_samples, 2)
+        Contains `n_samples` entries of the form
+        `[tree_depth, performance_score]`.
 
-        # testing hyperparameter
-        clfs = []
-        for ccp_alpha in ccp_alphas:
-            clf = DecisionTreeClassifier(random_state=0, ccp_alpha=ccp_alpha,
-                                         class_weight="balanced", min_impurity_decrease=0.001)
-            clf.fit(self.X_train, self.y_train)
-            clfs.append(clf)
+    Returns
+    -------
+    array (n_samples, 2)
+        Pareto optima in `datapoints` where tree depth is minimised and
+        performance score is maximised.
+    """
+    data = datapoints.copy()
+    data[:,0] = -data[:,0]  # Negate depths so we can maximise.
+    pf = pareto_front(data)
+    return datapoints[pf]
 
-        acc_scores = [sk.metrics.balanced_accuracy_score(self.y_test, clf.predict(self.X_test)) for clf in clfs]
-
-        # find pareto optima
-        datapoints = np.array([ccp_alphas, acc_scores]).T
-        pareto = oapackage.ParetoDoubleLong()
-        for ii in range(0, datapoints.shape[0]):
-            w = oapackage.doubleVector((datapoints[ii, 0], datapoints[ii, 1]))
-            pareto.addvalue(w, ii)
-
-        # list of indexes of pareto optimal solutions
-        lst = pareto.allindices()#[0]
-
-        self.selected_idx = None
-
-        # user selects pareto-optimal solution
-        def mouse_move(event):
-            x, y = event.xdata, event.ydata
-            if event.dblclick:
-                pareto_points = datapoints[lst, :]
-                dists = np.linalg.norm(np.array([x, y]) - pareto_points, axis=1)
-                self.selected_idx = np.argmin(dists)
-                print(dists)
-                plt.close()
-
-        # scatter pareto optimal solutions
-        plt.connect('motion_notify_event', mouse_move)
-        plt.connect('button_press_event', mouse_move)
-        plt.scatter(datapoints[:, 0], datapoints[:, 1], s=1, c='blue', label='Non Pareto-optimal')
-        plt.scatter(datapoints[lst, 0], datapoints[lst, 1], s=3, c='red', label='Pareto optimal')
-        plt.xlabel('ccp_alpha')
-        plt.ylabel('Accuracy (balanced)')
-        plt.show()
-
-        # train with selected hyperparameter
-        selected_ccp = datapoints[lst[self.selected_idx], 0]
-        print(selected_ccp)
-        clf = DecisionTreeClassifier(random_state=0, class_weight="balanced", min_impurity_decrease=0.001,
-                                     ccp_alpha=selected_ccp)
-
-        clf.fit(self.X_train, self.y_train)
-
-        # save estimator into estimators
-        self.estimator = clf
-
-        plot_tree(clf, feature_names=self.X_train.columns, class_names=["nein", "ja"])
-        plt.show()
 
 if __name__ == '__main__':
     explain = Explain()

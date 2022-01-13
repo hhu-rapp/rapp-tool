@@ -74,7 +74,7 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         costs.append([-depth, score])
     costs = np.array(costs)
 
-    indices = pareto_front(costs)
+    indices, = np.nonzero(pareto_front(costs))
 
     # Update values as promised.
     for i in indices:
