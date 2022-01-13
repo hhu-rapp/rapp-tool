@@ -67,7 +67,10 @@ def tex_fairness(estimator, data):
         next_start += num_colums
         group_dict['end_column'] = next_start - 1
         group_dict['num_cols'] = num_colums
-    fairness['groups'][-1]['is_last'] = True
+    if len(groups) > 0:
+        fairness['groups'][-1]['is_last'] = True
+    if notions is None:
+        notions = []  # If no groups are given, value is not set in loop above.
 
     for mode in ['train', 'test']:
         mode_dict = {'mode': mode.capitalize(),
