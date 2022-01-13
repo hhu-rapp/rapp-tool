@@ -29,6 +29,12 @@ class Pipeline(QtWidgets.QWidget):
         self.vlayoutMainML.addLayout(self.menubuttonsMainML)
 
         # create buttons
+        reportPathButton = QtWidgets.QPushButton('...')
+        reportPathButton.clicked.connect(self.set_report_path)
+        reportPathButton.setStatusTip('Select Report Path (Ctrl+R)')
+        reportPathButton.setShortcut('Ctrl+r')
+        reportPathButton.setMaximumWidth(50)
+
         trainButton = QtWidgets.QPushButton('Train')
         trainButton.clicked.connect(self.train)
         trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
@@ -77,18 +83,25 @@ class Pipeline(QtWidgets.QWidget):
         # add labels to the grid
         self.gridlayoutMainML.addWidget(self.labelName, 0, 0)
         self.gridlayoutMainML.addWidget(self.labelCVariables, 1, 0)
-        self.gridlayoutMainML.addWidget(self.labelType, 2, 0)
-        self.gridlayoutMainML.addWidget(self.labelReportPath, 3, 0)
-        self.gridlayoutMainML.addWidget(self.labelImputation, 4, 0)
-        self.gridlayoutMainML.addWidget(self.labelFSM, 5, 0)
+        self.gridlayoutMainML.addWidget(self.labelSAttributes, 2, 0)
+        self.gridlayoutMainML.addWidget(self.labelType, 3, 0)
+        self.gridlayoutMainML.addWidget(self.labelReportPath, 4, 0)
+        self.gridlayoutMainML.addWidget(self.labelImputation, 5, 0)
+        self.gridlayoutMainML.addWidget(self.labelFSM, 6, 0)
+        self.gridlayoutMainML.addWidget(self.labelEstimator, 7, 0)
 
         # add options to the grid
-        self.gridlayoutMainML.addWidget(self.cbName, 0, 1)
-        self.gridlayoutMainML.addWidget(self.leCVariables, 1, 1)
-        self.gridlayoutMainML.addWidget(self.cbType, 2, 1)
-        self.gridlayoutMainML.addWidget(self.lePath, 3, 1)
-        self.gridlayoutMainML.addWidget(self.cbImputation, 4, 1)
-        self.gridlayoutMainML.addWidget(self.cbFSM, 5, 1)
+        self.gridlayoutMainML.addWidget(self.cbName, 0, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.leCVariables, 1, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.cbSAttributes, 2, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.cbType, 3, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.lePath, 4, 1)
+        self.gridlayoutMainML.addWidget(self.cbImputation, 5, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.cbFSM, 6, 1, 1, -1)
+        self.gridlayoutMainML.addWidget(self.cbEstimator, 7, 1, 1, -1)
+
+        # add more options to grid
+        self.gridlayoutMainML.addWidget(reportPathButton, 4, 2)
 
         # add to tab layout
         self.setLayout(self.vlayoutMainML)
@@ -131,7 +144,7 @@ class Pipeline(QtWidgets.QWidget):
         args.imputation = self.cbImputation.currentText().lower()
         args.feature_selection = self.cbFSM.currentText().lower()
         args.plot_confusion_matrix = 'True'
-        args.report_path = ''
+        args.report_path = self.lePath.text()
         args.save_report = 'True'
         args.sensitive_attributes = []
         args.classifier = None
