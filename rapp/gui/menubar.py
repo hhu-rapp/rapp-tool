@@ -149,19 +149,18 @@ class MenuBar(QtWidgets.QMenuBar):
             try:
                 config.read(fileName)
             except MissingSectionHeaderError as e:
-                msg = gui.helper.timeLogMsg(str(e))
+                msg = gui.helper.timeLogMsg(".ini File is missing ['Files'] and ['Settings'] Headers")
                 traceback.print_exc()
 
                 self.qMainWindow.qmainwindow.loggingTextBrowser.append(msg)
                 return
-                # print("Error in SQL code:", e)
 
             # load db
             if 'filename' in config['Files']:
                 db_path = config['Files']['filename']
                 self.qMainWindow.connectDatabase(os.path.normpath(db_path))
 
-            # open and excecute sql query
+            # open and execute sql query
             if 'sql_filename' in config['Files']:
                 with open(config['Files']['sql_filename'], 'r') as file:
                     data = file.read()
@@ -170,10 +169,29 @@ class MenuBar(QtWidgets.QMenuBar):
 
             # load settings
             # TODO: Load other settings
+            # TODO: Better way to access MLTab attributes
             if 'label_name' in config['Settings']:
                 target = config['Settings']['label_name']
-                # TODO: better way to access cbName
                 self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(target)
+
+            if 'type' in config['Settings']:
+                type = config['Settings']['type']
+                self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(type)
+
+            # TODO: better way split string
+            if 'estimators' in config['Settings']:
+                estimators = config['Settings']['estimators']
+                estimators_list = estimators.replace('[','').replace(']', '')
+                estimators_list = estimators_list.replace(' ', '')
+
+                self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(estimators_list.split(','))
+
+            if 'sensitive_attributes' in config['Settings']:
+                sensitive_attributes = config['Settings']['sensitive_attributes']
+                s_attributes_list = sensitive_attributes.replace('[','').replace(']', '')
+                s_attributes_list = s_attributes_list.replace(' ', '')
+
+                self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(s_attributes_list.split(','))
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
