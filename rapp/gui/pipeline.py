@@ -196,8 +196,8 @@ class Pipeline(QtWidgets.QWidget):
         args.imputation = self.cbImputation.currentText().lower()
         args.feature_selection = self.cbFSM.currentText().lower()
         args.plot_confusion_matrix = 'True'
-        args.save_report = args.report_path != ''  # Only report when path is given
         args.report_path = self.lePath.text()
+        args.save_report = args.report_path != ''  # Only report when path is given
         args.sensitive_attributes = self.cbSAttributes.get_checked_items()
         args.classifier = self.cbEstimator.get_checked_items()
 
