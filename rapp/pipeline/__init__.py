@@ -41,6 +41,9 @@ class MLPipeline(object):
 
         # create estimators & train
         if self.args.classifier is not None:
+            if not isinstance(self.args.classifier, list):
+                self.args.classifier = [self.args.classifier]
+
             self.estimators = []
 
             for estimator in self.args.classifier:
