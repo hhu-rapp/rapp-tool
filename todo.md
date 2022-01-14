@@ -63,10 +63,16 @@
 
 ## Predictions
 
-- [ ] Implementierung der Predictions vom letzten Meeting
-  - [ ] Erstellen von Konfigurationen
-    - [ ] Für Studienanfänger
-    - [ ] Für fortgeschrittene Studenten
-    - [ ] Dropout Predictions
-    - [ ] Grade Predictions
-    - [ ] Abschluss Datum Prediction
+- [ ] Implementierung der Predictions wie besprochen im Konsortium
+  - [ ] Erstelle SQL-Abfragen für verschiedene Features
+    - [ ] ECTS Erstes Semester
+    - [ ] Noten im ersten Semester
+      - [ ] mean
+      - [ ] stdev
+    - [ ] Anzahl NBs
+  - [ ] Erstelle SQl-Abfragen für verschiedene Labels
+    - [x] ~~*Dropout Predictions*~~
+    - [ ] Abschlussnote/Master-Eignung
+    - [ ] ECTS nach X
+    - [ ] (bestandene) Abschlussprüfungen nach X
+    - [ ] Benötigte Semester/RSZ
