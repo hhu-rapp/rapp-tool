@@ -49,6 +49,7 @@ def cost_complexity_pruning(estimator, X_train, y_train,
 
     models = []
     for alpha in alphas:
+        if alpha < 0: continue  # Skip edgecase when alpha is negative.
         # Use hyperparameters of OG model
         params = estimator.get_params()
         params["ccp_alpha"] = alpha
