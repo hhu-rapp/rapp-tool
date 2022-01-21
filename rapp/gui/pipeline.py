@@ -119,10 +119,16 @@ class Pipeline(QtWidgets.QWidget):
 
     def refresh_labels(self):
 
+        # refresh Target Variable comboBox
         self.cbName.clear()
-        for feature in self.qmainwindow.sql_df.columns:
+        column_names = self.qmainwindow.sql_df.columns
+
+        for feature in column_names:
             self.cbName.addItem(feature)
 
+        self.cbName.setCurrentText(column_names[-1])
+
+        # refresh Categorical Variable lineEdit
         self.leCVariables.clear()
         for feature in (self.qmainwindow.sql_df.select_dtypes(exclude=["number"])).columns:
 
@@ -166,6 +172,8 @@ class Pipeline(QtWidgets.QWidget):
         options |= QtWidgets.QFileDialog.ShowDirsOnly
         path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a Folder", "",
                                                             options=options)
+        if path == '':
+            path = 'reports/'
 
         self.lePath.setText(path)
 
