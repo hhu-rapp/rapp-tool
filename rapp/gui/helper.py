@@ -3,8 +3,6 @@ import logging
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-logging.basicConfig(level=logging.INFO)
-
 class Color(QtWidgets.QWidget):
     # Works as a placeholder
     def __init__(self, color, label_str='Label'):

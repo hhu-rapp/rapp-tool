@@ -667,3 +667,6 @@ data/*.csv
 ## Report files
 reports/
 *.pdf
+
+## Other logs
+*.log

@@ -1,8 +1,12 @@
 import sys
+import logging
 
 from PyQt5.QtWidgets import QApplication
 
 from rapp.gui import Window
+
+logging.basicConfig(level=logging.INFO, filename="rapp.log")
+
 
 if __name__ == '__main__':
     # create pyqt5 app

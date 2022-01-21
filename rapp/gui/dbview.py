@@ -11,8 +11,6 @@ from PyQt5 import QtWidgets
 from rapp import gui
 from rapp import data
 
-logging.basicConfig(level=logging.INFO)
-
 
 class PandasModel(QtCore.QAbstractTableModel):
     """
