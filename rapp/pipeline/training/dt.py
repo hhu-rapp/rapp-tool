@@ -1,3 +1,4 @@
+import logging as log
 import numpy as np
 
 from sklearn.tree import DecisionTreeClassifier
@@ -49,11 +50,14 @@ def cost_complexity_pruning(estimator, X_train, y_train,
 
     models = []
     for alpha in alphas:
-        if alpha < 0: continue  # Skip edgecase when alpha is negative.
+        if alpha < 0:
+            log.debug("Skipping CCP for negative alpha: %s", alpha)
+            continue  # Skip edgecase when alpha is negative.
         # Use hyperparameters of OG model
         params = estimator.get_params()
         params["ccp_alpha"] = alpha
         clf = DecisionTreeClassifier(**params)
+        log.debug("Fit cost complexity pruning with alpha=%s", alpha)
         clf.fit(X_train, y_train)
         clf_info = {
             'model': clf,
@@ -62,6 +66,7 @@ def cost_complexity_pruning(estimator, X_train, y_train,
             'save_model': False,
             'pareto_front': False  # Will be correctly set below.
         }
+        log.debug("Finish: Fit cost complexity pruning with alpha=%s", alpha)
         models.append(clf_info)
 
     # collect depths and performance for pareto optima

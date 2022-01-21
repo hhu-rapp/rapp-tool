@@ -5,6 +5,8 @@ import os
 
 import joblib
 
+import logging as log
+
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
@@ -64,8 +66,10 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
 
+        log.info("Training estimators")
         self.train_estimators()
         self.train_additional_models()
+        log.info("Finish training of estimators")
 
         feature_names = list(self.X_train.columns)
         class_names = sorted(self.y_train.unique())
@@ -79,6 +83,7 @@ class MLPipeline(object):
         report_data = report.calculate_reports(
             self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
 
+        log.debug("Writing report to path '%s'", self.args.report_path)
         report.write_report(report_data)
 
     def calc_sensitive_attributes(self, X_data):
@@ -188,7 +193,6 @@ class MLPipeline(object):
             id = 0
             for m in self.additional_models[est]:
                 m["id"] = id
-                id += 1
 
                 save = m.get('save_model', True)
                 if save:
@@ -200,3 +204,4 @@ class MLPipeline(object):
                     os.makedirs(os.path.dirname(path), exist_ok=True)
                     joblib.dump(model, path)
                     m["save_path"] = {"full": path, "relative": rel_path}
+                id += 1  # Update id for next run

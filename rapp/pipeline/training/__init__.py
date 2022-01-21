@@ -1,3 +1,5 @@
+import logging as log
+
 from functools import singledispatch
 from sklearn.tree import DecisionTreeClassifier
 
@@ -22,5 +24,5 @@ def get_additional_models(estimator, X_train, y_train, X_val, y_val):
 
 @get_additional_models.register
 def _(estimator: DecisionTreeClassifier, X_train, y_train, X_val, y_val):
-
+    log.info("Training additional models for DecisionTreeClassifier")
     return cost_complexity_pruning(estimator, X_train, y_train, X_val, y_val)
