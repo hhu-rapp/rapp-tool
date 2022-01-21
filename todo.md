@@ -22,16 +22,10 @@
   - [ ] Mean, Std für reelle Datentypen
   - [ ] Histogramme für nominale, ordinale Datentypen
 - [ ] Title Bar als Menubar verwenden (Menüleiste an der Fensterleiste setzen) [Jose, geringe prio]
-- [x] ~~*SQL Textfeld mit Dataframe Viewer tauschen*~~
-- [x] ~~*Datenbank Viewer und SQL Editor sollen fix bleiben*~~
 - Backend
-  - [x] ~~*Catch Exception bei fehlerhaften SQL Anfragen*~~
-  - [x] ~~*Create Layout, Create Widgets, Add Widgets in dbview.py bei der Klasse DatabaseLayoutWidget*~~
-  - [x] ~~*Fix open .db files (Ctrl+O) [Jose, hoehere Prio]*~~
   - [ ] Pipeline
         - [ ] Training implementieren/fixen [Jose, hoehere Prio]
         - [x] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
-          - [x] Temporaere SQL Datei in der Zukunft weg [Jose]
         - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
         - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline []
         - [x] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]
@@ -57,9 +51,6 @@
     - [ ] Diskussion: Globale Variablen im gui.init? Übergabe von QMainWindow als self an andere QWidgets?
 - [ ] SQL Syntax Highlighting
 - [ ] Edit Menü (Copy & Paste) Implementierung
-- [x] ~~*Tastenkürzel für SQL Anfrage ausführen*~~
-- [x] ~~*Tastenkürzel für Undo/Redo*~~
-- [x] ~~*Tastenkürzel für open database/open sql query*~~
 
 ## Predictions
 
@@ -70,9 +61,3 @@
       - [ ] mean
       - [ ] stdev
     - [ ] Anzahl NBs
-  - [ ] Erstelle SQl-Abfragen für verschiedene Labels
-    - [x] ~~*Dropout Predictions*~~
-    - [x] ~~*Abschlussnote/Master-Eignung*~~
-    - [x] ~~*ECTS nach X*~~
-    - [x] ~~*(bestandene) Abschlussprüfungen nach X*~~
-    - [x] ~~*Benötigte Semester/RSZ*~~
