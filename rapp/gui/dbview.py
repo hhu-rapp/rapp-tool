@@ -1,6 +1,7 @@
 # table
 import pandas as pd
 from pandas.io.sql import DatabaseError
+import logging
 
 # gui
 from PyQt5 import QtCore
@@ -9,6 +10,8 @@ from PyQt5 import QtWidgets
 # rapp
 from rapp import gui
 from rapp import data
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -123,7 +126,7 @@ class DataView(QtWidgets.QWidget):
 
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
-        print("Loading", tbl, "table")  ## Todo: proper logging
+        logging.info(f'Loading {tbl} table')
 
         if self.qmainwindow is not None:
             msg = gui.helper.timeLogMsg('Loading ' + str(tbl) + ' table')
@@ -224,7 +227,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         layout.addLayout(self.hlayoutSqlButtons)
 
     def connectDatabase(self, filepath):
-        print('Connecting to database')  # TODO: This should be a logging call.
+        logging.info('Connecting to database')
+
         msg = gui.helper.timeLogMsg('Connecting to database')
         self.qmainwindow.loggingTextBrowser.append(msg)
         self.filepath_db = filepath

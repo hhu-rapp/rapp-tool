@@ -208,7 +208,6 @@ class Pipeline(QtWidgets.QWidget):
             self.qmainwindow.loggingTextBrowser.append(msg)
             traceback.print_exc()
 
-            # print("Error in SQL code:", e)
 
     def validate(self):
         pass

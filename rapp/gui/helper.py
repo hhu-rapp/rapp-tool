@@ -1,7 +1,9 @@
 import time
+import logging
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
+logging.basicConfig(level=logging.INFO)
 
 class Color(QtWidgets.QWidget):
     # Works as a placeholder
@@ -78,7 +80,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item = self.model().findItems(option)
 
             if len(item) == 0:
-                print(f"Could not find Item: {option}")
+                logging.error(f'Could not find Item: {option}')
                 continue
 
             item[0].setCheckState(QtCore.Qt.Checked)
