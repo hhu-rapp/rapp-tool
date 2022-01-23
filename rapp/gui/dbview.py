@@ -162,6 +162,27 @@ class DataView(QtWidgets.QWidget):
         return df
 
 
+class SimpleSQL(QtWidgets.QWidget):
+
+    def __init__(self):
+        super(SimpleSQL, self).__init__()
+
+        self.initUI()
+
+    def initUI(self):
+        self.layout = QtWidgets.QFormLayout()
+        # self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
+
+        # create widgets
+        self.featuresLineEdit = QtWidgets.QLineEdit()
+        self.targetLineEdit = QtWidgets.QLineEdit()
+
+        # add widgets to the layout
+        self.layout.addRow('Features:', self.featuresLineEdit)
+        self.layout.addRow('Target Variable:', self.targetLineEdit)
+
+
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def __init__(self, qmainwindow, filepath_db):
@@ -179,13 +200,50 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
+        self.simpleSQL = SimpleSQL()
 
         # create widgets
+        self.dbtab = QtWidgets.QTabWidget()
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.pandasTv = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
         self.sqlTbox = self.qmainwindow.sqlTbox
 
         # create buttons
+        self.createButtons()
+
+        # add tabs to TabWidget
+        self.dbtab.addTab(self.simpleSQL, 'Simple')
+        self.dbtab.addTab(self.sqlTbox, 'Advanced')
+
+        # add widgets to splitter
+        splitter.addWidget(self.pandasTv)
+        # splitter.addWidget(self.sqlTbox)
+        splitter.addWidget(self.dbtab)
+        splitter.setSizes([400, 400])
+
+        # add buttons to button layout
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
+        self.hlayoutSqlButtons.addStretch(1)
+
+        # add button actions
+        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.excute())
+        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlTbox.undo())
+        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlTbox.redo())
+
+        # add to layout
+        layout.addWidget(splitter)
+        layout.addLayout(self.hlayoutSqlButtons)
+
+    def excute(self):
+        if self.dbtab.currentIndex() == 0: # simple
+            pass
+        elif self.dbtab.currentIndex() == 1: # advanced
+            self.displaySql(self.sqlTbox.toPlainText())
+
+
+    def createButtons(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
 
@@ -203,26 +261,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
-
-        # add widgets to splitter
-        splitter.addWidget(self.pandasTv)
-        splitter.addWidget(self.sqlTbox)
-        splitter.setSizes([400, 400])
-
-        # add buttons to button layout
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
-        self.hlayoutSqlButtons.addStretch(1)
-
-        # add button actions
-        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.displaySql(self.sqlTbox.toPlainText()))
-        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlTbox.undo())
-        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlTbox.redo())
-
-        # add to layout
-        layout.addWidget(splitter)
-        layout.addLayout(self.hlayoutSqlButtons)
 
     def connectDatabase(self, filepath):
         logging.info('Connecting to database')
