@@ -211,11 +211,13 @@ class Pipeline(QtWidgets.QWidget):
 
         try:
             MLPipeline(args)
+            # log when finished
+            msg = gui.helper.timeLogMsg('Training finished.')
+            self.qmainwindow.loggingTextBrowser.append(msg)
         except Exception as e:
             msg = gui.helper.timeLogMsg(str(e))
             self.qmainwindow.loggingTextBrowser.append(msg)
             traceback.print_exc()
-
 
     def validate(self):
         pass
