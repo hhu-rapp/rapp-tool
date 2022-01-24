@@ -233,3 +233,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         except (DatabaseError, TypeError) as e:
             msg = gui.helper.timeLogMsg(str(e))
             self.qmainwindow.loggingTextBrowser.append(msg)
+
+    def load_sql(self, sql_query):
+        self.sql_tabs.set_sql(sql_query)

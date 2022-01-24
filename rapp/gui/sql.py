@@ -25,8 +25,10 @@ class SQLWidget(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
         self.__init_simple_tab()
         self.__init_advanced_tab()
-        self.advanced_tab_index = 1
+        self.__advanced_tab_index = 1
         self.__init_buttons()
+
+        self.__is_reset_connected = False
 
         # Arrange layout
         layout = QtWidgets.QVBoxLayout()
@@ -127,6 +129,7 @@ class SQLWidget(QtWidgets.QWidget):
 
         # Changing the custom SQL should reset the selections.
         self.sql_field.textChanged.connect(self.reset_simple_tab)
+        self.__is_reset_connected = True
 
     def reset_simple_tab(self):
         logging.debug("Resetting selection in Simple SQL tab")
@@ -135,4 +138,17 @@ class SQLWidget(QtWidgets.QWidget):
 
         # Once reset, the connection between the custom SQL field and
         # the simple selectors is no longer given
-        self.sql_field.textChanged.disconnect(self.reset_simple_tab)
+        if self.__is_reset_connected:
+            self.sql_field.textChanged.disconnect(self.reset_simple_tab)
+            self.__is_reset_connected = False
+
+    def set_sql(self, sql_query):
+        """
+        Loads the given query into the SQL text field.
+        """
+        logging.debug("Setting SQL query by external call")
+        self.reset_simple_tab()
+        self.sql_field.setPlainText(sql_query)
+
+        # Change to advanced tab.
+        self.tabs.setCurrentIndex(self.__advanced_tab_index)

@@ -1,3 +1,4 @@
+import logging
 import os
 import traceback
 from configparser import ConfigParser, MissingSectionHeaderError
@@ -123,7 +124,7 @@ class MenuBar(QtWidgets.QMenuBar):
         if fileName:
             with open(fileName, 'r') as file:
                 data = file.read()
-                self.qMainWindow.sqlTbox.setPlainText(data)
+                self.qMainWindow.load_sql(data)
 
     def saveSQLQuery(self):
         options = QtWidgets.QFileDialog.Options()
@@ -132,6 +133,7 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:
+            logging.info("Loading SQL file into GUI: %s", fileName)
             with open(fileName, 'w+') as file:
                 data = self.qMainWindow.sqlTbox.toPlainText()
                 file.write(data)
