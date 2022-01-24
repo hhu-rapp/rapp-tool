@@ -1,9 +1,11 @@
-import importlib.resources as rc
+import pkgutil
 
 
 def get_text(resource: str):
-    return rc.read_text('rapp.resources', resource)
+    rc = pkgutil.get_data('rapp.resources', resource).decode()
+    return rc
 
 
-def get_path(resource_name: str):
-    return rc.path('rapp.resources', resource_name)
+def get_data(resource: str):
+    rc = pkgutil.get_data('rapp.resources', resource)
+    return rc
