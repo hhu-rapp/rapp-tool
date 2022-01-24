@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets
 # rapp
 from rapp import gui
 from rapp import data
+from rapp.sqlbuilder import load_sql
 
 
 class PandasModel(QtCore.QAbstractTableModel):
@@ -168,19 +169,51 @@ class SimpleSQL(QtWidgets.QWidget):
         super(SimpleSQL, self).__init__()
 
         self.initUI()
+        self.template_sql = None
 
     def initUI(self):
         self.layout = QtWidgets.QFormLayout()
         # self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-        # create widgets
-        self.featuresLineEdit = QtWidgets.QLineEdit()
-        self.targetLineEdit = QtWidgets.QLineEdit()
+        # Setup SQL templating
+        self.featuresSelect = QtWidgets.QComboBox()
+        self.featuresSelect.addItem("")
+        self.featuresSelect.addItem("cs_first_term_modules")
+
+        self.targetSelect = QtWidgets.QComboBox()
+        self.targetSelect.addItem("")
+        self.targetSelect.addItem("3_dropout")
+        self.targetSelect.addItem("4term_ap")
+        self.targetSelect.addItem("4term_cp")
+        self.targetSelect.addItem("master_admission")
+        self.targetSelect.addItem("rsz")
+
+        self.verifySelect = QtWidgets.QPushButton("Load")
+        self.verifySelect.clicked.connect(self.load_selected_sql_template)
 
         # add widgets to the layout
-        self.layout.addRow('Features:', self.featuresLineEdit)
-        self.layout.addRow('Target Variable:', self.targetLineEdit)
+        self.layout.addRow('Features:', self.featuresSelect)
+        self.layout.addRow('Target Variable:', self.targetSelect)
+        self.layout.addRow(self.verifySelect)
+
+    def load_selected_sql_template(self):
+        logging.debug("Loading SQL template from GUI button click")
+
+        f_id = self.featuresSelect.currentText()
+        l_id = self.targetSelect.currentText()
+        print(f"f_id = '{f_id}', l_id = '{l_id}'")
+
+        if  f_id == "":
+            logging.warning("No features chosen for SQL templating")
+            return
+        if l_id == "":
+            logging.warning("No target label chosen for SQL templating")
+            return
+
+        sql = load_sql(f_id, l_id)
+
+        self.template_sql = sql
 
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
