@@ -29,7 +29,6 @@ class Window(QMainWindow):
 
         # widgets before initializing gui
         self.loggingTextBrowser = QtWidgets.QTextBrowser()
-        self.sqlTbox = QtWidgets.QPlainTextEdit()
 
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()

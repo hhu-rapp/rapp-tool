@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets
 # rapp
 from rapp import gui
 from rapp import data
+from rapp.gui.sql import SQLWidget
 from rapp.sqlbuilder import load_sql
 
 
@@ -144,7 +145,6 @@ class DataView(QtWidgets.QWidget):
         except (DatabaseError, TypeError) as e:
             msg = gui.helper.timeLogMsg(str(e))
             self.qmainwindow.loggingTextBrowser.append(msg)
-            # print("Error in SQL code:", e)
 
     def display_dataframe(self, df):
         """
@@ -161,59 +161,6 @@ class DataView(QtWidgets.QWidget):
         self.combo.setCurrentIndex(self.__sql_idx)
 
         return df
-
-
-class SimpleSQL(QtWidgets.QWidget):
-
-    def __init__(self):
-        super(SimpleSQL, self).__init__()
-
-        self.initUI()
-        self.template_sql = None
-
-    def initUI(self):
-        self.layout = QtWidgets.QFormLayout()
-        # self.layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.layout)
-
-        # Setup SQL templating
-        self.featuresSelect = QtWidgets.QComboBox()
-        self.featuresSelect.addItem("")
-        self.featuresSelect.addItem("cs_first_term_modules")
-
-        self.targetSelect = QtWidgets.QComboBox()
-        self.targetSelect.addItem("")
-        self.targetSelect.addItem("3_dropout")
-        self.targetSelect.addItem("4term_ap")
-        self.targetSelect.addItem("4term_cp")
-        self.targetSelect.addItem("master_admission")
-        self.targetSelect.addItem("rsz")
-
-        self.verifySelect = QtWidgets.QPushButton("Load")
-        self.verifySelect.clicked.connect(self.load_selected_sql_template)
-
-        # add widgets to the layout
-        self.layout.addRow('Features:', self.featuresSelect)
-        self.layout.addRow('Target Variable:', self.targetSelect)
-        self.layout.addRow(self.verifySelect)
-
-    def load_selected_sql_template(self):
-        logging.debug("Loading SQL template from GUI button click")
-
-        f_id = self.featuresSelect.currentText()
-        l_id = self.targetSelect.currentText()
-        print(f"f_id = '{f_id}', l_id = '{l_id}'")
-
-        if  f_id == "":
-            logging.warning("No features chosen for SQL templating")
-            return
-        if l_id == "":
-            logging.warning("No target label chosen for SQL templating")
-            return
-
-        sql = load_sql(f_id, l_id)
-
-        self.template_sql = sql
 
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
@@ -233,41 +180,19 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-        self.simpleSQL = SimpleSQL()
 
         # create widgets
-        self.dbtab = QtWidgets.QTabWidget()
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql)
         self.pandasTv = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
-        self.sqlTbox = self.qmainwindow.sqlTbox
-
-        # create buttons
-        self.createButtons()
-
-        # add tabs to TabWidget
-        self.dbtab.addTab(self.simpleSQL, 'Simple')
-        self.dbtab.addTab(self.sqlTbox, 'Advanced')
 
         # add widgets to splitter
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.pandasTv)
-        # splitter.addWidget(self.sqlTbox)
-        splitter.addWidget(self.dbtab)
+        splitter.addWidget(self.sql_tabs)
         splitter.setSizes([400, 400])
-
-        # add buttons to button layout
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
-        self.hlayoutSqlButtons.addStretch(1)
-
-        # add button actions
-        self.qPushButtonExecuteSql.clicked.connect(lambda x: self.excute())
-        self.qPushButtonUndoSql.clicked.connect(lambda x: self.sqlTbox.undo())
-        self.qPushButtonRedoSql.clicked.connect(lambda x: self.sqlTbox.redo())
 
         # add to layout
         layout.addWidget(splitter)
-        layout.addLayout(self.hlayoutSqlButtons)
 
     def excute(self):
         if self.dbtab.currentIndex() == 0: # simple
@@ -295,7 +220,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
     def connectDatabase(self, filepath):
-        logging.info('Connecting to database')
+        logging.info('Connecting to database %s', filepath)
 
         msg = gui.helper.timeLogMsg('Connecting to database')
         self.qmainwindow.loggingTextBrowser.append(msg)
@@ -313,6 +238,4 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         except (DatabaseError, TypeError) as e:
             msg = gui.helper.timeLogMsg(str(e))
-
             self.qmainwindow.loggingTextBrowser.append(msg)
-            # print("Error in SQL code:", e)
