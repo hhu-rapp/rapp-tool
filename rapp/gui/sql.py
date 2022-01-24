@@ -121,7 +121,9 @@ class SQLWidget(QtWidgets.QWidget):
         # Display the queried template in the advanced tab
         sql = load_sql(f_id, l_id)
         self.sql_field.setPlainText(sql)
-        self.tabs.setCurrentIndex(self.advanced_tab_index)
+
+        # Load the data
+        self.displaySql(sql)
 
         # Changing the custom SQL should reset the selections.
         self.sql_field.textChanged.connect(self.reset_simple_tab)
