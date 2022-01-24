@@ -25,8 +25,6 @@ class SQLWidget(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
         self.__init_simple_tab()
         self.__init_advanced_tab()
-        self.__advanced_tab_index = 1
-        self.__init_buttons()
 
         self.__is_reset_connected = False
 
@@ -34,7 +32,6 @@ class SQLWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.tabs)
-        layout.addLayout(self.hlayoutSqlButtons)
 
         self.setLayout(layout)
 
@@ -69,7 +66,15 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field = QtWidgets.QPlainTextEdit()
         self.sql_field.setPlaceholderText("Enter custom SQL query here.")
 
-        self.tabs.addTab(self.sql_field, 'Advanced')
+        self.advanced_tab = QtWidgets.QWidget()
+        self.advanced_tab.setLayout(QtWidgets.QVBoxLayout())
+
+        self.__init_buttons()
+        self.advanced_tab.layout().addWidget(self.sql_field)
+        self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
+
+        tab_idx = self.tabs.addTab(self.advanced_tab, 'Advanced')
+        self.__advanced_tab_index = tab_idx
 
     def __init_buttons(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
