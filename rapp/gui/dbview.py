@@ -194,12 +194,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # add to layout
         layout.addWidget(splitter)
 
-    def excute(self):
-        if self.dbtab.currentIndex() == 0: # simple
-            pass
-        elif self.dbtab.currentIndex() == 1: # advanced
-            self.displaySql(self.sqlTbox.toPlainText())
-
     def createButtons(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
