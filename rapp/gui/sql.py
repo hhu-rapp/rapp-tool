@@ -67,6 +67,7 @@ class SQLWidget(QtWidgets.QWidget):
 
     def __init_advanced_tab(self):
         self.sql_field = QtWidgets.QPlainTextEdit()
+        self.sql_field.setPlaceholderText("Enter custom SQL query here.")
 
         self.tabs.addTab(self.sql_field, 'Advanced')
 
