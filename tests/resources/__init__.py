@@ -34,7 +34,15 @@ def get_path(resource: str):
 
 def get_db_connection():
     """
-    Returns: Connection to `test.db`.
+    Returns: Connection to a memory database which contains the
+    entries of `test.db`.
+
+    Altering the values in the returned connection has no effect onto the
+    data of the test.db.
     """
     path = get_path('test.db')
-    return sqlite3.connect(path)
+    # Open test db, then copy/backup contents to memory db.
+    test_db = sqlite3.connect(path)
+    mem_db = sqlite3.connect(":memory:")
+    test_db.backup(mem_db)
+    return mem_db
