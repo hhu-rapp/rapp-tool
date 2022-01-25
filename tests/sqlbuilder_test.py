@@ -1,9 +1,9 @@
-from hmac import new
 from pandas import read_sql_query
 
 from rapp.sqlbuilder import load_sql
 
 from tests import resources as rc
+from tests import testutil
 
 
 def test_construct_when_all_parts_are_given():
@@ -77,3 +77,171 @@ def test_rsz_regression():
         feature="cs_first_term_modules",
         label="rsz",
         reference="cs-first_term_modules-rsz.sql")
+
+
+def test_cs_ects_features():
+    # Setup 3 modules
+    modules = [
+        {"version": 1, "nummer": 1, "modul": "a"},
+        {"version": 1, "nummer": 2, "modul": "b"},
+        {"version": 1, "nummer": 3, "modul": "c"},
+    ]
+
+    # Student 1
+    s1 = {
+        "einschreibung": {"pseudonym": 1},
+        "student": {"pseudonym": 1},
+        "ssp": [
+            # "a" passed first try
+            {"pseudonym": 1, "version": 1, "nummer": 1,
+             "status": "bestanden", "note": 1.0, "ects": 5,
+             "fachsemester": 1},
+            # "b" passed third try
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "fachsemester": 1},
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "versuch": 2, "fachsemester": 1},
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 2.0, "ects": 10,
+             "versuch": 3, "fachsemester": 1},
+            # "c" passed in second term
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 3.0, "ects": 10,
+             "versuch": 1, "fachsemester": 2},
+        ],
+    }
+
+    # Populate db
+    db = testutil.get_empty_memory_db_connection()
+    for m in modules:
+        testutil.insert_into_Pruefung(db, **m)
+    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
+    testutil.insert_into_Student(db, **s1["student"])
+    for ssp in s1["ssp"]:
+        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+
+    sql = load_sql("cs_first_term_ects", "4term_cp")
+
+    df = read_sql_query(sql, db)
+    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+
+    expected = {
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "EctsFirstTerm": 15,
+        "ExamsFirstTerm": 4,
+        "PassedFirstTerm": 2,
+        "FailedFirstTerm": 2,
+        "PassedExamsRatio": 0.5,
+        "FourthTermCP": 0
+    }
+
+    assert expected == actual
+
+
+def test_cs_ects_features__when_no_passed_exams():
+    # Setup 3 modules
+    modules = [
+        {"version": 1, "nummer": 1, "modul": "a"},
+        {"version": 1, "nummer": 2, "modul": "b"},
+        {"version": 1, "nummer": 3, "modul": "c"},
+    ]
+
+    # Student 1
+    s1 = {
+        "einschreibung": {"pseudonym": 1},
+        "student": {"pseudonym": 1},
+        "ssp": [
+            # "b" failed twice
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "fachsemester": 1},
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "versuch": 2, "fachsemester": 1},
+            # "c" passed in second term
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 3.0, "ects": 10,
+             "versuch": 1, "fachsemester": 2},
+        ],
+    }
+
+    # Populate db
+    db = testutil.get_empty_memory_db_connection()
+    for m in modules:
+        testutil.insert_into_Pruefung(db, **m)
+    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
+    testutil.insert_into_Student(db, **s1["student"])
+    for ssp in s1["ssp"]:
+        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+
+    sql = load_sql("cs_first_term_ects", "4term_cp")
+
+    df = read_sql_query(sql, db)
+    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+
+    expected = {
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "EctsFirstTerm": 0,
+        "ExamsFirstTerm": 2,
+        "PassedFirstTerm": 0,
+        "FailedFirstTerm": 2,
+        "PassedExamsRatio": 0.,
+        "FourthTermCP": 0
+    }
+
+    assert expected == actual
+
+
+def test_cs_ects_features__when_no_written_exams():
+    # Setup 3 modules
+    modules = [
+        {"version": 1, "nummer": 1, "modul": "a"},
+        {"version": 1, "nummer": 2, "modul": "b"},
+        {"version": 1, "nummer": 3, "modul": "c"},
+    ]
+
+    # Student 1
+    s1 = {
+        "einschreibung": {"pseudonym": 1},
+        "student": {"pseudonym": 1},
+        "ssp": [
+            # "c" passed in second term
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 3.0, "ects": 10,
+             "versuch": 1, "fachsemester": 2},
+        ],
+    }
+
+    # Populate db
+    db = testutil.get_empty_memory_db_connection()
+    for m in modules:
+        testutil.insert_into_Pruefung(db, **m)
+    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
+    testutil.insert_into_Student(db, **s1["student"])
+    for ssp in s1["ssp"]:
+        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+
+    sql = load_sql("cs_first_term_ects", "4term_cp")
+
+    df = read_sql_query(sql, db)
+    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+
+    expected = {
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "EctsFirstTerm": 0,
+        "ExamsFirstTerm": 0,
+        "PassedFirstTerm": 0,
+        "FailedFirstTerm": 0,
+        "PassedExamsRatio": 0.,
+        "FourthTermCP": 0
+    }
+
+    assert expected == actual
