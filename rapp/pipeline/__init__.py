@@ -66,13 +66,24 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
 
-        log.info("Training estimators")
-        self.train_estimators()
-        self.train_additional_models()
-        log.info("Finish training of estimators")
+        # create additional models
+        # Create a dictionary yielding possibly additionally trained models
+        # for each classifier. List of additional models can be empty.
+        self.additional_models = \
+            dict(map(lambda clf: (clf, []), self.estimators, ))
 
-        feature_names = list(self.X_train.columns)
-        class_names = sorted(self.y_train.unique())
+        for est in self.estimators:
+            self.additional_models[est] = \
+                training.get_additional_models(
+                    est, self.X_train, self.y_train, self.X_test, self.y_test)
+
+        # log.info("Training estimators")
+        # self.train_estimators()
+        # self.train_additional_models()
+        # log.info("Finish training of estimators")
+
+        feature_names = list(self.X.columns)
+        class_names = sorted(self.y.unique())
         if len(class_names) == 2:
             class_names = ["Nein", "Ja"]
 
@@ -162,7 +173,7 @@ class MLPipeline(object):
         self.X = pd.concat([self.X, categorical], axis=1)
 
         # Save protected attribute
-        self.Z = self.X[self.args.sensitive_attributes]
+        self.z = self.X[self.args.sensitive_attributes]
 
         # Remove categorical attributes from input features
         self.X = self.X_train.drop(columns, axis=1)
@@ -184,6 +195,7 @@ class MLPipeline(object):
             self.X = sel.fit_transform(self.X)
 
     def train_estimators(self):
+        # TODO: cross validation
         for est in self.estimators:
             est.fit(self.X_train, self.y_train)
 
@@ -196,6 +208,7 @@ class MLPipeline(object):
             joblib.dump(est, model_path)
 
     def train_additional_models(self):
+        # TODO: cross validation
         # Create a dictionary yielding possibly additionally trained models
         # for each classifier. List of additional models can be empty.
         self.additional_models = \

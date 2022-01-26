@@ -7,6 +7,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import cross_val_score
 # Regression
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
@@ -81,12 +82,13 @@ class ClassifierReport(object):
             "Equality of Opportunity": equality_of_opportunity,
         }
 
-    def calculate_reports(self, X_train, y_train, z_train, X_test, y_test, z_test):
+    def calculate_reports_deprecated(self, X_train, y_train, z_train, X_test, y_test, z_test):
         reports = {}
         sets = [('train', X_train, y_train, z_train),
                 ('test', X_test, y_test, z_test)]
 
         for (set_name, X, y, z) in sets:
+            # TODO: Does it even matter for CV?
             set_rep = self.calculate_set_statistics(X, y, z)
             reports[set_name] = set_rep
 
@@ -111,6 +113,23 @@ class ClassifierReport(object):
         reports['estimators'] = estimator_reports
 
         return reports
+
+    def calculate_reports(self, X, y, z):
+        reports = {}
+
+        set_rep = self.calculate_set_statistics(X, y, z)
+        reports['Dataset'] = set_rep
+
+        estimator_reports = {}
+        for est in self.estimators:
+            est_rep = {}
+            est_rep['CV'] = cross_val_score(est, X, y, cv=5)
+            
+            estimator_reports[self.clf_name(est)] = est_rep
+
+        reports['estimators'] = estimator_reports
+        return reports
+
 
     def clf_name(self, estimator):
         return estimator.__class__.__name__
