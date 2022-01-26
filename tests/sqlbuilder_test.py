@@ -1,3 +1,4 @@
+from math import comb
 from pandas import read_sql_query
 
 from rapp.sqlbuilder import load_sql
@@ -314,3 +315,102 @@ def test_cs_unspecific_grade_features():
     }
 
     assert expected == actual
+
+
+def test_combined_ectp_grade_features():
+    # Setup 3 modules
+    modules = [
+        {"version": 1, "nummer": 1, "modul": "a"},
+        {"version": 1, "nummer": 2, "modul": "b"},
+        {"version": 1, "nummer": 3, "modul": "c"},
+    ]
+
+    # Student 1
+    s1 = {
+        "einschreibung": {"pseudonym": 1},
+        "student": {"pseudonym": 1},
+        "ssp": [
+            # "a" passed first try
+            {"pseudonym": 1, "version": 1, "nummer": 1,
+             "status": "bestanden", "note": 1.0, "ects": 5,
+             "fachsemester": 1},
+            # "b" passed third try
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "fachsemester": 1},
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "nicht bestanden", "note": 5.0, "ects": 0,
+             "versuch": 2, "fachsemester": 1},
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 3.0, "ects": 10,
+             "versuch": 3, "fachsemester": 1},
+            # "c" passed in second term
+            {"pseudonym": 1, "version": 1, "nummer": 2,
+             "status": "bestanden", "note": 3.0, "ects": 10,
+             "versuch": 1, "fachsemester": 2},
+        ],
+    }
+
+    # Populate db
+    db = testutil.get_empty_memory_db_connection()
+    for m in modules:
+        testutil.insert_into_Pruefung(db, **m)
+    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
+    testutil.insert_into_Student(db, **s1["student"])
+    for ssp in s1["ssp"]:
+        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+
+    sql = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
+
+    df = read_sql_query(sql, db)
+    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+
+    expected = {
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "Ectp": 15,
+        "KlausurenGeschrieben": 4,
+        "KlausurenBestanden": 2,
+        "KlausurenNichtBestanden": 2,
+        "DurchschnittsnoteBestanden": 2,
+        "DurchschnittsnoteTotal": 14/4,
+        "VarianzNoteBestanden": 1.,
+        "VarianzNoteTotal": 2.75,
+        "PassedExamsRatio": 0.5,
+        "EctpPerExam": 15/4,
+        "FourthTermCP": 0,
+    }
+
+    assert expected == actual
+
+
+def test_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
+    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
+    sql_ectp = load_sql("cs_first_term_ects", "4term_cp")
+
+    db = rc.get_db_connection()
+
+    df = read_sql_query(sql_ectp, db)
+    df = df.rename(columns={"EctsFirstTerm": "Ectp"})  # Ensure equal column names
+    ectp_only = df["Ectp"]
+
+    df = read_sql_query(sql_combined, db)
+    combined = df["Ectp"]
+
+    assert (ectp_only == combined).all()
+
+
+def test_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features():
+    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
+    sql_grades = load_sql("cs_first_term_grades", "4term_cp")
+
+    db = rc.get_db_connection()
+
+    df = read_sql_query(sql_grades, db)
+    grade_only = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
+
+    df = read_sql_query(sql_combined, db)
+    combined = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
+
+    assert grade_only.equals(combined)
