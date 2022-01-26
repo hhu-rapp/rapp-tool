@@ -4,6 +4,8 @@ Collection of helper functions for testing purposes.
 
 import sqlite3
 
+import tests.resources as rc
+
 
 def get_empty_memory_db_connection():
     """
@@ -24,6 +26,22 @@ def get_empty_memory_db_connection():
     cur.execute(ssp)
 
     return db
+
+
+def get_db_connection():
+    """
+    Returns: Connection to a memory database which contains the
+    entries of `test.db`.
+
+    Altering the values in the returned connection has no effect onto the
+    data of the test.db.
+    """
+    path = rc.get_path('test.db')
+    # Open test db, then copy/backup contents to memory db.
+    test_db = sqlite3.connect(path)
+    mem_db = sqlite3.connect(":memory:")
+    test_db.backup(mem_db)
+    return mem_db
 
 
 def __execute_sql(connection, sql, *args):

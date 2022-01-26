@@ -2,8 +2,6 @@ import os
 import pkgutil
 import sys
 
-import sqlite3
-
 
 def get_text(resource: str):
     rc = pkgutil.get_data('tests.resources', resource).decode()
@@ -30,19 +28,3 @@ def get_path(resource: str):
     resource_name = os.path.join(*parts)
 
     return resource_name
-
-
-def get_db_connection():
-    """
-    Returns: Connection to a memory database which contains the
-    entries of `test.db`.
-
-    Altering the values in the returned connection has no effect onto the
-    data of the test.db.
-    """
-    path = get_path('test.db')
-    # Open test db, then copy/backup contents to memory db.
-    test_db = sqlite3.connect(path)
-    mem_db = sqlite3.connect(":memory:")
-    test_db.backup(mem_db)
-    return mem_db

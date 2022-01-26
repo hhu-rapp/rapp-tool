@@ -36,7 +36,7 @@ def regression_test_setup(feature, label, reference):
     old_sql = rc.get_text("sql/regression/" + reference)
     new_sql = load_sql(feature, label)
 
-    db_conn = rc.get_db_connection()
+    db_conn = testutil.get_db_connection()
 
     old_results = read_sql_query(old_sql, db_conn)
     new_results = read_sql_query(new_sql, db_conn)
@@ -374,7 +374,7 @@ def test_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
     sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
     sql_ectp = load_sql("cs_first_term_ects", "4term_cp")
 
-    db = rc.get_db_connection()
+    db = testutil.get_db_connection()
 
     df = read_sql_query(sql_ectp, db)
     df = df.rename(columns={"EctsFirstTerm": "Ectp"})  # Ensure equal column names
@@ -390,7 +390,7 @@ def test_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features(
     sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
     sql_grades = load_sql("cs_first_term_grades", "4term_cp")
 
-    db = rc.get_db_connection()
+    db = testutil.get_db_connection()
 
     df = read_sql_query(sql_grades, db)
     grade_only = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
