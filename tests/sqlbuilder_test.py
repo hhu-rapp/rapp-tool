@@ -1,4 +1,3 @@
-from math import comb
 from pandas import read_sql_query
 
 from rapp.sqlbuilder import load_sql
@@ -233,22 +232,8 @@ def test_cs_ects_features__when_no_written_exams():
     sql = load_sql("cs_first_term_ects", "4term_cp")
 
     df = read_sql_query(sql, db)
-    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
 
-    expected = {
-        "Geschlecht": "männlich",
-        "Deutsch": 1,
-        "AlterEinschreibung": 21,
-        "EctsFirstTerm": 0,
-        "ExamsFirstTerm": 0,
-        "PassedFirstTerm": 0,
-        "FailedFirstTerm": 0,
-        "PassedExamsRatio": 0.,
-        "EctsPerExam": 0,
-        "FourthTermCP": 0
-    }
-
-    assert expected == actual
+    assert len(df) == 0
 
 
 def test_cs_unspecific_grade_features():
