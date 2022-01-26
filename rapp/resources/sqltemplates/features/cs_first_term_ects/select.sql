@@ -19,4 +19,8 @@ CASE WHEN COUNT(CASE WHEN SSP.Fachsemester = 1 THEN SSP.Pseudonym ELSE null END)
              THEN SSP.Pseudonym ELSE null END )
        * 1. / COUNT(CASE WHEN SSP.Fachsemester = 1 THEN SSP.Pseudonym ELSE null END)
      )
-     END as PassedExamsRatio
+     END as PassedExamsRatio,
+IFNULL(SUM(CASE WHEN SSP.Fachsemester = 1 THEN SSP.ECTS ELSE 0 END) * 1.
+        / COUNT(CASE WHEN SSP.Fachsemester = 1 THEN SSP.Pseudonym ELSE null END),
+       0)
+  as EctsPerExam

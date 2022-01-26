@@ -136,6 +136,7 @@ def test_cs_ects_features():
         "PassedFirstTerm": 2,
         "FailedFirstTerm": 2,
         "PassedExamsRatio": 0.5,
+        "EctsPerExam": 15/4,
         "FourthTermCP": 0
     }
 
@@ -192,6 +193,7 @@ def test_cs_ects_features__when_no_passed_exams():
         "PassedFirstTerm": 0,
         "FailedFirstTerm": 2,
         "PassedExamsRatio": 0.,
+        "EctsPerExam": 0,
         "FourthTermCP": 0
     }
 
@@ -241,6 +243,7 @@ def test_cs_ects_features__when_no_written_exams():
         "PassedFirstTerm": 0,
         "FailedFirstTerm": 0,
         "PassedExamsRatio": 0.,
+        "EctsPerExam": 0,
         "FourthTermCP": 0
     }
 
