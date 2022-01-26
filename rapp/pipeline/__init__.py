@@ -119,7 +119,7 @@ class MLPipeline(object):
             self.df[self.df.columns.difference(self.args.categorical)] \
                 = imputer.fit_transform(self.df[self.df.columns.difference(self.args.categorical)])
 
-    def prepare_datasets(self):
+    def prepare_datasets_deprecated(self):
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
         self.y = self.df[self.args.label_name]
@@ -149,6 +149,23 @@ class MLPipeline(object):
         self.X_test = self.X_test.drop(columns, axis=1)
 
         # TODO: Unawareness. If user so desires, drop all info of sensitive attributes.
+
+    def prepare_datasets(self):
+        # create data
+        self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
+        self.y = self.df[self.args.label_name]
+
+        # Adapt to categorical data.
+        columns = [x for x in self.args.categorical if x !=
+                   self.args.label_name]
+        categorical = pd.get_dummies(data=self.X[columns], columns=columns)
+        self.X = pd.concat([self.X, categorical], axis=1)
+
+        # Save protected attribute
+        self.Z = self.X[self.args.sensitive_attributes]
+
+        # Remove categorical attributes from input features
+        self.X = self.X_train.drop(columns, axis=1)
 
     def feature_selection(self, method='variance'):
         """
