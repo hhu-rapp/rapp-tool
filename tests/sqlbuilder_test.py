@@ -80,51 +80,25 @@ def test_rsz_regression():
 
 
 def test_cs_ects_features():
-    # Setup 3 modules
-    modules = [
-        {"version": 1, "nummer": 1, "modul": "a"},
-        {"version": 1, "nummer": 2, "modul": "b"},
-        {"version": 1, "nummer": 3, "modul": "c"},
-    ]
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_ifo_student(pseudonym=1)
 
-    # Student 1
-    s1 = {
-        "einschreibung": {"pseudonym": 1},
-        "student": {"pseudonym": 1},
-        "ssp": [
-            # "a" passed first try
-            {"pseudonym": 1, "version": 1, "nummer": 1,
-             "status": "bestanden", "note": 1.0, "ects": 5,
-             "fachsemester": 1},
-            # "b" passed third try
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "versuch": 2, "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 2.0, "ects": 10,
-             "versuch": 3, "fachsemester": 1},
-            # "c" passed in second term
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 1, "fachsemester": 2},
-        ],
-    }
-
-    # Populate db
-    db = testutil.get_empty_memory_db_connection()
-    for m in modules:
-        testutil.insert_into_Pruefung(db, **m)
-    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
-    testutil.insert_into_Student(db, **s1["student"])
-    for ssp in s1["ssp"]:
-        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=2.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_ects", "4term_cp")
 
-    df = read_sql_query(sql, db)
+    df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
 
     expected = {
@@ -144,44 +118,21 @@ def test_cs_ects_features():
 
 
 def test_cs_ects_features__when_no_passed_exams():
-    # Setup 3 modules
-    modules = [
-        {"version": 1, "nummer": 1, "modul": "a"},
-        {"version": 1, "nummer": 2, "modul": "b"},
-        {"version": 1, "nummer": 3, "modul": "c"},
-    ]
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_ifo_student(pseudonym=1)
 
-    # Student 1
-    s1 = {
-        "einschreibung": {"pseudonym": 1},
-        "student": {"pseudonym": 1},
-        "ssp": [
-            # "b" failed twice
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "versuch": 2, "fachsemester": 1},
-            # "c" passed in second term
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 1, "fachsemester": 2},
-        ],
-    }
-
-    # Populate db
-    db = testutil.get_empty_memory_db_connection()
-    for m in modules:
-        testutil.insert_into_Pruefung(db, **m)
-    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
-    testutil.insert_into_Student(db, **s1["student"])
-    for ssp in s1["ssp"]:
-        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+    # "b" failed twice
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_ects", "4term_cp")
-
-    df = read_sql_query(sql, db)
+    df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
 
     expected = {
@@ -201,87 +152,41 @@ def test_cs_ects_features__when_no_passed_exams():
 
 
 def test_cs_ects_features__when_no_written_exams():
-    # Setup 3 modules
-    modules = [
-        {"version": 1, "nummer": 1, "modul": "a"},
-        {"version": 1, "nummer": 2, "modul": "b"},
-        {"version": 1, "nummer": 3, "modul": "c"},
-    ]
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_ifo_student(pseudonym=1)
 
-    # Student 1
-    s1 = {
-        "einschreibung": {"pseudonym": 1},
-        "student": {"pseudonym": 1},
-        "ssp": [
-            # "c" passed in second term
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 1, "fachsemester": 2},
-        ],
-    }
-
-    # Populate db
-    db = testutil.get_empty_memory_db_connection()
-    for m in modules:
-        testutil.insert_into_Pruefung(db, **m)
-    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
-    testutil.insert_into_Student(db, **s1["student"])
-    for ssp in s1["ssp"]:
-        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_ects", "4term_cp")
-
-    df = read_sql_query(sql, db)
+    df = db.read_sql_query(sql)
 
     assert len(df) == 0
 
 
 def test_cs_unspecific_grade_features():
-    # Setup 3 modules
-    modules = [
-        {"version": 1, "nummer": 1, "modul": "a"},
-        {"version": 1, "nummer": 2, "modul": "b"},
-        {"version": 1, "nummer": 3, "modul": "c"},
-    ]
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_ifo_student(pseudonym=1)
 
-    # Student 1
-    s1 = {
-        "einschreibung": {"pseudonym": 1},
-        "student": {"pseudonym": 1},
-        "ssp": [
-            # "a" passed first try
-            {"pseudonym": 1, "version": 1, "nummer": 1,
-             "status": "bestanden", "note": 1.0, "ects": 5,
-             "fachsemester": 1},
-            # "b" passed third try
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "versuch": 2, "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 3, "fachsemester": 1},
-            # "c" passed in second term
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 1, "fachsemester": 2},
-        ],
-    }
-
-    # Populate db
-    db = testutil.get_empty_memory_db_connection()
-    for m in modules:
-        testutil.insert_into_Pruefung(db, **m)
-    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
-    testutil.insert_into_Student(db, **s1["student"])
-    for ssp in s1["ssp"]:
-        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_grades", "4term_cp")
-
-    df = read_sql_query(sql, db)
+    df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
 
     expected = {
@@ -303,51 +208,24 @@ def test_cs_unspecific_grade_features():
 
 
 def test_combined_ectp_grade_features():
-    # Setup 3 modules
-    modules = [
-        {"version": 1, "nummer": 1, "modul": "a"},
-        {"version": 1, "nummer": 2, "modul": "b"},
-        {"version": 1, "nummer": 3, "modul": "c"},
-    ]
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_ifo_student(pseudonym=1)
 
-    # Student 1
-    s1 = {
-        "einschreibung": {"pseudonym": 1},
-        "student": {"pseudonym": 1},
-        "ssp": [
-            # "a" passed first try
-            {"pseudonym": 1, "version": 1, "nummer": 1,
-             "status": "bestanden", "note": 1.0, "ects": 5,
-             "fachsemester": 1},
-            # "b" passed third try
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "nicht bestanden", "note": 5.0, "ects": 0,
-             "versuch": 2, "fachsemester": 1},
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 3, "fachsemester": 1},
-            # "c" passed in second term
-            {"pseudonym": 1, "version": 1, "nummer": 2,
-             "status": "bestanden", "note": 3.0, "ects": 10,
-             "versuch": 1, "fachsemester": 2},
-        ],
-    }
-
-    # Populate db
-    db = testutil.get_empty_memory_db_connection()
-    for m in modules:
-        testutil.insert_into_Pruefung(db, **m)
-    testutil.insert_into_Einschreibung(db, **s1["einschreibung"])
-    testutil.insert_into_Student(db, **s1["student"])
-    for ssp in s1["ssp"]:
-        testutil.insert_into_Student_schreibt_Pruefung(db, **ssp)
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
-
-    df = read_sql_query(sql, db)
+    df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
 
     expected = {
@@ -377,7 +255,8 @@ def test_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
     db = testutil.get_db_connection()
 
     df = read_sql_query(sql_ectp, db)
-    df = df.rename(columns={"EctsFirstTerm": "Ectp"})  # Ensure equal column names
+    # Ensure equal column names
+    df = df.rename(columns={"EctsFirstTerm": "Ectp"})
     ectp_only = df["Ectp"]
 
     df = read_sql_query(sql_combined, db)
