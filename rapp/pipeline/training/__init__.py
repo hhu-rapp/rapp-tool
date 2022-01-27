@@ -6,7 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 from rapp.pipeline.training.dt import cost_complexity_pruning
 
 @singledispatch
-def get_additional_models(estimator, X_train, y_train, X_val, y_val):
+def get_additional_models(estimator, X, y):
     """
     Creates additional models based on the input estimator's type.
     Returns a (potentially empty) list of additionally trained models.
@@ -23,6 +23,6 @@ def get_additional_models(estimator, X_train, y_train, X_val, y_val):
 
 
 @get_additional_models.register
-def _(estimator: DecisionTreeClassifier, X_train, y_train, X_val, y_val):
+def _(estimator: DecisionTreeClassifier, X, y):
     log.info("Training additional models for DecisionTreeClassifier")
-    return cost_complexity_pruning(estimator, X_train, y_train, X_val, y_val)
+    return cost_complexity_pruning(estimator, X, y)
