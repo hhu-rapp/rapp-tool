@@ -74,8 +74,7 @@ class MLPipeline(object):
 
         for est in self.estimators:
             self.additional_models[est] = \
-                training.get_additional_models(
-                    est, self.X_train, self.y_train, self.X_test, self.y_test)
+                training.get_additional_models(est, self.X, self.y)
 
         # log.info("Training estimators")
         # self.train_estimators()
@@ -91,8 +90,7 @@ class MLPipeline(object):
             self.estimators, self.args, self.additional_models,
             feature_names=feature_names, class_names=class_names)
 
-        report_data = report.calculate_reports(
-            self.X_train, self.y_train, self.Z_train, self.X_test, self.y_test, self.Z_test)
+        report_data = report.calculate_reports(self.X, self.y, self.z,)
 
         log.debug("Writing report to path '%s'", self.args.report_path)
         report.write_report(report_data)
@@ -176,7 +174,7 @@ class MLPipeline(object):
         self.z = self.X[self.args.sensitive_attributes]
 
         # Remove categorical attributes from input features
-        self.X = self.X_train.drop(columns, axis=1)
+        self.X = self.X.drop(columns, axis=1)
 
     def feature_selection(self, method='variance'):
         """

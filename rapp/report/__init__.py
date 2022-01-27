@@ -7,11 +7,13 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import cross_val_score
 # Regression
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+# Cross Validation
+from sklearn.model_selection import cross_validate
+from sklearn.metrics import  make_scorer
 
 from rapp.fair.notions import clf_fairness
 from rapp.fair.notions import group_fairness
@@ -21,6 +23,8 @@ from rapp.fair.notions import predictive_equality
 import os
 import json
 import shutil
+
+import numpy as np
 
 from rapp.report import latex
 from rapp.report import resources as rc
@@ -96,7 +100,7 @@ class ClassifierReport(object):
         for est in self.estimators:
             est_rep = {}
             for (set_name, X, y, z) in sets:
-                est_rep[set_name] = self.calculate_single_set_report(
+                est_rep[set_name] = self.calculate_single_set_report_deprecated(
                     est, X, y, z)
             # Also do this for any additionally trained classifiers.
             est_rep["additional_models"] = []
@@ -105,7 +109,7 @@ class ClassifierReport(object):
                             if key != 'model'}
                 # Measure performances as well
                 for (set_name, X, y, z) in sets:
-                    add_info[set_name] = self.calculate_single_set_report(
+                    add_info[set_name] = self.calculate_single_set_report_deprecated(
                         add_est['model'], X, y, z)
                 est_rep["additional_models"].append(add_info)
 
@@ -123,8 +127,18 @@ class ClassifierReport(object):
         estimator_reports = {}
         for est in self.estimators:
             est_rep = {}
-            est_rep['CV'] = cross_val_score(est, X, y, cv=5)
-            
+            est_rep['CV'] = self.calculate_single_report(est, X, y, z, cv=5)
+
+            # Also do this for any additionally trained classifiers.
+            est_rep["additional_models"] = []
+            for add_est in self.additional_models[est]:
+                add_info = {key: add_est[key] for key in add_est
+                            if key != 'model'}
+                # Measure performances as well
+                add_info['CV'] = self.calculate_single_report(add_est['model'], X, y, z, cv=5)
+
+                est_rep["additional_models"].append(add_info)
+
             estimator_reports[self.clf_name(est)] = est_rep
 
         reports['estimators'] = estimator_reports
@@ -157,11 +171,11 @@ class ClassifierReport(object):
 
         return set_stats
 
-    def calculate_single_set_report(self, estimator, X, y, z):
+    def calculate_single_set_report_deprecated(self, estimator, X, y, z):
         pred = estimator.predict(X)
 
         scorings = {}
-        scorings['scores'] = self.get_score_dict(y, pred)
+        scorings['scores'] = self.get_score_dict_deprecated(y, pred)
         C = confusion_matrix(y, pred)
         # C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
         # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
@@ -184,11 +198,56 @@ class ClassifierReport(object):
 
         return scorings
 
-    def get_score_dict(self, y, pred):
+    def calculate_single_report(self, estimator, X, y, z, **kargs):
+        scorings = {}
+        cv_scores = cross_validate(estimator, X, y, scoring=self.get_score_dict(), **kargs)
+        scorings['avg scores'] = self.get_mean_cv_scores(cv_scores)
+
+        estimator.fit(X,y)
+        pred = estimator.predict(X)
+        C = confusion_matrix(y, pred)
+        # C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
+        # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
+        '''
+        scorings['confusion_matrix'] = {
+            'tp': int(tp),
+            'fp': int(fp),
+            'tn': int(tn),
+            'fn': int(fn),
+        }
+        '''
+        scorings['confusion_matrix'] = {'C': C.tolist()}
+        fairness = {}
+        for group in z.columns:
+            fairness[group] = {}
+            for notion, fun in self.used_fairnesses.items():
+                fairness[group][notion] = \
+                    clf_fairness(estimator, fun, X, y, z[group], pred)
+        scorings["fairness"] = fairness
+
+        return scorings
+
+    def get_score_dict_deprecated(self, y, pred):
         score_dict = {}
         for scoring_name, fun in self.used_scores.items():
             score_dict[scoring_name] = fun(y, pred)
         return score_dict
+
+    def get_score_dict(self):
+        score_dict = {}
+        for scoring_name, fun in self.used_scores.items():
+            score_dict[scoring_name] = make_scorer(fun)
+        return score_dict
+
+    def get_mean_cv_scores(self, cv_scores):
+        avg_score_dict = {}
+        for score in cv_scores.keys():
+            if score in ['fit_time', 'score_time']:
+                continue
+            key = score.split('_')
+            avg_score_dict[key[1]] = np.mean(cv_scores[score])
+
+        return avg_score_dict
 
     def write_report(self, report_data, path=None):
         if path is None:
