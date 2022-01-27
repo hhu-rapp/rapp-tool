@@ -1,3 +1,4 @@
+import pytest
 from pandas import read_sql_query
 
 from rapp.sqlbuilder import load_sql
@@ -86,9 +87,11 @@ def test_cs_ects_features():
                    ("b", 1, 2),
                    ("c", 1, 3))
     s1 = db.add_ifo_student(pseudonym=1)
+    s2 = db.add_sw_student(pseudonym=2)  # Non-CS student to be ignored.
 
     # "a" passed first try
     db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
@@ -99,9 +102,9 @@ def test_cs_ects_features():
     sql = load_sql("cs_first_term_ects", "4term_cp")
 
     df = db.read_sql_query(sql)
-    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+    actual = df.to_dict(orient='records')
 
-    expected = {
+    expected = [{
         "Geschlecht": "männlich",
         "Deutsch": 1,
         "AlterEinschreibung": 21,
@@ -112,7 +115,7 @@ def test_cs_ects_features():
         "PassedExamsRatio": 0.5,
         "EctsPerExam": 15/4,
         "FourthTermCP": 0
-    }
+    }]
 
     assert expected == actual
 
@@ -124,18 +127,21 @@ def test_cs_ects_features__when_no_passed_exams():
                    ("b", 1, 2),
                    ("c", 1, 3))
     s1 = db.add_ifo_student(pseudonym=1)
-
     # "b" failed twice
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
     # "c" passed in second term
     db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
+    # Non-CS student to be ignored.
+    s2 = db.add_sw_student(pseudonym=2)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+
     sql = load_sql("cs_first_term_ects", "4term_cp")
     df = db.read_sql_query(sql)
-    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+    actual = df.to_dict(orient='records')
 
-    expected = {
+    expected = [{
         "Geschlecht": "männlich",
         "Deutsch": 1,
         "AlterEinschreibung": 21,
@@ -146,7 +152,7 @@ def test_cs_ects_features__when_no_passed_exams():
         "PassedExamsRatio": 0.,
         "EctsPerExam": 0,
         "FourthTermCP": 0
-    }
+    }]
 
     assert expected == actual
 
@@ -161,6 +167,10 @@ def test_cs_ects_features__when_no_written_exams():
 
     # "c" passed in second term
     db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+
+    # Non-CS student to be ignored.
+    s2 = db.add_sw_student(pseudonym=2)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
 
     sql = load_sql("cs_first_term_ects", "4term_cp")
     df = db.read_sql_query(sql)
@@ -185,11 +195,15 @@ def test_cs_unspecific_grade_features():
     # "c" passed in second term
     db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
+    # Non-CS student to be ignored.
+    s2 = db.add_sw_student(pseudonym=2)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+
     sql = load_sql("cs_first_term_grades", "4term_cp")
     df = db.read_sql_query(sql)
-    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+    actual = df.to_dict(orient='records')
 
-    expected = {
+    expected = [{
         "Geschlecht": "männlich",
         "Deutsch": 1,
         "AlterEinschreibung": 21,
@@ -202,7 +216,7 @@ def test_cs_unspecific_grade_features():
         "VarianzNoteTotal": 2.75,
         "PassedExamsRatio": 0.5,
         "FourthTermCP": 0,
-    }
+    }]
 
     assert expected == actual
 
@@ -224,11 +238,15 @@ def test_combined_ectp_grade_features():
     # "c" passed in second term
     db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
 
+    # Non-CS student to be ignored.
+    s2 = db.add_sw_student(pseudonym=2)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+
     sql = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
     df = db.read_sql_query(sql)
-    actual = df.to_dict(orient='records')[0]  # Only compare first entry here.
+    actual = df.to_dict(orient='records')
 
-    expected = {
+    expected = [{
         "Geschlecht": "männlich",
         "Deutsch": 1,
         "AlterEinschreibung": 21,
@@ -243,7 +261,7 @@ def test_combined_ectp_grade_features():
         "PassedExamsRatio": 0.5,
         "EctpPerExam": 15/4,
         "FourthTermCP": 0,
-    }
+    }]
 
     assert expected == actual
 
@@ -285,3 +303,163 @@ def test_sw_base_module_regression():
         feature="sw_second_term_base_modules",
         label="3_dropout",
         reference="sw_base_modules_dropout.sql")
+
+
+def test_sw_first_term_ects():
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_sw_student(pseudonym=1)
+    s2 = db.add_ifo_student(pseudonym=2)  # CS student
+
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=2.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+
+    sql = load_sql("sw_first_term_ects", "4term_cp")
+
+    df = db.read_sql_query(sql)
+    actual = df.to_dict(orient='records')
+
+    expected = [{
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "EctsFirstTerm": 15,
+        "ExamsFirstTerm": 4,
+        "PassedFirstTerm": 2,
+        "FailedFirstTerm": 2,
+        "PassedExamsRatio": 0.5,
+        "EctsPerExam": 15/4,
+        "FourthTermCP": 0
+    }]
+
+    assert expected == actual
+
+
+def test_sw_first_term_grades():
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_sw_student(pseudonym=1)
+    s2 = db.add_ifo_student(pseudonym=2)  # CS Student to be ignored.
+
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+
+    sql = load_sql("sw_first_term_grades", "4term_cp")
+
+    df = db.read_sql_query(sql)
+    actual = df.to_dict(orient='records')  # Only compare first entry here.
+
+    expected = [{
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "KlausurenGeschrieben": 4,
+        "KlausurenBestanden": 2,
+        "KlausurenNichtBestanden": 2,
+        "DurchschnittsnoteBestanden": 2,
+        "DurchschnittsnoteTotal": 14/4,
+        "VarianzNoteBestanden": 1.,
+        "VarianzNoteTotal": 2.75,
+        "PassedExamsRatio": 0.5,
+        "FourthTermCP": 0,
+    }]
+
+    assert expected == actual
+
+
+def test_sw_first_term_combined_ects_and_grades():
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1),
+                   ("b", 1, 2),
+                   ("c", 1, 3))
+    s1 = db.add_sw_student(pseudonym=1)
+    s2 = db.add_ifo_student(pseudonym=2)  # CS Student to be ignored.
+
+    # "a" passed first try
+    db.add_exam(s1, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+    # "b" passed third try
+    db.add_exam(s1, "b", attempt=1, semester=1)
+    db.add_exam(s1, "b", attempt=2, semester=1)
+    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    # "c" passed in second term
+    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+
+    sql = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
+
+    df = db.read_sql_query(sql)
+    actual = df.to_dict(orient='records')  # Only compare first entry here.
+
+    expected = [{
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "Ectp": 15,
+        "KlausurenGeschrieben": 4,
+        "KlausurenBestanden": 2,
+        "KlausurenNichtBestanden": 2,
+        "DurchschnittsnoteBestanden": 2,
+        "DurchschnittsnoteTotal": 14/4,
+        "VarianzNoteBestanden": 1.,
+        "VarianzNoteTotal": 2.75,
+        "PassedExamsRatio": 0.5,
+        "EctpPerExam": 15/4,
+        "FourthTermCP": 0,
+    }]
+
+    assert expected == actual
+
+
+@pytest.mark.skip(reason="We do not have any SW students in the test DB as of now.")
+def test_sw_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
+    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
+    sql_ectp = load_sql("sw_first_term_ects", "4term_cp")
+
+    db = testutil.get_db_connection()
+
+    df = read_sql_query(sql_ectp, db)
+    # Ensure equal column names
+    df = df.rename(columns={"EctsFirstTerm": "Ectp"})
+    ectp_only = df["Ectp"]
+
+    df = read_sql_query(sql_combined, db)
+    combined = df["Ectp"]
+
+    assert (ectp_only == combined).all()
+
+
+@pytest.mark.skip(reason="We do not have any SW students in the test DB as of now.")
+def test_sw_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features():
+    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
+    sql_grades = load_sql("sw_first_term_grades", "4term_cp")
+
+    db = testutil.get_db_connection()
+
+    df = read_sql_query(sql_grades, db)
+    grade_only = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
+
+    df = read_sql_query(sql_combined, db)
+    combined = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
+
+    assert grade_only.equals(combined)

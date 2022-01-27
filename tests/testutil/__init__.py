@@ -60,7 +60,7 @@ def insert_into_Einschreibung(
     exmatrikulationsdatum="",
     immatrikulationsfach="1234",
     exmatrikulationsfach="",
-    hauptfach="Informatik",
+    hauptfach="Ja",
     bestanden="Nein",
     fachwechsler="Nein",
 ):
@@ -168,6 +168,11 @@ class TestDb():
         if len(modules) > 0:
             self.add_modules(modules)
 
+        # Keep track of a student's subject
+        #   pseudonym -> {"abschluss": str, "studienfach": str}
+        self.students = {}
+
+
     def add_modules(self, *args):
         """
         Expects a list of tuples `(name, version, number)`.
@@ -186,10 +191,32 @@ class TestDb():
         alter the entry as needed. Left-out entries are automatically filled
         by default values.
 
+        See TestDb.add_student for an overview of the parameters.
+        """
+        return self.add_student(pseudonym, subject="Informatik", **kwargs)
+
+    def add_sw_student(self, pseudonym, **kwargs):
+        """
+        Adds a new student into the database. Use the following keywords to
+        alter the entry as needed. Left-out entries are automatically filled
+        by default values.
+
+        See TestDb.add_student for an overview of the parameters.
+        """
+        return self.add_student(pseudonym, subject="Sozialwiss.- Medien, Pol.", **kwargs)
+
+    def add_student(self, pseudonym, subject, **kwargs):
+        """
+        Adds a new student into the database. Use the following keywords to
+        alter the entry as needed. Left-out entries are automatically filled
+        by default values.
+
         Parameters
         ----------
         pseudonym:
             Pseudonym of the student in the database.
+        subject:
+            The topic the student studies.
         geburtsjahr:
             Year of birth.
         geschlecht: "männlich", "weiblich", "divers"
@@ -201,13 +228,13 @@ class TestDb():
         exmatrikulationsdatum: string, YYYY-MM-DD
             Date of de-registration.
         immatrikulationsfach: int
-            Identifier for elected course on enrolment
+            Identifier for elected subject on enrolment
         exmatrikulationsfach: int
-            Identifier for elected course on de-registration
+            Identifier for elected subject on de-registration
         bestanden: 0 or 1
             Whether the degree was finished or not.
         fachwechsler:
-            Whether the course was changed from original enrolment course or not.
+            Whether the subject was changed from original enrolment subject or not.
         """
 
         student_fields = ["geburtsjahr", "geschlecht", "deutsch"]
@@ -220,13 +247,17 @@ class TestDb():
         ]
 
         student = {key: kwargs[key] for key in student_fields if key in kwargs}
-        # student["pseudonym"] = pseudonym
 
         enrol = {key: kwargs[key] for key in enrolment_fields if key in kwargs}
-        # enrol["pseudonym"] = pseudonym
+        enrol["studienfach"] = subject
 
         insert_into_Student(self.db, pseudonym, **student)
         insert_into_Einschreibung(self.db, pseudonym, **enrol)
+
+        self.students[pseudonym] = {
+            "abschluss": enrol.get("Abschluss", "Bachelor"),
+            "studienfach": subject
+        }
 
         return pseudonym
 
@@ -259,7 +290,7 @@ class TestDb():
         status: "bestanden", "nicht bestanden", "endgültig nicht bestanden"
             Overrides `passed`.
         studienfach: str
-            Degree course in which the exam was written.
+            Degree subject in which the exam was written.
         abschluss:
             Degree level for which the exam was written
         hochschulsemester: int
@@ -285,6 +316,9 @@ class TestDb():
             "ects": ects,
             "fachsemester": semester,
             "versuch": attempt,
+            # Student info
+            "studienfach": self.students[pseudonym]["studienfach"],
+            "abschluss": self.students[pseudonym]["abschluss"],
             # Exam info
             "nummer": self.modules[module].get("nummer"),
             "version": self.modules[module].get("version"),
