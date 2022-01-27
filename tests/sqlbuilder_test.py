@@ -278,3 +278,10 @@ def test_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features(
     combined = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
 
     assert grade_only.equals(combined)
+
+
+def test_sw_base_module_regression():
+    regression_test_setup(
+        feature="sw_second_term_base_modules",
+        label="3_dropout",
+        reference="sw_base_modules_dropout.sql")
