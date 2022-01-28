@@ -26,7 +26,6 @@ class RappConfigParser(object):
         # methodical settings
         parser.add_argument('-f', '--filename', type=str, help='Location of the .db file.',
                                 required=True)
-        parser.add_argument('-s', '--sql_filename', type=str, help='Location of the sql query file.',
         parser.add_argument('-sid', '--studies_id', type=str, help='Study Id for the sql query file.',
                                                         required=True)
         parser.add_argument('-fid', '--features_id', type=str, help='Feature Id for the sql query file.',

@@ -16,9 +16,6 @@ def load_pipeline_from_config():
     args = parser.parse_args()
 
     con = sqlite3.connect(args.filename)
-    with open(args.sql_filename) as f:
-        sql_query = f.readlines()
-        sql_query = ''.join(sql_query)
 
     features_id = f"{args.studies_id}_{args.features_id}"
     sql_query = load_sql(features_id,args.labels_id)
