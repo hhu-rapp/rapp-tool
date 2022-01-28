@@ -23,6 +23,7 @@ from rapp.fair.notions import predictive_equality
 import os
 import json
 import shutil
+import logging
 
 import numpy as np
 
@@ -256,7 +257,7 @@ class ClassifierReport(object):
         try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            print(f"Could not write report to {path}:", e)
+            logging.error(f"Could not write report to {path}:", e)
 
         with open(os.path.join(path,"report.json"), 'w') as r:
             json.dump(report_data, r, indent=2)
