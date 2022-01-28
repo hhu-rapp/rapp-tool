@@ -8,10 +8,9 @@ def tex_performance(estimator, results):
     # Metrics table
     mtbl = rc.get_text("metrics_table.tex")
     metrics = []
-    for m in results["train"]["scores"].keys():
+    for m in results["CV"]["avg_scores"].keys():
         res = {'name': m,
-               'train': f"{results['train']['scores'][m]:.3f}",
-               'test': f"{results['test']['scores'][m]:.3f}",
+               'cv': f"{results['CV']['avg_scores'][m]:.3f}",
                }
         metrics.append(res)
     mtbl = chevron.render(mtbl, {'metrics': metrics,
@@ -45,16 +44,16 @@ def tex_fairness(estimator, data):
     #              'is_last': bool}]
     # }
 
-    groups = data["train"]["fairness"].keys()
+    groups = data["CV"]["fairness"].keys()
     notions = None  # Filled below.
     next_start = 3  # Two columns in front of first group info.
     for group in groups:
         group_dict = {'group': group}
 
         if notions is None:
-            notions = list(data["train"]["fairness"][group].keys())
+            notions = list(data["CV"]["fairness"][group].keys())
 
-        subgroups = data["train"]["fairness"][group][notions[0]
+        subgroups = data["CV"]["fairness"][group][notions[0]
                                                      ]["outcomes"].keys()
         group_dict['subgroups'] = [{'subgroup': sub} for sub in subgroups]
         group_dict['has_diff'] = (len(subgroups) == 2)
@@ -72,7 +71,7 @@ def tex_fairness(estimator, data):
     if notions is None:
         notions = []  # If no groups are given, value is not set in loop above.
 
-    for mode in ['train', 'test']:
+    for mode in ['Dataset']:
         mode_dict = {'mode': mode.capitalize(),
                      'notions': []}
         for notion in notions:

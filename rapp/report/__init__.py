@@ -202,7 +202,7 @@ class ClassifierReport(object):
     def calculate_single_report(self, estimator, X, y, z, **kargs):
         scorings = {}
         cv_scores = cross_validate(estimator, X, y, scoring=self.get_score_dict(), **kargs)
-        scorings['avg scores'] = self.get_mean_cv_scores(cv_scores)
+        scorings['avg_scores'] = self.get_mean_cv_scores(cv_scores)
 
         estimator.fit(X,y)
         pred = estimator.predict(X)
@@ -280,16 +280,14 @@ class ClassifierReport(object):
 
         scores_file = set_name('scores.csv')
         with open(scores_file, 'w') as scr:
-            scr.write("Metric,Train,Test\n")
-            for metric in est_data["train"]["scores"].keys():
+            scr.write("Metric,CV\n")
+            for metric in est_data["CV"]["avg_scores"].keys():
                 scr.write(metric + ",")
-                scr.write(str(est_data["train"]["scores"][metric]) + ",")
-                scr.write(str(est_data["test"]["scores"][metric]) + "\n")
+                scr.write(str(est_data["CV"]["avg_scores"][metric]) + "\n")
 
         cm_file = set_name('confusion_matrix.json')
         with open(cm_file, 'w') as f:
             confusion_dict = {
-                'train': est_data["train"]["confusion_matrix"],
-                'test': est_data["test"]["confusion_matrix"]
+                'CV': est_data["CV"]["confusion_matrix"]
             }
             json.dump(confusion_dict, f, indent=2)

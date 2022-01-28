@@ -69,7 +69,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
         depth = data["depth"]
         alpha = data["alpha"]
         is_pareto = data["pareto_front"]
-        bacc = data["test"]["scores"]["Balanced Accuracy"]
+        bacc = data["CV"]["avg_scores"]["Balanced Accuracy"]
         point = {"depth": depth, "performance": bacc, "alpha": alpha}
         if is_pareto:
             mustache["pareto_coords"] += [point]
@@ -98,7 +98,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
         fairness = tex_fairness(estimator, pareto)
 
         fairness_groups = [{'group': group}
-                           for group in pareto["train"]["fairness"].keys()]
+                           for group in pareto["CV"]["fairness"].keys()]
 
         # Plot the tree.
         figure = None
