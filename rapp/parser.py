@@ -27,9 +27,14 @@ class RappConfigParser(object):
         parser.add_argument('-f', '--filename', type=str, help='Location of the .db file.',
                                 required=True)
         parser.add_argument('-s', '--sql_filename', type=str, help='Location of the sql query file.',
+        parser.add_argument('-sid', '--studies_id', type=str, help='Study Id for the sql query file.',
+                                                        required=True)
+        parser.add_argument('-fid', '--features_id', type=str, help='Feature Id for the sql query file.',
+                                required=True)
+        parser.add_argument('-lid', '--labels_id', type=str, help='Label Id for the sql query file.',
                                 required=True)
         parser.add_argument('-l', '--label_name', type=str, help='Column name of the prediction label.',
-                                required=True)
+                                required=False)
         parser.add_argument('-c', '--categorical', nargs='+', help='List of categorical columns.',
                                 required=False, default=[])
         parser.add_argument('-i', '--ignore', nargs='+', help='List of columns to ignore.',

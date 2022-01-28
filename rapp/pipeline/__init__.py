@@ -36,6 +36,11 @@ class MLPipeline(object):
 
         self.df = self.args.sql_df
 
+        if self.args.label_name is None:
+            self.label_name = self.df.columns[-1]
+        else:
+            self.label_name = self.args.label_name
+
         # fill missing values
         self.impute(self.args.imputation)
 
@@ -121,12 +126,12 @@ class MLPipeline(object):
 
     def prepare_datasets(self):
         # create data
-        self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
-        self.y = self.df[self.args.label_name]
+        self.X = self.df.drop(self.label_name, axis=1, inplace=False)
+        self.y = self.df[self.label_name]
 
         # Adapt to categorical data.
         columns = [x for x in self.args.categorical if x !=
-                   self.args.label_name]
+                   self.label_name]
         categorical = pd.get_dummies(data=self.X[columns], columns=columns)
         self.X = pd.concat([self.X, categorical], axis=1)
         # For now we kept the original version. This is due to it maybe being a

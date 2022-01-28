@@ -3,6 +3,7 @@ import pandas as pd
 
 from rapp.parser import RappConfigParser
 from rapp.pipeline import MLPipeline
+from rapp.sqlbuilder import load_sql
 
 def load_pipeline_from_config():
     """
@@ -18,6 +19,10 @@ def load_pipeline_from_config():
     with open(args.sql_filename) as f:
         sql_query = f.readlines()
         sql_query = ''.join(sql_query)
+
+    features_id = f"{args.studies_id}_{args.features_id}"
+    sql_query = load_sql(features_id,args.labels_id)
+
     args.sql_df = pd.read_sql_query(sql_query, con)
 
     return MLPipeline(args)
