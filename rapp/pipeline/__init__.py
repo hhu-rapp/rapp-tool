@@ -31,8 +31,8 @@ class MLPipeline(object):
         self.args.save_report = self.args.save_report
 
         if self.args.report_path is None:
-            # TODO Save reports with a meaningful name
-            self.args.report_path = f"reports/{datetime.now().isoformat()}/"
+            date_path = datetime.now().strftime("%Y/%m/%d/")
+            self.args.report_path = f"reports/{date_path}/{self.args.studies_id}/{self.args.labels_id}/{self.args.features_id}/"
 
         self.df = self.args.sql_df
 
