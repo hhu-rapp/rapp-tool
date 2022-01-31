@@ -151,49 +151,58 @@ class MenuBar(QtWidgets.QMenuBar):
             try:
                 config.read(fileName)
             except MissingSectionHeaderError as e:
-                msg = gui.helper.timeLogMsg(".ini File is missing ['Files'] and ['Settings'] Headers")
+                logging.error(".ini File is missing ['requiered'] Header")
+                msg = gui.helper.timeLogMsg(".ini File is missing [requiered] Header")
+                self.qMainWindow.qmainwindow.loggingTextBrowser.append(msg)
                 traceback.print_exc()
 
-                self.qMainWindow.qmainwindow.loggingTextBrowser.append(msg)
                 return
 
-            # load db
-            if 'filename' in config['Files']:
-                db_path = config['Files']['filename']
-                self.qMainWindow.connectDatabase(os.path.normpath(db_path))
+            # load required settings
+            if 'required' in config:
 
-            # open and execute sql query
-            if 'sql_filename' in config['Files']:
-                with open(config['Files']['sql_filename'], 'r') as file:
-                    data = file.read()
-                    self.qMainWindow.sqlTbox.setPlainText(data)
-                    self.qMainWindow.displaySql(data)
+                required = config['required']
+                try:
+                    # load db
+                    db_path = required['filename']
+                    self.qMainWindow.connectDatabase(os.path.normpath(db_path))
 
-            # load settings
-            # TODO: Load other settings
+                    # execute SQL query
+                    studies_id = required['studies_id']
+                    features_id = required['features_id']
+                    labels_id = required['labels_id']
+                    self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{studies_id}_{features_id}")
+                    self.qMainWindow.sql_tabs.targetSelect.setCurrentText(labels_id)
+                    self.qMainWindow.sql_tabs.load_selected_sql_template()
+                except KeyError as e:
+                    logging.error(e)
+
+            # load optional settings
             # TODO: Better way to access MLTab attributes
-            if 'label_name' in config['Settings']:
-                target = config['Settings']['label_name']
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(target)
+            if 'optional' in config:
 
-            if 'type' in config['Settings']:
-                type = config['Settings']['type']
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(type)
+                optional = config['optional']
+                if 'label_name' in optional:
+                    target = optional['label_name']
+                    self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(target)
 
-            # TODO: better way split string
-            if 'estimators' in config['Settings']:
-                estimators = config['Settings']['estimators']
-                estimators_list = estimators.replace('[','').replace(']', '')
-                estimators_list = estimators_list.replace(' ', '')
+                if 'sensitive_attributes' in optional:
+                    sensitive_attributes=optional['sensitive_attributes']
+                    s_attributes_list = sensitive_attributes.replace('[','').replace(']', '')
+                    s_attributes_list = s_attributes_list.replace(' ', '')
+                    self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(s_attributes_list.split(','))
 
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(estimators_list.split(','))
+                if 'type' in optional:
+                    type = optional['type']
+                    self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(type)
 
-            if 'sensitive_attributes' in config['Settings']:
-                sensitive_attributes = config['Settings']['sensitive_attributes']
-                s_attributes_list = sensitive_attributes.replace('[','').replace(']', '')
-                s_attributes_list = s_attributes_list.replace(' ', '')
+                if 'estimators' in optional:
+                    # TODO: better way split string
+                    estimators = optional['estimators']
+                    estimators_list = estimators.replace('[','').replace(']', '')
+                    estimators_list = estimators_list.replace(' ', '')
+                    self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(estimators_list.split(','))
 
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(s_attributes_list.split(','))
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
