@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{hhuarticle}[2020/08/21 AI-Seminar LaTeX document class v1.4]
+\ProvidesClass{hhuarticle}[2020/08/21 AI-Seminar LaTeX document class v1.4-no_beramono]
 
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}} % Options fallback.
 \ProcessOptions\relax
@@ -104,9 +104,6 @@
 
 
 %%% Formatting and Typesetting
-
-%% Corporate Design says to use Arial, but TeXLive only provides helvet
-\RequirePackage[scaled=0.85]{beramono}
 
 \pagestyle{headings}
 
