@@ -69,7 +69,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
         depth = data["depth"]
         alpha = data["alpha"]
         is_pareto = data["pareto_front"]
-        bacc = data["CV"]["avg_scores"]["Balanced Accuracy"]
+        bacc = data["CV"]["scores"][0]['test']["Balanced Accuracy"]
         point = {"depth": depth, "performance": bacc, "alpha": alpha}
         if is_pareto:
             mustache["pareto_coords"] += [point]

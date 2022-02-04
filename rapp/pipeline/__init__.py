@@ -71,20 +71,9 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
 
-        # create additional models
-        # Create a dictionary yielding possibly additionally trained models
-        # for each classifier. List of additional models can be empty.
-        self.additional_models = \
-            dict(map(lambda clf: (clf, []), self.estimators, ))
-
-        for est in self.estimators:
-            self.additional_models[est] = \
-                training.get_additional_models(est, self.X, self.y)
-
-        # log.info("Training estimators")
-        # self.train_estimators()
-        # self.train_additional_models()
-        # log.info("Finish training of estimators")
+        log.info("Training additional models")
+        self.train_additional_models()
+        log.info("Finish training of additional models")
 
         feature_names = list(self.X.columns)
         class_names = sorted(self.y.unique())
@@ -133,37 +122,6 @@ class MLPipeline(object):
             self.df[self.df.columns.difference(self.args.categorical)] \
                 = imputer.fit_transform(self.df[self.df.columns.difference(self.args.categorical)])
 
-    def prepare_datasets_deprecated(self):
-        # create data
-        self.X = self.df.drop(self.label_name, axis=1, inplace=False)
-        self.y = self.df[self.label_name]
-
-        # Adapt to categorical data.
-        columns = [x for x in self.args.categorical if x !=
-                   self.label_name]
-        categorical = pd.get_dummies(data=self.X[columns], columns=columns)
-        self.X = pd.concat([self.X, categorical], axis=1)
-        # For now we kept the original version. This is due to it maybe being a
-        # sensitive attribute as well. These need to be treated differently.
-        # We will fix this below after the train_test_split as to not lose the
-        # relation between sensitive attributes and individuals.
-
-        # feature selection, dimensionality reduction
-        # self.feature_selection(self.args.feature_selection)
-
-        # split datasets
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y,
-                                                                                train_size=0.8, random_state=42)
-
-        # Save protected attribute
-        self.Z_train = self.X_train[self.args.sensitive_attributes]
-        self.Z_test = self.X_test[self.args.sensitive_attributes]
-        # Remove categorical attributes from input features
-        self.X_train = self.X_train.drop(columns, axis=1)
-        self.X_test = self.X_test.drop(columns, axis=1)
-
-        # TODO: Unawareness. If user so desires, drop all info of sensitive attributes.
-
     def prepare_datasets(self):
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
@@ -197,19 +155,6 @@ class MLPipeline(object):
             sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
             self.X = sel.fit_transform(self.X)
 
-    def train_estimators(self):
-        # TODO: cross validation
-        for est in self.estimators:
-            est.fit(self.X_train, self.y_train)
-
-            # Save model
-            target_path = os.path.join(
-                self.args.report_path,  est.__class__.__name__)
-            os.makedirs(target_path, exist_ok=True)
-            model_path = os.path.join(target_path, "model.joblib")
-
-            joblib.dump(est, model_path)
-
     def train_additional_models(self):
         # TODO: cross validation
         # Create a dictionary yielding possibly additionally trained models
@@ -219,8 +164,7 @@ class MLPipeline(object):
 
         for est in self.estimators:
             self.additional_models[est] = \
-                training.get_additional_models(
-                    est, self.X_train, self.y_train, self.X_test, self.y_test)
+                training.get_additional_models(est, self.X, self.y)
 
             # Save the models
             id = 0
