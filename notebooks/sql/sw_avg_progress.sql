@@ -4,6 +4,7 @@ SELECT
   avg(SSP.Note) as AvgNote,
   sum(SSP.Note) as SummeNoten,
   count(SSP.Note) as AnzahlNoten,
+  count(case when SSP.Status = 'bestanden' then 1 else Null end) as AnzahlBE,
   sum(SSP.ECTS) as Ects,
   SSP.Studienfach,
   SSP.Abschluss,
