@@ -71,20 +71,9 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
 
-        # create additional models
-        # Create a dictionary yielding possibly additionally trained models
-        # for each classifier. List of additional models can be empty.
-        self.additional_models = \
-            dict(map(lambda clf: (clf, []), self.estimators, ))
-
-        for est in self.estimators:
-            self.additional_models[est] = \
-                training.get_additional_models(est, self.X, self.y)
-
-        # log.info("Training estimators")
-        # self.train_estimators()
-        # self.train_additional_models()
-        # log.info("Finish training of estimators")
+        log.info("Training additional models")
+        self.train_additional_models()
+        log.info("Finish training of additional models")
 
         feature_names = list(self.X.columns)
         class_names = sorted(self.y.unique())
@@ -219,8 +208,7 @@ class MLPipeline(object):
 
         for est in self.estimators:
             self.additional_models[est] = \
-                training.get_additional_models(
-                    est, self.X_train, self.y_train, self.X_test, self.y_test)
+                training.get_additional_models(est, self.X, self.y)
 
             # Save the models
             id = 0

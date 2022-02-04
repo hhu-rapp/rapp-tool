@@ -4,7 +4,7 @@ import chevron
 import rapp.report.resources as rc
 
 
-def tex_performance(estimator, results):
+def tex_performance_deprecated(estimator, results):
     # Metrics table
     mtbl = rc.get_text("metrics_table.tex")
     metrics = []
@@ -18,6 +18,30 @@ def tex_performance(estimator, results):
                                  'label': results.get('label', False)})
     return mtbl
 
+def tex_performance(estimator, results):
+    # Metrics table
+    template = rc.get_text("metrics_table.tex")
+
+    cv_tables=[]
+    for cv in results["CV"]["scores"].keys():
+        metrics = []
+
+        for m in results["CV"]["scores"][cv]['train'].keys():
+            res = {'name': m,
+                    'train': f"{results['CV']['scores'][cv]['train'][m]:.3f}",
+                    'test': f"{results['CV']['scores'][cv]['test'][m]:.3f}",
+                    }
+
+            metrics.append(res)
+        # id refers to the cross validation id for the estimator
+        cv_mtbl = chevron.render(template, {'id': cv,
+                                'metrics': metrics,
+                                 'title': estimator,
+                                 'label': results.get('label', False)})
+
+        cv_tables.append(cv_mtbl)
+    mtbl = "\n".join(cv_tables)
+    return mtbl
 
 def tex_fairness(estimator, data):
     fairness = {'title': estimator,
@@ -81,7 +105,7 @@ def tex_fairness(estimator, data):
                 group = group_dict['group']
                 subgroups = group_dict['subgroups']
 
-                outcomes = data[mode]["fairness"][group][notion]["outcomes"]
+                outcomes = data["CV"]["fairness"][group][notion]["outcomes"]
                 measures_dict = {
                     'group': group,
                     'measures': [{'value':
