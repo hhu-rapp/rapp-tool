@@ -1,15 +1,15 @@
 \begin{table}[ht]
   \centering
-  \caption{Performance-Messungen für {{title}}. }
+  \caption{Performance-Messungen für {{title}} (CV: {{id}}). }
   {{#label}}
   \label{tab:{{label}}-performance}
   {{/label}}
-  \begin{tabular}{lr}
+  \begin{tabular}{lrr}
     \toprule
-    Metric & 5-Fold Cross-Validation \\
+    Metric & Train&Test\\
     \midrule
     {{#metrics}}
-      {{name}} & {{cv}}  \\
+      {{name}} & {{train}} & {{test}}  \\
     {{/metrics}}
     \bottomrule
   \end{tabular}

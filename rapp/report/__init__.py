@@ -25,6 +25,7 @@ import json
 import shutil
 import subprocess
 import logging
+import joblib
 
 import numpy as np
 
@@ -88,38 +89,6 @@ class ClassifierReport(object):
             "Equality of Opportunity": equality_of_opportunity,
         }
 
-    def calculate_reports_deprecated(self, X_train, y_train, z_train, X_test, y_test, z_test):
-        reports = {}
-        sets = [('train', X_train, y_train, z_train),
-                ('test', X_test, y_test, z_test)]
-
-        for (set_name, X, y, z) in sets:
-            # TODO: Does it even matter for CV?
-            set_rep = self.calculate_set_statistics(X, y, z)
-            reports[set_name] = set_rep
-
-        estimator_reports = {}
-        for est in self.estimators:
-            est_rep = {}
-            for (set_name, X, y, z) in sets:
-                est_rep[set_name] = self.calculate_single_set_report_deprecated(
-                    est, X, y, z)
-            # Also do this for any additionally trained classifiers.
-            est_rep["additional_models"] = []
-            for add_est in self.additional_models[est]:
-                add_info = {key: add_est[key] for key in add_est
-                            if key != 'model'}
-                # Measure performances as well
-                for (set_name, X, y, z) in sets:
-                    add_info[set_name] = self.calculate_single_set_report_deprecated(
-                        add_est['model'], X, y, z)
-                est_rep["additional_models"].append(add_info)
-
-            estimator_reports[self.clf_name(est)] = est_rep
-        reports['estimators'] = estimator_reports
-
-        return reports
-
     def calculate_reports(self, X, y, z):
         reports = {}
 
@@ -137,7 +106,7 @@ class ClassifierReport(object):
                 add_info = {key: add_est[key] for key in add_est
                             if key != 'model'}
                 # Measure performances as well
-                add_info['CV'] = self.calculate_single_report(add_est['model'], X, y, z, cv=5)
+                add_info['CV'] = self.calculate_single_report(add_est['model'], X, y, z, save_models=False, cv=5)
 
                 est_rep["additional_models"].append(add_info)
 
@@ -173,23 +142,23 @@ class ClassifierReport(object):
 
         return set_stats
 
-    def calculate_single_set_report_deprecated(self, estimator, X, y, z):
-        pred = estimator.predict(X)
-
+    def calculate_single_report(self, estimator, X, y, z, save_models=True, **kwargs):
         scorings = {}
-        scorings['scores'] = self.get_score_dict_deprecated(y, pred)
-        C = confusion_matrix(y, pred)
-        # C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
-        # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
-        '''
-        scorings['confusion_matrix'] = {
-            'tp': int(tp),
-            'fp': int(fp),
-            'tn': int(tn),
-            'fn': int(fn),
-        }
-        '''
-        scorings['confusion_matrix'] = {'C': C.tolist()}
+        cv_scores = cross_validate(estimator, X, y, scoring=self.get_score_dict(), return_estimator=True ,return_train_score=True ,**kwargs)
+
+        est_scores = {}
+        est_cf = {}
+        for i, est in enumerate(cv_scores['estimator']):
+            # get score dict for each estimator trained
+            est_scores[i] = self.get_cv_scores(cv_scores, i)
+
+            pred = est.predict(X)
+            C = confusion_matrix(y, pred)
+            est_cf[i] = C.tolist()
+
+        scorings['scores'] = est_scores
+        scorings['confusion_matrix'] = est_cf
+
         fairness = {}
         for group in z.columns:
             fairness[group] = {}
@@ -198,42 +167,9 @@ class ClassifierReport(object):
                     clf_fairness(estimator, fun, X, y, z[group], pred)
         scorings["fairness"] = fairness
 
+        if save_models:
+            self.save_estimators(cv_scores['estimator'])
         return scorings
-
-    def calculate_single_report(self, estimator, X, y, z, **kargs):
-        scorings = {}
-        cv_scores = cross_validate(estimator, X, y, scoring=self.get_score_dict(), **kargs)
-        scorings['avg_scores'] = self.get_mean_cv_scores(cv_scores)
-
-        estimator.fit(X,y)
-        pred = estimator.predict(X)
-        C = confusion_matrix(y, pred)
-        # C = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int))#.ravel()
-        # tn, fp, fn, tp = confusion_matrix(np.round(y).astype(int), np.round(pred).astype(int)).ravel()
-        '''
-        scorings['confusion_matrix'] = {
-            'tp': int(tp),
-            'fp': int(fp),
-            'tn': int(tn),
-            'fn': int(fn),
-        }
-        '''
-        scorings['confusion_matrix'] = {'C': C.tolist()}
-        fairness = {}
-        for group in z.columns:
-            fairness[group] = {}
-            for notion, fun in self.used_fairnesses.items():
-                fairness[group][notion] = \
-                    clf_fairness(estimator, fun, X, y, z[group], pred)
-        scorings["fairness"] = fairness
-
-        return scorings
-
-    def get_score_dict_deprecated(self, y, pred):
-        score_dict = {}
-        for scoring_name, fun in self.used_scores.items():
-            score_dict[scoring_name] = fun(y, pred)
-        return score_dict
 
     def get_score_dict(self):
         score_dict = {}
@@ -241,15 +177,19 @@ class ClassifierReport(object):
             score_dict[scoring_name] = make_scorer(fun)
         return score_dict
 
-    def get_mean_cv_scores(self, cv_scores):
-        avg_score_dict = {}
-        for score in cv_scores.keys():
-            if score in ['fit_time', 'score_time']:
-                continue
+    def get_cv_scores(self, cv_scores, index):
+        score_dict = {}
+        score_dict['train'] = {}
+        score_dict['test'] = {}
+        for score in cv_scores:
             key = score.split('_')
-            avg_score_dict[key[1]] = np.mean(cv_scores[score])
 
-        return avg_score_dict
+            if key[0] == 'train' :
+                score_dict['train'][key[1]] = cv_scores[score][index]
+            if key[0] == 'test' :
+                score_dict['test'][key[1]] = cv_scores[score][index]
+
+        return score_dict
 
     def write_report(self, report_data, path=None):
         if path is None:
@@ -294,18 +234,34 @@ class ClassifierReport(object):
             self.write_classifier_report(est, data, path)
 
     def write_classifier_report(self, est_name, est_data, path):
-        def set_name(file): return os.path.join(path, est_name + file)
+        for cv_est in est_data["CV"]['scores']:
+            set_name = lambda file: os.path.join(path, f"{est_name}/{cv_est}/{file}")
 
-        scores_file = set_name('scores.csv')
-        with open(scores_file, 'w') as scr:
-            scr.write("Metric,CV\n")
-            for metric in est_data["CV"]["avg_scores"].keys():
-                scr.write(metric + ",")
-                scr.write(str(est_data["CV"]["avg_scores"][metric]) + "\n")
+            scores_file = set_name('scores.csv')
+            os.makedirs(os.path.dirname(scores_file), exist_ok=True)
+            with open(scores_file, 'w') as scr:
+                scr.write("Metric,Train,Test\n")
+                for metric in est_data["CV"]["scores"][cv_est]["train"].keys():
+                    scr.write(metric + ",")
+                    scr.write(str(est_data["CV"]["scores"][cv_est]["train"][metric]) + ",")
+                    scr.write(str(est_data["CV"]["scores"][cv_est]["test"][metric]) + "\n")
 
-        cm_file = set_name('confusion_matrix.json')
-        with open(cm_file, 'w') as f:
-            confusion_dict = {
-                'CV': est_data["CV"]["confusion_matrix"]
-            }
-            json.dump(confusion_dict, f, indent=2)
+            cm_file = set_name('confusion_matrix.json')
+            with open(cm_file, 'w') as f:
+                confusion_dict = {
+                    'C': est_data["CV"]["confusion_matrix"][cv_est]
+                }
+                json.dump(confusion_dict, f, indent=2)
+
+    def save_estimators(self, trained_estimators, path=None):
+        if path is None:
+            path = self.cf_args.report_path
+
+        for index, est in enumerate(trained_estimators):
+            # Save models
+            target_path = os.path.join(path, est.__class__.__name__, str(index))
+
+            os.makedirs(target_path, exist_ok=True)
+            model_path = os.path.join(target_path, f"model.joblib")
+
+            joblib.dump(est, model_path)
