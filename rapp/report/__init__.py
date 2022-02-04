@@ -89,38 +89,6 @@ class ClassifierReport(object):
             "Equality of Opportunity": equality_of_opportunity,
         }
 
-    def calculate_reports_deprecated(self, X_train, y_train, z_train, X_test, y_test, z_test):
-        reports = {}
-        sets = [('train', X_train, y_train, z_train),
-                ('test', X_test, y_test, z_test)]
-
-        for (set_name, X, y, z) in sets:
-            # TODO: Does it even matter for CV?
-            set_rep = self.calculate_set_statistics(X, y, z)
-            reports[set_name] = set_rep
-
-        estimator_reports = {}
-        for est in self.estimators:
-            est_rep = {}
-            for (set_name, X, y, z) in sets:
-                est_rep[set_name] = self.calculate_single_set_report_deprecated(
-                    est, X, y, z)
-            # Also do this for any additionally trained classifiers.
-            est_rep["additional_models"] = []
-            for add_est in self.additional_models[est]:
-                add_info = {key: add_est[key] for key in add_est
-                            if key != 'model'}
-                # Measure performances as well
-                for (set_name, X, y, z) in sets:
-                    add_info[set_name] = self.calculate_single_set_report_deprecated(
-                        add_est['model'], X, y, z)
-                est_rep["additional_models"].append(add_info)
-
-            estimator_reports[self.clf_name(est)] = est_rep
-        reports['estimators'] = estimator_reports
-
-        return reports
-
     def calculate_reports(self, X, y, z):
         reports = {}
 
