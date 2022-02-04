@@ -151,8 +151,8 @@ class MenuBar(QtWidgets.QMenuBar):
             try:
                 config.read(fileName)
             except MissingSectionHeaderError as e:
-                logging.error(".ini File is missing ['requiered'] Header")
-                msg = gui.helper.timeLogMsg(".ini File is missing [requiered] Header")
+                logging.error(".ini File is missing ['required'] Header")
+                msg = gui.helper.timeLogMsg(".ini File is missing [required] Header")
                 self.qMainWindow.qmainwindow.loggingTextBrowser.append(msg)
                 traceback.print_exc()
 
