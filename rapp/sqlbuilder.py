@@ -20,7 +20,6 @@ import chevron
 import rapp.resources as rc
 
 
-
 def load_sql(features_id, labels_id):
     f_select, f_join, f_where = __load_components("features", features_id)
     l_select, l_join, l_where = __load_components("labels", labels_id)
