@@ -23,6 +23,7 @@ from rapp.fair.notions import predictive_equality
 import os
 import json
 import shutil
+import subprocess
 import logging
 
 import numpy as np
@@ -259,10 +260,12 @@ class ClassifierReport(object):
         except OSError as e:
             logging.error(f"Could not write report to {path}:", e)
 
-        with open(os.path.join(path,"report.json"), 'w') as r:
+        with open(os.path.join(path, "report.json"), 'w') as r:
             json.dump(report_data, r, indent=2)
 
-        with open(os.path.join(path, "report.tex"), 'w') as f:
+        latex_report_file = os.path.join(path, "report.tex")
+        logging.info("Writing LaTeX report to %s", latex_report_file)
+        with open(latex_report_file, 'w') as f:
             tex = latex.tex_classification_report(report_data,
                                                   self.features, self.classes)
             f.write(tex)
@@ -272,11 +275,26 @@ class ClassifierReport(object):
         with rc.get_path("hhuarticle.cls") as cls_file:
             shutil.copy(cls_file, path)
 
+        # Attempt to compile latex report
+        try:
+            logging.info("Compiling report.tex with latexmk: %s",
+                         latex_report_file)
+            subprocess.check_call([
+                "latexmk",
+                "-pdf",
+                # "-jobname=" + os.path.join(path, "report.pdf"),
+                r'-pdflatex=pdflatex -interaction=nonstopmode',
+                "report.tex"
+            ], cwd=path)
+        except subprocess.CalledProcessError as e:
+            logging.error("Unable to compile the report file %s: %s",
+                          latex_report_file, e)
+
         for est, data in report_data['estimators'].items():
             self.write_classifier_report(est, data, path)
 
     def write_classifier_report(self, est_name, est_data, path):
-        set_name = lambda file: os.path.join(path, est_name + file)
+        def set_name(file): return os.path.join(path, est_name + file)
 
         scores_file = set_name('scores.csv')
         with open(scores_file, 'w') as scr:

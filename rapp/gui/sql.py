@@ -46,6 +46,10 @@ class SQLWidget(QtWidgets.QWidget):
         self.featuresSelect.addItem("cs_first_term_grades")
         self.featuresSelect.addItem("cs_first_term_ects")
         self.featuresSelect.addItem("cs_first_term_grades_and_ectp")
+        self.featuresSelect.addItem("sw_first_term_grades")
+        self.featuresSelect.addItem("sw_first_term_ects")
+        self.featuresSelect.addItem("sw_first_term_grades_and_ectp")
+        self.featuresSelect.addItem("sw_second_term_base_modules")
 
         self.targetSelect = QtWidgets.QComboBox()
         self.targetSelect.addItem("")
