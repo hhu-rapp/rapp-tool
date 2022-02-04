@@ -1,5 +1,6 @@
 from sklearn.metrics import confusion_matrix
 
+
 def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
     """
     Assesses the fairness of the given classifier over the data (X, y, z).

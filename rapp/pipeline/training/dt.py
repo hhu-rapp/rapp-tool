@@ -3,12 +3,13 @@ import numpy as np
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import make_scorer
+from sklearn.model_selection import cross_val_score
 
 from rapp.util import pareto_front
 
 
-def cost_complexity_pruning(estimator, X_train, y_train,
-                            X_val, y_val, scoring=balanced_accuracy_score):
+def cost_complexity_pruning(estimator, X, y, scoring=balanced_accuracy_score):
     """
     Conducts a cost complexity pruning over a decision tree classifier
     and returns a list of results.
@@ -17,14 +18,10 @@ def cost_complexity_pruning(estimator, X_train, y_train,
     ----------
     estimator : DecisionTreeClassifier
         An already fitted decision tree.
-    X_train :
-        Training data.
-    y_train :
-        Training labels.
-    X_val :
-        Validation set data.
-    y_val :
-        Validation set labels.
+    X :
+        Data.
+    y :
+        Labels.
     scoring :
         A scoring method for the pareto front.
         Default to sklearn.metrics.balanced_accuracy_score.
@@ -45,7 +42,8 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         tree-depth vs. scoring method.
     """
 
-    ccp_path = estimator.cost_complexity_pruning_path(X_train, y_train)
+
+    ccp_path = estimator.cost_complexity_pruning_path(X, y)
     alphas = ccp_path["ccp_alphas"][:-1]
 
     models = []
@@ -58,7 +56,7 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         params["ccp_alpha"] = alpha
         clf = DecisionTreeClassifier(**params)
         log.debug("Fit cost complexity pruning with alpha=%s", alpha)
-        clf.fit(X_train, y_train)
+        clf.fit(X, y)
         clf_info = {
             'model': clf,
             'alpha': alpha,
@@ -69,12 +67,15 @@ def cost_complexity_pruning(estimator, X_train, y_train,
         log.debug("Finish: Fit cost complexity pruning with alpha=%s", alpha)
         models.append(clf_info)
 
+    # convert scoring metric to scorer
+    scorer = make_scorer(scoring)
+
     # collect depths and performance for pareto optima
     costs = []
     for clf_info in models:
         depth = clf_info["depth"]
-        y_pred = clf_info["model"].predict(X_val)
-        score = scoring(y_val, y_pred)
+        est = clf_info["model"]
+        score = np.mean(cross_val_score(est, X, y, scoring=scorer, cv=5))
 
         # We use the negative depth so that we actually minimise the depth.
         costs.append([-depth, score])

@@ -4,12 +4,12 @@
   {{#label}}
   \label{tab:{{label}}-performance}
   {{/label}}
-  \begin{tabular}{lrr}
+  \begin{tabular}{lr}
     \toprule
-    Metric & Train & Test \\
+    Metric & 5-Fold Cross-Validation \\
     \midrule
     {{#metrics}}
-      {{name}} & {{train}} & {{test}} \\
+      {{name}} & {{cv}}  \\
     {{/metrics}}
     \bottomrule
   \end{tabular}
