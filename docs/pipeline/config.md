@@ -13,7 +13,7 @@ Die notwendigen Argumente sind:
 - `filename`: Pfad der Datenbank
 - `studies_id` : Studiengang Id für die SQL Anfrage Mögliche Optionen: `cs` , `sw`
 - `features_id`: Feature Id für die SQL Anfrage Mögliche Optionen: `first_term_modules`, `first_term_grades`, `first_term_ects`, `first_term_grades_and_ectp`
-- `labels_id`:  Id der abhängigen Variable bzw. der zu vorhersagenden Variable: `3_dropout`, `4term_ap`, `4term_cp`, `master_admision`, `rsz`
+- `labels_id`:  Id der abhängigen Variable bzw. der zu vorhersagenden Variable: `3_dropout`, `4term_ap`, `4term_cp`, `master_admission`, `rsz`
 - `categorical`: Liste von kategorischen Attribute in Form von `[attribut1, attribut2]` 
 - `type`: Angabe des Aufgabentyps. Mögliche Optionen: `regression`, `classification`
 
