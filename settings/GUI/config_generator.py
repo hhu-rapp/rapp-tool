@@ -23,7 +23,7 @@ sensitive_attributes=["[Geschlecht, Deutsch]"]
 fairness=[True,False]
 
 # labels id for which regression is used for all others classification will be used
-regression_id =['4term_ap', '4term_cp']
+regression_id =[]
 
 for database in filename:
     mustache = {'filename': database}
