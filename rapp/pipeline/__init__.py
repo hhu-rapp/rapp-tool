@@ -63,6 +63,7 @@ class MLPipeline(object):
                     models.get('SVM'),
                     models.get('NB'),
                     models.get('LR'),
+                    models.get('NN'),
                 ]
             elif self.args.type == 'regression':
                 self.estimators = [

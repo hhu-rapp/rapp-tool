@@ -10,6 +10,7 @@ from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 
 # ML regression methods
 from sklearn.linear_model import ElasticNet
@@ -34,6 +35,9 @@ models = {
                'kwargs': {}
                },
         'LR': {'class': LogisticRegression,
+               'kwargs': {'random_state': 0}
+               },
+        'NN': {'class': MLPClassifier,
                'kwargs': {'random_state': 0}
                },
     },
