@@ -5,7 +5,8 @@ import os
 
 import joblib
 
-import logging as log
+import logging
+log = logging.getLogger('GUI')
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa

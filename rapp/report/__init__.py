@@ -25,6 +25,7 @@ import json
 import shutil
 import subprocess
 import logging
+log = logging.getLogger('GUI')
 import joblib
 
 import numpy as np
@@ -198,13 +199,13 @@ class ClassifierReport(object):
         try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            logging.error(f"Could not write report to {path}:", e)
+            log.error(f"Could not write report to {path}:", e)
 
         with open(os.path.join(path, "report.json"), 'w') as r:
             json.dump(report_data, r, indent=2)
 
         latex_report_file = os.path.join(path, "report.tex")
-        logging.info("Writing LaTeX report to %s", latex_report_file)
+        log.info("Writing LaTeX report to %s", latex_report_file)
         with open(latex_report_file, 'w') as f:
             tex = latex.tex_classification_report(report_data,
                                                   self.features, self.classes)
@@ -217,7 +218,7 @@ class ClassifierReport(object):
 
         # Attempt to compile latex report
         try:
-            logging.info("Compiling report.tex with latexmk: %s",
+            log.info("Compiling report.tex with latexmk: %s",
                          latex_report_file)
             subprocess.check_call([
                 "latexmk",
@@ -227,7 +228,7 @@ class ClassifierReport(object):
                 "report.tex"
             ], cwd=path)
         except subprocess.CalledProcessError as e:
-            logging.error("Unable to compile the report file %s: %s",
+            log.error("Unable to compile the report file %s: %s",
                           latex_report_file, e)
 
         for est, data in report_data['estimators'].items():

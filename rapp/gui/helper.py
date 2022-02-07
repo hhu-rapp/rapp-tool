@@ -1,5 +1,6 @@
 import time
 import logging
+log = logging.getLogger('GUI')
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
@@ -78,23 +79,33 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item = self.model().findItems(option)
 
             if len(item) == 0:
-                logging.error(f'Could not find Item: {option}')
+                log.error(f'Could not find Item: {option}')
                 continue
 
             item[0].setCheckState(QtCore.Qt.Checked)
 
 
-def timeLogMsg(msg):
-    """
+class LoggingHandler(logging.Handler):
 
-    Parameters
-    ----------
-    msg: str
+    def __init__(self, parent):
+        logging.Handler.__init__(self)
+        self.parent = parent
 
-    Returns
-    -------
-    out: str
-        log call with time
-    """
-    timestr = time.asctime(time.localtime(time.time()))
-    return '[' + timestr + '] ' + msg
+    def emit(self, record):
+        self.parent.write(self.format(record))
+
+
+class LoggingTextBrowser(QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+
+        self.textBrowser = QtWidgets.QTextBrowser(self)
+
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(vbox)
+        vbox.addWidget(self.textBrowser)
+
+    def write(self, s):
+        self.textBrowser.append(s)

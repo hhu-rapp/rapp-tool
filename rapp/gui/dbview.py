@@ -2,6 +2,7 @@
 import pandas as pd
 from pandas.io.sql import DatabaseError
 import logging
+log = logging.getLogger('GUI')
 
 # gui
 from PyQt5 import QtCore
@@ -126,11 +127,8 @@ class DataView(QtWidgets.QWidget):
 
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
-        logging.info(f'Loading {tbl} table')
+        log.info(f'Loading {tbl} table')
 
-        if self.qmainwindow is not None:
-            msg = gui.helper.timeLogMsg('Loading ' + str(tbl) + ' table')
-            self.qmainwindow.loggingTextBrowser.append(msg)
         try:
             if tbl != "SQL" and tbl != "":
                 sql_query = f'SELECT * FROM {tbl}'
@@ -143,8 +141,7 @@ class DataView(QtWidgets.QWidget):
                 self.display_dataframe(pd.DataFrame(columns=["Empty"]))
 
         except (DatabaseError, TypeError) as e:
-            msg = gui.helper.timeLogMsg(str(e))
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.error(str(e))
 
     def display_dataframe(self, df):
         """
@@ -214,10 +211,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
     def connectDatabase(self, filepath):
-        logging.info('Connecting to database %s', filepath)
+        log.info('Connecting to database %s', filepath)
 
-        msg = gui.helper.timeLogMsg('Connecting to database')
-        self.qmainwindow.loggingTextBrowser.append(msg)
         self.filepath_db = filepath
         self.__conn = data.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
@@ -231,8 +226,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             self.qmainwindow.tabs.MLTab.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
-            msg = gui.helper.timeLogMsg(str(e))
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.error(str(e))
 
     def load_sql(self, sql_query):
         self.sql_tabs.set_sql(sql_query)

@@ -9,9 +9,13 @@ from rapp.gui.dbview import DataView
 
 # import rapp gui widgets
 from rapp.gui.helper import Color
+from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
 from rapp.gui.menubar import MenuBar
 from rapp.gui.dbview import DatabaseLayoutWidget
 from rapp.gui.tabs import Tabs
+
+import logging
+log = logging.getLogger("GUI")
 
 db_filepath = "data/rapp.db"
 sql_temp_path = "sql_temp.sql"
@@ -27,8 +31,11 @@ class Window(QMainWindow):
         self.filepath_db = db_filepath
         self.sql_df = None
 
-        # widgets before initializing gui
-        self.loggingTextBrowser = QtWidgets.QTextBrowser()
+        # initialize logging handler
+        self.loggingTextBrowser = LoggingTextBrowser()
+        handler = LoggingHandler(self.loggingTextBrowser)
+        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
+        log.addHandler(handler)
 
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()

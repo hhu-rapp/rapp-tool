@@ -12,6 +12,7 @@ from graphviz.backend.execute import ExecutableNotFound
 import joblib
 import graphviz
 import logging
+log = logging.getLogger('GUI')
 
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
@@ -87,7 +88,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
         graphviz.version()
         graphviz_installed = True
     except ExecutableNotFound:
-        logging.error('Not able to visualise decision trees. Make sure Graphviz is installed.')
+        log.error('Not able to visualise decision trees. Make sure Graphviz is installed.')
 
     pareto_mustache = []
     for pareto in pareto_front:

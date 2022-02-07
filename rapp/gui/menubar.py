@@ -1,4 +1,5 @@
 import logging
+log = logging.getLogger('GUI')
 import os
 import traceback
 from configparser import ConfigParser, MissingSectionHeaderError
@@ -133,7 +134,7 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:
-            logging.info("Loading SQL file into GUI: %s", fileName)
+            log.info("Loading SQL file into GUI: %s", fileName)
             with open(fileName, 'w+') as file:
                 data = self.qMainWindow.sqlTbox.toPlainText()
                 file.write(data)
@@ -151,10 +152,7 @@ class MenuBar(QtWidgets.QMenuBar):
             try:
                 config.read(fileName)
             except MissingSectionHeaderError as e:
-                logging.error(".ini File is missing ['required'] Header")
-                msg = gui.helper.timeLogMsg(".ini File is missing [required] Header")
-                self.qMainWindow.qmainwindow.loggingTextBrowser.append(msg)
-                traceback.print_exc()
+                log.error(".ini File is missing [required] Header")
 
                 return
 
@@ -175,7 +173,7 @@ class MenuBar(QtWidgets.QMenuBar):
                     self.qMainWindow.sql_tabs.targetSelect.setCurrentText(labels_id)
                     self.qMainWindow.sql_tabs.load_selected_sql_template()
                 except KeyError as e:
-                    logging.error(e)
+                    log.error(e)
 
             # load optional settings
             # TODO: Better way to access MLTab attributes

@@ -1,4 +1,5 @@
 import logging
+log = logging.getLogger('GUI')
 
 import pandas as pd
 from pandas.io.sql import DatabaseError
@@ -120,17 +121,17 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
 
     def load_selected_sql_template(self):
-        logging.debug("Loading SQL template from GUI button click")
+        log.debug("Loading SQL template from GUI button click")
 
         f_id = self.featuresSelect.currentText()
         l_id = self.targetSelect.currentText()
-        print(f"f_id = '{f_id}', l_id = '{l_id}'")
+        log.debug(f"f_id = '{f_id}', l_id = '{l_id}'")
 
         if f_id == "":
-            logging.warning("No features chosen for SQL templating")
+            log.warning("No features chosen for SQL templating")
             return
         if l_id == "":
-            logging.warning("No target label chosen for SQL templating")
+            log.warning("No target label chosen for SQL templating")
             return
 
         # Display the queried template in the advanced tab
@@ -145,7 +146,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.__is_reset_connected = True
 
     def reset_simple_tab(self):
-        logging.debug("Resetting selection in Simple SQL tab")
+        log.debug("Resetting selection in Simple SQL tab")
         self.featuresSelect.setCurrentIndex(0)
         self.targetSelect.setCurrentIndex(0)
 
@@ -159,7 +160,7 @@ class SQLWidget(QtWidgets.QWidget):
         """
         Loads the given query into the SQL text field.
         """
-        logging.debug("Setting SQL query by external call")
+        log.debug("Setting SQL query by external call")
         self.reset_simple_tab()
         self.sql_field.setPlainText(sql_query)
 

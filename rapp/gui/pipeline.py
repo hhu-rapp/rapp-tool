@@ -1,6 +1,9 @@
 import argparse
 import os.path
 import traceback
+import logging
+import logging
+log = logging.getLogger('GUI')
 
 # PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -188,13 +191,11 @@ class Pipeline(QtWidgets.QWidget):
         args = argparse.Namespace()
 
         if self.qmainwindow.sql_df is None:
-            msg = gui.helper.timeLogMsg('No SQL query to train from')
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.warning('No SQL query to train from')
             return
 
         if len(self.cbEstimator.get_checked_items()) == 0:
-            msg = gui.helper.timeLogMsg('No Estimator selected')
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.warning('No Estimator selected')
             return
 
         args.sql_df = self.qmainwindow.sql_df
@@ -209,14 +210,12 @@ class Pipeline(QtWidgets.QWidget):
         args.sensitive_attributes = self.cbSAttributes.get_checked_items()
         args.classifier = self.cbEstimator.get_checked_items()
 
+        log.info('Report generation started.')
         try:
             MLPipeline(args)
-            # log when finished
-            msg = gui.helper.timeLogMsg('Training finished.')
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.info('Report generation finished.')
         except Exception as e:
-            msg = gui.helper.timeLogMsg(str(e))
-            self.qmainwindow.loggingTextBrowser.append(msg)
+            log.error(str(e))
             traceback.print_exc()
 
     def validate(self):
