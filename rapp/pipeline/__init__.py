@@ -124,6 +124,10 @@ class MLPipeline(object):
                 = imputer.fit_transform(self.df[self.df.columns.difference(self.args.categorical)])
 
     def prepare_datasets(self):
+        # Convention: If no label name given, we use the last column.
+        if self.args.label_name is None:
+            self.args.label_name = self.df.columns[-1]
+
         # create data
         self.X = self.df.drop(self.args.label_name, axis=1, inplace=False)
         self.y = self.df[self.args.label_name]
