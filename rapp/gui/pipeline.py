@@ -44,14 +44,8 @@ class Pipeline(QtWidgets.QWidget):
         trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
         trainButton.setShortcut('Ctrl+t')
 
-        validateButton = QtWidgets.QPushButton('Validate')
-        validateButton.clicked.connect(self.validate)
-        validateButton.setStatusTip('Validate models on SQL query (Ctrl+V)')
-        validateButton.setShortcut('Ctrl+v')
-
         # add buttons
         self.menubuttonsMainML.addWidget(trainButton)
-        self.menubuttonsMainML.addWidget(validateButton)
 
         # labels
         self.labelName = QtWidgets.QLabel()
@@ -217,6 +211,3 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             log.error(str(e))
             traceback.print_exc()
-
-    def validate(self):
-        pass
