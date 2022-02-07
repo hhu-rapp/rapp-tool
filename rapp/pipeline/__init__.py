@@ -7,11 +7,13 @@ import joblib
 
 import logging
 log = logging.getLogger('GUI')
+from sklearn.exceptions import NotFittedError
 
 # imputation
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
 from sklearn.feature_selection import VarianceThreshold
+from sklearn.utils.validation import check_is_fitted
 
 import rapp.models as models
 
@@ -169,22 +171,27 @@ class MLPipeline(object):
             dict(map(lambda clf: (clf, []), self.estimators, ))
 
         for est in self.estimators:
-            self.additional_models[est] = \
-                training.get_additional_models(est, self.X, self.y)
+            log.info("Additional models for %s", est)
+            try:
+                check_is_fitted(est)  # We need to assume that the model is fitted already.
+                self.additional_models[est] = \
+                    training.get_additional_models(est, self.X, self.y)
 
-            # Save the models
-            id = 0
-            for m in self.additional_models[est]:
-                m["id"] = id
+                # Save the models
+                id = 0
+                for m in self.additional_models[est]:
+                    m["id"] = id
 
-                save = m.get('save_model', True)
-                if save:
-                    model = m["model"]
-                    rel_path = os.path.join(est.__class__.__name__,
-                                            "additional_models",
-                                            f"{id}.joblib")
-                    path = os.path.join(self.args.report_path, rel_path)
-                    os.makedirs(os.path.dirname(path), exist_ok=True)
-                    joblib.dump(model, path)
-                    m["save_path"] = {"full": path, "relative": rel_path}
-                id += 1  # Update id for next run
+                    save = m.get('save_model', True)
+                    if save:
+                        model = m["model"]
+                        rel_path = os.path.join(est.__class__.__name__,
+                                                "additional_models",
+                                                f"{id}.joblib")
+                        path = os.path.join(self.args.report_path, rel_path)
+                        os.makedirs(os.path.dirname(path), exist_ok=True)
+                        joblib.dump(model, path)
+                        m["save_path"] = {"full": path, "relative": rel_path}
+                    id += 1  # Update id for next run
+            except NotFittedError as e:
+                log.warning("Estimator not yet fitted: %s.", est)
