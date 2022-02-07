@@ -85,6 +85,10 @@ class Pipeline(QtWidgets.QWidget):
         self.lePath.setText("reports/")
         self.cbImputation = QtWidgets.QComboBox()
         self.cbImputation.addItem('Iterative')
+        self.cbImputation.addItem('KNN')
+        self.cbImputation.addItem('Mean')
+        self.cbImputation.addItem('Median')
+        self.cbImputation.addItem('Most_frequent')
         self.cbFSM = QtWidgets.QComboBox()
         self.cbFSM.addItem('Variance')
 
