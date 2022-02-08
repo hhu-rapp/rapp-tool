@@ -151,15 +151,13 @@ class MLPipeline(object):
         categorical = pd.get_dummies(data=self.X[columns], columns=columns)
         self.X = pd.concat([self.X, categorical], axis=1)
 
-        # Save protected attribute
-        self.z = self.X[self.args.sensitive_attributes]
-
         # split datasets
         split = train_test_split(
             self.X, self.y, train_size=0.8, random_state=42)
         self.X_train, self.X_test, self.y_train, self.y_test = split
 
         # Save protected attribute
+        self.z = self.X[self.args.sensitive_attributes]
         self.z_train = self.X_train[self.args.sensitive_attributes]
         self.z_test = self.X_test[self.args.sensitive_attributes]
         # Remove categorical attributes from input features
@@ -209,7 +207,6 @@ class MLPipeline(object):
                                             scoring=score_dict)
 
     def train_additional_models(self):
-        # TODO: cross validation
         # Create a dictionary yielding possibly additionally trained models
         # for each classifier. List of additional models can be empty.
         self.additional_models = \

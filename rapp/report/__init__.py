@@ -97,12 +97,16 @@ class ClassifierReport(object):
             # Also do this for any additionally trained classifiers.
             est_rep["additional_models"] = []
             for add_est in self.additional_models[est]:
+                # Split add_est into model and info part.
+                # Info part will be passed to the renderer down the line,
+                # so we do not want the model in there.
+                add_model = add_est["model"]
                 add_info = {key: add_est[key] for key in add_est
                             if key != 'model'}
                 # Measure performances as well
                 for (set_name, X, y, z) in sets:
-                    add_info[set_name] = self.calculate_single_report(est,
-                                                                      X, y, z)
+                    add_info[set_name] = self.calculate_single_report(
+                        add_model, X, y, z)
                 est_rep["additional_models"].append(add_info)
 
             estimator_reports[self.clf_name(est)] = est_rep
