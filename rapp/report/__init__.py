@@ -1,14 +1,5 @@
-# Metrics
-# Classification
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import balanced_accuracy_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import confusion_matrix
 # Regression
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import confusion_matrix, mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 # Cross Validation
@@ -30,6 +21,7 @@ import joblib
 
 import numpy as np
 
+from rapp.pipeline import scores  # FIXME: Is this introducing a circular dependency?
 from rapp.report import latex
 from rapp.report import resources as rc
 
@@ -75,14 +67,7 @@ class ClassifierReport(object):
 
         self.sensitive = config_args.sensitive_attributes
 
-        self.used_scores = {
-            'Accuracy': accuracy_score,
-            'Balanced Accuracy': balanced_accuracy_score,
-            'F1': lambda x, y: f1_score(x, y, average='macro'),
-            'Recall': lambda x, y: recall_score(x, y, average='macro'),
-            'Precision': lambda x, y: precision_score(x, y, average='macro'),
-            'Area under ROC': lambda x, y: roc_auc_score(x, y, multi_class='ovr')
-        }
+        self.used_scores = scores.classification_scores()
 
         self.used_fairnesses = {
             "Statistical Parity": group_fairness,
@@ -90,16 +75,24 @@ class ClassifierReport(object):
             "Equality of Opportunity": equality_of_opportunity,
         }
 
-    def calculate_reports(self, X, y, z):
-        reports = {}
+    def calculate_reports(self, X_train, y_train, z_train, X_test, y_test, z_test):
+        reports = {"datasets": {}}
 
-        set_rep = self.calculate_set_statistics(X, y, z)
-        reports['Dataset'] = set_rep
+        sets = [('train', X_train, y_train, z_train),
+                ('test', X_test, y_test, z_test)]
+
+        for (set_name, X, y, z) in sets:
+            set_rep = self.calculate_set_statistics(X, y, z)
+            reports["datasets"][set_name] = set_rep
+
 
         estimator_reports = {}
         for est in self.estimators:
             est_rep = {}
-            est_rep['CV'] = self.calculate_single_report(est, X, y, z, cv=5)
+            for (set_name, X, y, z) in sets:
+                est_rep[set_name] = self.calculate_single_report(est, X, y, z)
+
+            # TODO: Cross validation results
 
             # Also do this for any additionally trained classifiers.
             est_rep["additional_models"] = []
@@ -107,11 +100,13 @@ class ClassifierReport(object):
                 add_info = {key: add_est[key] for key in add_est
                             if key != 'model'}
                 # Measure performances as well
-                add_info['CV'] = self.calculate_single_report(add_est['model'], X, y, z, save_models=False, cv=5)
-
+                for (set_name, X, y, z) in sets:
+                    add_info[set_name] = self.calculate_single_report(est,
+                                                                      X, y, z)
                 est_rep["additional_models"].append(add_info)
 
             estimator_reports[self.clf_name(est)] = est_rep
+
 
         reports['estimators'] = estimator_reports
         return reports
@@ -143,22 +138,14 @@ class ClassifierReport(object):
 
         return set_stats
 
-    def calculate_single_report(self, estimator, X, y, z, save_models=True, **kwargs):
+    def calculate_single_report(self, estimator, X, y, z, save_models=True):
+        pred = estimator.predict(X)
+
         scorings = {}
-        cv_scores = cross_validate(estimator, X, y, scoring=self.get_score_dict(), return_estimator=True ,return_train_score=True ,**kwargs)
+        scorings['scores'] = self.get_score_dict(y, pred)
 
-        est_scores = {}
-        est_cf = {}
-        for i, est in enumerate(cv_scores['estimator']):
-            # get score dict for each estimator trained
-            est_scores[i] = self.get_cv_scores(cv_scores, i)
-
-            pred = est.predict(X)
-            C = confusion_matrix(y, pred)
-            est_cf[i] = C.tolist()
-
-        scorings['scores'] = est_scores
-        scorings['confusion_matrix'] = est_cf
+        cm = confusion_matrix(y, pred)
+        scorings['confusion_matrix'] = cm.tolist()
 
         fairness = {}
         for group in z.columns:
@@ -168,14 +155,12 @@ class ClassifierReport(object):
                     clf_fairness(estimator, fun, X, y, z[group], pred)
         scorings["fairness"] = fairness
 
-        if save_models:
-            self.save_estimators(cv_scores['estimator'])
         return scorings
 
-    def get_score_dict(self):
+    def get_score_dict(self, y, pred):
         score_dict = {}
         for scoring_name, fun in self.used_scores.items():
-            score_dict[scoring_name] = make_scorer(fun)
+            score_dict[scoring_name] = fun(y, pred)
         return score_dict
 
     def get_cv_scores(self, cv_scores, index):
@@ -235,26 +220,27 @@ class ClassifierReport(object):
             self.write_classifier_report(est, data, path)
 
     def write_classifier_report(self, est_name, est_data, path):
-        for cv_est in est_data["CV"]['scores']:
-            set_name = lambda file: os.path.join(path, f"{est_name}/{cv_est}/{file}")
+        set_name = lambda file: os.path.join(path, est_name, file)
 
-            scores_file = set_name('scores.csv')
-            os.makedirs(os.path.dirname(scores_file), exist_ok=True)
-            with open(scores_file, 'w') as scr:
-                scr.write("Metric,Train,Test\n")
-                for metric in est_data["CV"]["scores"][cv_est]["train"].keys():
-                    scr.write(metric + ",")
-                    scr.write(str(est_data["CV"]["scores"][cv_est]["train"][metric]) + ",")
-                    scr.write(str(est_data["CV"]["scores"][cv_est]["test"][metric]) + "\n")
+        scores_file = set_name('scores.csv')
+        with open(scores_file, 'w') as scr:
+            scr.write("Metric,Train,Test\n")
+            for metric in est_data["train"]["scores"].keys():
+                scr.write(metric + ",")
+                scr.write(str(est_data["train"]["scores"][metric]) + ",")
+                scr.write(str(est_data["test"]["scores"][metric]) + "\n")
 
-            cm_file = set_name('confusion_matrix.json')
-            with open(cm_file, 'w') as f:
-                confusion_dict = {
-                    'C': est_data["CV"]["confusion_matrix"][cv_est]
-                }
-                json.dump(confusion_dict, f, indent=2)
+        cm_file = set_name('confusion_matrix.json')
+        with open(cm_file, 'w') as f:
+            confusion_dict = {
+                'train': est_data["train"]["confusion_matrix"],
+                'test': est_data["test"]["confusion_matrix"]
+            }
+            json.dump(confusion_dict, f, indent=2)
+
 
     def save_estimators(self, trained_estimators, path=None):
+        assert False  # Check whether this is still called somewhere
         if path is None:
             path = self.cf_args.report_path
 

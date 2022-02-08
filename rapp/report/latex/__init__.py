@@ -23,8 +23,8 @@ def tex_dataset_report(report):
     #                      'label_sub_count})})})}
 
     mustache = {'modes': []}
-    for mode in ["Dataset"]:
-        dataset = report[mode]
+    for mode in report["datasets"]:
+        dataset = report["datasets"][mode]
 
         # Fill in the group names
         groups = []

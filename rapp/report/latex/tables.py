@@ -4,44 +4,21 @@ import chevron
 import rapp.report.resources as rc
 
 
-def tex_performance_deprecated(estimator, results):
-    # Metrics table
-    mtbl = rc.get_text("metrics_table.tex")
-    metrics = []
-    for m in results["CV"]["avg_scores"].keys():
-        res = {'name': m,
-               'cv': f"{results['CV']['avg_scores'][m]:.3f}",
-               }
-        metrics.append(res)
-    mtbl = chevron.render(mtbl, {'metrics': metrics,
-                                 'title': estimator,
-                                 'label': results.get('label', False)})
-    return mtbl
-
 def tex_performance(estimator, results):
     # Metrics table
     template = rc.get_text("metrics_table.tex")
-
-    cv_tables=[]
-    for cv in results["CV"]["scores"].keys():
-        metrics = []
-
-        for m in results["CV"]["scores"][cv]['train'].keys():
-            res = {'name': m,
-                    'train': f"{results['CV']['scores'][cv]['train'][m]:.3f}",
-                    'test': f"{results['CV']['scores'][cv]['test'][m]:.3f}",
-                    }
-
-            metrics.append(res)
-        # id refers to the cross validation id for the estimator
-        cv_mtbl = chevron.render(template, {'id': cv,
-                                'metrics': metrics,
+    metrics = []
+    for m in results["train"]["scores"].keys():
+        res = {'name': m,
+               'train': f"{results['train']['scores'][m]:.3f}",
+               'test': f"{results['test']['scores'][m]:.3f}",
+               }
+        metrics.append(res)
+    mtbl = chevron.render(template, {'metrics': metrics,
                                  'title': estimator,
                                  'label': results.get('label', False)})
-
-        cv_tables.append(cv_mtbl)
-    mtbl = "\n".join(cv_tables)
     return mtbl
+
 
 def tex_fairness(estimator, data):
     fairness = {'title': estimator,
@@ -68,17 +45,17 @@ def tex_fairness(estimator, data):
     #              'is_last': bool}]
     # }
 
-    groups = data["CV"]["fairness"].keys()
+    train_groups = data["train"]["fairness"]
+    groups = train_groups.keys()
     notions = None  # Filled below.
     next_start = 3  # Two columns in front of first group info.
     for group in groups:
         group_dict = {'group': group}
 
         if notions is None:
-            notions = list(data["CV"]["fairness"][group].keys())
+            notions = list(train_groups[group].keys())
 
-        subgroups = data["CV"]["fairness"][group][notions[0]
-                                                     ]["outcomes"].keys()
+        subgroups = train_groups[group][notions[0]]["outcomes"].keys()
         group_dict['subgroups'] = [{'subgroup': sub} for sub in subgroups]
         group_dict['has_diff'] = (len(subgroups) == 2)
 
@@ -95,7 +72,7 @@ def tex_fairness(estimator, data):
     if notions is None:
         notions = []  # If no groups are given, value is not set in loop above.
 
-    for mode in ['Dataset']:
+    for mode in ["train", "test"]:
         mode_dict = {'mode': mode.capitalize(),
                      'notions': []}
         for notion in notions:
@@ -105,7 +82,7 @@ def tex_fairness(estimator, data):
                 group = group_dict['group']
                 subgroups = group_dict['subgroups']
 
-                outcomes = data["CV"]["fairness"][group][notion]["outcomes"]
+                outcomes = train_groups[group][notion]["outcomes"]
                 measures_dict = {
                     'group': group,
                     'measures': [{'value':

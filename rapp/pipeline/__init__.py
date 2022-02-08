@@ -1,4 +1,5 @@
 from datetime import datetime
+from tkinter import W
 
 import pandas as pd
 import os
@@ -14,8 +15,11 @@ from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer, SimpleImputer
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.utils.validation import check_is_fitted
+from sklearn.model_selection import cross_validate
+from sklearn.metrics import  make_scorer
 
 import rapp.models as models
+from rapp.pipeline import scores
 
 # tools
 from sklearn.model_selection import train_test_split
@@ -75,9 +79,13 @@ class MLPipeline(object):
                     models.get_regressor('BR'),
                 ]
 
-        log.info("Training additional models")
+        log.info("Training estimators...")
+        self.train_estimators()
+        log.info("Crossvalidating...")
+        self.cross_validate()
+        log.info("Training additional models...")
         self.train_additional_models()
-        log.info("Finish training of additional models")
+        log.info("Finish training")
 
         feature_names = list(self.X.columns)
         class_names = sorted(self.y.unique())
@@ -88,7 +96,9 @@ class MLPipeline(object):
             self.estimators, self.args, self.additional_models,
             feature_names=feature_names, class_names=class_names)
 
-        report_data = report.calculate_reports(self.X, self.y, self.z,)
+        report_data = report.calculate_reports(
+            self.X_train, self.y_train, self.z_train,
+            self.X_test, self.y_test, self.z_test)
 
         log.debug("Writing report to path '%s'", self.args.report_path)
         report.write_report(report_data)
@@ -144,8 +154,19 @@ class MLPipeline(object):
         # Save protected attribute
         self.z = self.X[self.args.sensitive_attributes]
 
+        # split datasets
+        split = train_test_split(
+            self.X, self.y, train_size=0.8, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = split
+
+        # Save protected attribute
+        self.z_train = self.X_train[self.args.sensitive_attributes]
+        self.z_test = self.X_test[self.args.sensitive_attributes]
         # Remove categorical attributes from input features
         self.X = self.X.drop(columns, axis=1)
+        self.X_train = self.X_train.drop(columns, axis=1)
+        self.X_test = self.X_test.drop(columns, axis=1)
+
 
     def feature_selection(self, method='variance'):
         """
@@ -163,6 +184,30 @@ class MLPipeline(object):
             sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
             self.X = sel.fit_transform(self.X)
 
+    def train_estimators(self):
+        for est in self.estimators:
+            est.fit(self.X_train, self.y_train)
+
+            # Save model
+            target_path = os.path.join(
+                self.args.report_path,  est.__class__.__name__)
+            os.makedirs(target_path, exist_ok=True)
+            model_path = os.path.join(target_path, "model.joblib")
+
+            joblib.dump(est, model_path)
+
+    def cross_validate(self):
+        score_dict = {}
+        for scoring_name, fun in scores.classification_scores().items():
+            score_dict[scoring_name] = make_scorer(fun)
+
+        self.cv_scores = {}
+        for est in self.estimators:
+            log.debug("Cross validating %s", est)
+            self.cv_scores = cross_validate(est,
+                                            self.X_train, self.y_train,
+                                            scoring=score_dict)
+
     def train_additional_models(self):
         # TODO: cross validation
         # Create a dictionary yielding possibly additionally trained models
@@ -175,7 +220,9 @@ class MLPipeline(object):
             try:
                 check_is_fitted(est)  # We need to assume that the model is fitted already.
                 self.additional_models[est] = \
-                    training.get_additional_models(est, self.X, self.y)
+                    training.get_additional_models(est,
+                                                   self.X_train, self.y_train,
+                                                   self.X_test, self.y_test)
 
                 # Save the models
                 id = 0
