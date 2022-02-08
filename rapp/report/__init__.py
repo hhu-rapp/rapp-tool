@@ -29,6 +29,7 @@ from rapp.report import resources as rc
 class ClassifierReport(object):
 
     def __init__(self, estimators, config_args, additional_models={},
+                 cross_validation={},
                  feature_names=None,
                  class_names=None) -> None:
         """
@@ -54,6 +55,7 @@ class ClassifierReport(object):
 
         self.estimators = estimators
         self.cf_args = config_args
+        self.cv_scores = cross_validation
 
         self.features = feature_names
         self.classes = class_names
@@ -92,7 +94,12 @@ class ClassifierReport(object):
             for (set_name, X, y, z) in sets:
                 est_rep[set_name] = self.calculate_single_report(est, X, y, z)
 
-            # TODO: Cross validation results
+            if est in self.cv_scores:
+                cs_results = self.cv_scores[est]
+                # Don't want to keep the trained models
+                est_rep["cross_validation"] = {key: cs_results[key].tolist()
+                                               for key in cs_results
+                                               if key != "estimator"}
 
             # Also do this for any additionally trained classifiers.
             est_rep["additional_models"] = []
@@ -167,20 +174,6 @@ class ClassifierReport(object):
             score_dict[scoring_name] = fun(y, pred)
         return score_dict
 
-    def get_cv_scores(self, cv_scores, index):
-        score_dict = {}
-        score_dict['train'] = {}
-        score_dict['test'] = {}
-        for score in cv_scores:
-            key = score.split('_')
-
-            if key[0] == 'train' :
-                score_dict['train'][key[1]] = cv_scores[score][index]
-            if key[0] == 'test' :
-                score_dict['test'][key[1]] = cv_scores[score][index]
-
-        return score_dict
-
     def write_report(self, report_data, path=None):
         if path is None:
             path = self.cf_args.report_path
@@ -241,18 +234,3 @@ class ClassifierReport(object):
                 'test': est_data["test"]["confusion_matrix"]
             }
             json.dump(confusion_dict, f, indent=2)
-
-
-    def save_estimators(self, trained_estimators, path=None):
-        assert False  # Check whether this is still called somewhere
-        if path is None:
-            path = self.cf_args.report_path
-
-        for index, est in enumerate(trained_estimators):
-            # Save models
-            target_path = os.path.join(path, est.__class__.__name__, str(index))
-
-            os.makedirs(target_path, exist_ok=True)
-            model_path = os.path.join(target_path, f"model.joblib")
-
-            joblib.dump(est, model_path)

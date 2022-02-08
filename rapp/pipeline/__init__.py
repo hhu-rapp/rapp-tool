@@ -94,6 +94,7 @@ class MLPipeline(object):
 
         report = ClassifierReport(
             self.estimators, self.args, self.additional_models,
+            cross_validation=self.cv_scores,
             feature_names=feature_names, class_names=class_names)
 
         report_data = report.calculate_reports(
@@ -202,9 +203,21 @@ class MLPipeline(object):
         self.cv_scores = {}
         for est in self.estimators:
             log.debug("Cross validating %s", est)
-            self.cv_scores = cross_validate(est,
-                                            self.X_train, self.y_train,
-                                            scoring=score_dict)
+            self.cv_scores[est] = cross_validate(
+                est, self.X_train, self.y_train, scoring=score_dict,
+                return_estimator=True, return_train_score=True)
+
+        # Save models to disk
+        target_path = os.path.join(self.args.report_path,
+                                   est.__class__.__name__,
+                                   "cross_validation")
+        os.makedirs(target_path, exist_ok=True)
+
+        for estimator in self.estimators:
+            for i, est in enumerate(self.cv_scores[estimator]["estimator"]):
+                model_path = os.path.join(target_path, f"fold_{i}.joblib")
+                joblib.dump(est, model_path)
+
 
     def train_additional_models(self):
         # Create a dictionary yielding possibly additionally trained models

@@ -1,0 +1,33 @@
+\begin{table}[ht]
+  \centering
+  \caption{ {{n_folds}}-Fold Cross-Validation für {{title}}.}
+  {{#label}}
+  \label{tab:{{label}}-cv}
+  {{/label}}
+  \begin{tabular}{l{{#fold_ids}}r{{/fold_ids}}r{{#fold_ids}}r{{/fold_ids}}r}
+    \toprule
+    % & \multicolumn{c}{ {{train_col_start}}-{{train_col_end}}}{Train}
+    % & \multicolumn{c}{ {{test_col_start}}-{{test_col_end}}}{Train}
+    & \multicolumn{ {{n_set_cols}} }{c}{Train}
+    & \multicolumn{ {{n_set_cols}} }{c}{Validation}
+    \\
+    \cmidrule(l){ {{train_col_start}}-{{train_col_end}}}
+    \cmidrule(lr){ {{test_col_start}}-{{test_col_end}}}
+    Metric
+    {{#fold_ids}} & F\textsubscript{ {{id}} }{{/fold_ids}} & avg %& std
+    {{#fold_ids}} & F\textsubscript{ {{id}} }{{/fold_ids}} & avg %& std
+    \\
+    \midrule
+    {{#metrics}}
+      {{name}}
+      {{#train_folds}}& {{value}}{{/train_folds}}
+      & {{train_avg}}
+      % & {{train_std}}
+      {{#test_folds}}& {{value}}{{/test_folds}}
+      & {{test_avg}}
+      % & {{test_std}}
+      \\
+    {{/metrics}}
+    \bottomrule
+  \end{tabular}
+\end{table}

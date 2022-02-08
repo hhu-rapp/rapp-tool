@@ -1,5 +1,6 @@
 
 import chevron
+import numpy as np
 
 import rapp.report.resources as rc
 
@@ -15,9 +16,65 @@ def tex_performance(estimator, results):
                }
         metrics.append(res)
     mtbl = chevron.render(template, {'metrics': metrics,
-                                 'title': estimator,
-                                 'label': results.get('label', False)})
+                                     'title': estimator,
+                                     'label': results.get('label', False)})
     return mtbl
+
+
+def tex_cross_validation(estimator, data):
+    cv_scores = data["cross_validation"]
+
+    results = {}
+    metrics = [metric[6:] for metric in cv_scores if metric[:6] == "train_"]
+    n_folds = len(cv_scores["train_" + metrics[0]])
+
+    # The format we need is the following for each metric.
+    # {'title': str,
+    #  'fold_ids': [{'id': int}, ...],
+    #  'n_folds': int,
+    #  'train_col_start': int,
+    #  'train_col_end: int,
+    #  'test_col_start': int,
+    #  'test_col_end: int,
+    #  'metrics': [{'name': str,
+    #   'train_folds': [{'value': float}, ...],
+    #   'test_folds': [{'value': float}, ...],
+    #   'train_avg': float,
+    #   'train_std': float,
+    #   'test_avg': float,
+    #   'test_std': float}],
+    # }
+    mustache = {'title': estimator,
+                'fold_ids': [{'id': i} for i in range(n_folds)],
+                'metrics': []}
+    for metric in metrics:
+        mdict = {'name': metric}
+        for mode in ["train", "test"]:
+            values = [x for x in cv_scores[f"{mode}_{metric}"]]
+            value_list = [{'value': str(f'{x:.2f}')} for x in values]
+            mdict[f'{mode}_folds'] = value_list
+
+
+            mdict[f"{mode}_avg"] = str(f"{np.average(values):.2f}")
+            mdict[f"{mode}_std"] = str(f"{np.std(values):.2f}")
+        mustache['metrics'].append(mdict)
+
+    # Column positions
+    n_set_cols = n_folds + 1
+    train_start = 2
+    test_start = train_start + n_set_cols
+
+    mustache["n_folds"] = n_folds
+    mustache["n_set_cols"] = n_set_cols
+    mustache["train_col_start"] = train_start
+    mustache["train_col_end"] = train_start + n_set_cols - 1
+    mustache["test_col_start"] = test_start
+    mustache["test_col_end"] = test_start + n_set_cols - 1
+
+
+
+    template = rc.get_text("cv_table.tex")
+    return chevron.render(template, mustache)
 
 
 def tex_fairness(estimator, data):

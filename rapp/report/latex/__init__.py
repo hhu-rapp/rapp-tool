@@ -1,7 +1,7 @@
 import chevron
 import rapp.report.resources as rc
 
-from rapp.report.latex.tables import tex_fairness, tex_performance
+from rapp.report.latex.tables import tex_fairness, tex_performance, tex_cross_validation
 from rapp.report.latex.additionalmodels import tex_additional_models
 
 
@@ -92,6 +92,8 @@ def tex_classification_report(report, feature_names=None, class_names=None):
 
         fair = tex_fairness(estimator, results)
         est_dict['fairness_evaluation'] = fair
+
+        est_dict["cross_validation"] = tex_cross_validation(estimator, results)
 
         add_models = results.get("additional_models", [])
         est_dict["additional_model_info"] = \
