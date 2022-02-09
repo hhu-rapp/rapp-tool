@@ -11,7 +11,7 @@ do
     for l in "${labels[@]}"
     do
       if [ -d "rapp/resources/sqltemplates/features/${s}_${f}" ]; then
-        exp=${s}_${f}_${l}
+        exp="${s}/${f}/${l}"
         echo "running $exp"
         python -m rapp -cf settings/experiments.ini -sid $s -fid $f -lid $l \
                       --categorical Geschlecht \
