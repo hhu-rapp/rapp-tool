@@ -46,14 +46,7 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
 
 
 def __get_confusion_matrix(y_true, y_pred):
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
-    return {
-        'tp': int(tp),
-        'fp': int(fp),
-        'tn': int(tn),
-        'fn': int(fn),
-    }
-
+    return confusion_matrix(y_true, y_pred).ravel().tolist()
 
 def group_fairness(X, y, z, pred, fav_label=1):
     fair = {}
@@ -84,9 +77,11 @@ def predictive_equality(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
+        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+
         fair[v] = {
             "affected_total": len(fav),
-            "affected_percent": len(fav)/len(pred_v),
+            "affected_percent": affected_percent,
             "confusion_matrix": __get_confusion_matrix(y[mask], pred[mask])
         }
 
