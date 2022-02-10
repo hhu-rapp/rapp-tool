@@ -58,9 +58,11 @@ def group_fairness(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
+        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+
         fair[v] = {
             "affected_total": len(fav),
-            "affected_percent": len(fav)/len(pred_v),
+            "affected_percent": affected_percent,
             "confusion_matrix": __get_confusion_matrix(y[mask], pred[mask])
         }
 
@@ -98,9 +100,11 @@ def equality_of_opportunity(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
+        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+
         fair[v] = {
             "affected_total": len(fav),
-            "affected_percent": len(fav)/len(pred_v),
+            "affected_percent": affected_percent,
             "confusion_matrix": __get_confusion_matrix(y[mask], pred[mask])
         }
 
