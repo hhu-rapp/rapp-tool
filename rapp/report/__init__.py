@@ -87,7 +87,6 @@ class ClassifierReport(object):
             set_rep = self.calculate_set_statistics(X, y, z)
             reports["datasets"][set_name] = set_rep
 
-
         estimator_reports = {}
         for est in self.estimators:
             est_rep = {}
@@ -121,7 +120,6 @@ class ClassifierReport(object):
 
         reports['estimators'] = estimator_reports
         return reports
-
 
     def clf_name(self, estimator):
         return estimator.__class__.__name__

@@ -54,14 +54,17 @@ class MLPipeline(object):
         self.prepare_datasets()
 
         # create estimators & train
-        if self.args.classifier is not None:
-            if not isinstance(self.args.classifier, list):
-                self.args.classifier = [self.args.classifier]
+        if self.args.estimators is not None:
+            if not isinstance(self.args.estimators, list):
+                self.args.estimators = [self.args.estimators]
 
             self.estimators = []
 
-            for estimator in self.args.classifier:
-                self.estimators.append(models.get(estimator))
+            for estimator in self.args.estimators:
+                if self.args.type == 'classification':
+                    self.estimators.append(models.get_classifier(estimator))
+                elif self.args.type == 'regression':
+                    self.estimators.append(models.get_regressor(estimator))
         else:
             if self.args.type == 'classification':
                 self.estimators = [
@@ -93,14 +96,19 @@ class MLPipeline(object):
         if len(class_names) == 2:
             class_names = ["Nein", "Ja"]
 
-        report = ClassifierReport(
-            self.estimators, self.args, self.additional_models,
-            cross_validation=self.cv_scores,
-            feature_names=feature_names, class_names=class_names)
+        if self.args.type == 'classification':
+            report = ClassifierReport(
+                self.estimators, self.args, self.additional_models,
+                cross_validation=self.cv_scores,
+                feature_names=feature_names, class_names=class_names)
 
-        report_data = report.calculate_reports(
-            self.X_train, self.y_train, self.z_train,
-            self.X_test, self.y_test, self.z_test)
+            report_data = report.calculate_reports(
+                self.X_train, self.y_train, self.z_train,
+                self.X_test, self.y_test, self.z_test)
+        elif self.args.type == 'regression':
+            log.info('Regression reports not implemented yet.')
+        else:
+            log.info('Task not supported.')
 
         log.debug("Writing report to path '%s'", self.args.report_path)
         report.write_report(report_data)

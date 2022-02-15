@@ -206,7 +206,7 @@ class Pipeline(QtWidgets.QWidget):
         args.report_path = self.lePath.text()
         args.save_report = args.report_path != ''  # Only report when path is given
         args.sensitive_attributes = self.cbSAttributes.get_checked_items()
-        args.classifier = self.cbEstimator.get_checked_items()
+        args.estimators = self.cbEstimator.get_checked_items()
 
         log.info('Report generation started.')
         try:
