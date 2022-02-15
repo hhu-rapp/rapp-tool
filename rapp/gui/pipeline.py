@@ -155,7 +155,7 @@ class Pipeline(QtWidgets.QWidget):
         # classifiers = ["Random Forest","Support Vector Machine","Decision Tree","Naive Bayes","Logistic Regression"]
         # reggressors = ['Elastic Net','Linear Regression','Bayesian Ridge']
         classifiers = ['RF', 'SVM', 'DT', 'NB', 'LR', 'NN']
-        reggressors = ['EL', 'LR', 'BR']
+        reggressors = ['EL', 'LR', 'BR', 'DR']
 
         self.cbEstimator.clear()
         if self.cbType.currentText().lower() == 'classification':

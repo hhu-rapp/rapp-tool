@@ -16,6 +16,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import BayesianRidge
+from sklearn.tree import DecisionTreeRegressor
 
 
 # Dispatch information about how models are called and which methods are used.
@@ -49,6 +50,9 @@ models = {
                'kwargs': {}
                },
         'BR': {'class': BayesianRidge,
+               'kwargs': {}
+               },
+        'DR': {'class': DecisionTreeRegressor,
                'kwargs': {}
                },
     }

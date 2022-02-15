@@ -77,6 +77,7 @@ class MLPipeline(object):
                     models.get_regressor('LR'),
                     models.get_regressor('EL'),
                     models.get_regressor('BR'),
+                    models.get_regressor('DR'),
                 ]
 
         log.info("Training estimators...")
