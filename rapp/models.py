@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neural_network import MLPClassifier
 
 # ML regression methods
@@ -50,6 +50,9 @@ models = {
                },
         'BR': {'class': BayesianRidge,
                'kwargs': {}
+               },
+        'DT': {'class': DecisionTreeRegressor,
+               'kwargs': {'random_state': 0}
                },
     }
 }
