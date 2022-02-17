@@ -7,9 +7,10 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from rapp import sqlbuilder
-from rapp.npipeline import _parse_estimators
+from rapp.npipeline import Pipeline, _parse_estimators
 from rapp.npipeline import _load_sql_query
 from rapp.npipeline import _load_test_split_from_dataframe
+from rapp.parser import RappConfigParser
 
 import tests.resources as rc
 
@@ -120,7 +121,7 @@ def test_df_train_split():
 
 def test_df_train_split_without_label_name():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n+1}
+    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
     def x_data(n): return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
 
     # Setup data frame
@@ -144,12 +145,12 @@ def test_df_train_split_without_label_name():
     expected = {
         "train": {
             "X": pd.DataFrame(train_features, index=train_ids),
-            "y": pd.DataFrame([i+1 for i in train_ids], index=train_ids),
+            "y": pd.DataFrame([i + 1 for i in train_ids], index=train_ids),
             "z": pd.DataFrame(train_ids, index=train_ids),
         },
         "test": {
             "X": pd.DataFrame(test_features, index=test_ids),
-            "y": pd.DataFrame([i+1 for i in test_ids], index=test_ids),
+            "y": pd.DataFrame([i + 1 for i in test_ids], index=test_ids),
             "z": pd.DataFrame(test_ids, index=test_ids),
         },
     }
@@ -167,7 +168,7 @@ def test_df_train_split_without_label_name():
 
 def test_df_train_split_with_label_name_None():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n+1}
+    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
     def x_data(n): return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
 
     # Setup data frame
@@ -192,12 +193,12 @@ def test_df_train_split_with_label_name_None():
     expected = {
         "train": {
             "X": pd.DataFrame(train_features, index=train_ids),
-            "y": pd.DataFrame([i+1 for i in train_ids], index=train_ids),
+            "y": pd.DataFrame([i + 1 for i in train_ids], index=train_ids),
             "z": pd.DataFrame(train_ids, index=train_ids),
         },
         "test": {
             "X": pd.DataFrame(test_features, index=test_ids),
-            "y": pd.DataFrame([i+1 for i in test_ids], index=test_ids),
+            "y": pd.DataFrame([i + 1 for i in test_ids], index=test_ids),
             "z": pd.DataFrame(test_ids, index=test_ids),
         },
     }
@@ -259,3 +260,54 @@ def test_df_train_split__no_categorical():
                 errors.append(f"{part}_{mode} values do not match:"
                               f"{lhs}, {rhs}")
     assert not errors, "\n".join(errors)
+
+
+def test_load_data_from_query():
+    query = "select * from Student order by Pseudonym Limit 100"
+    args = ['-t', 'classification', '-f', rc.get_path('test.db'),
+            '-sq', query]
+    pipeline = Pipeline(RappConfigParser().parse_args(args))
+
+    X_train, y_train, z_train = pipeline.get_data('train')
+    X_test, y_test, z_test = pipeline.get_data('test')
+
+    assert (len(X_train) == len(y_train) == len(z_train) == 80
+            and
+            len(X_test) == len(y_test) == len(z_test) == 20)
+
+
+def test_load_data_from_sql_templating():
+    args = ['-t', 'classification', '-f', rc.get_path('test.db'),
+            '-sid', 'cs', '-fid', 'first_term_ects', '-lid', '3_dropout']
+    pipeline = Pipeline(RappConfigParser().parse_args(args))
+
+    X_train, y_train, z_train = pipeline.get_data('train')
+    X_test, y_test, z_test = pipeline.get_data('test')
+
+    assert (len(X_train) == len(y_train) == len(z_train) == 194)
+    assert (len(X_test) == len(y_test) == len(z_test) == 49)
+
+
+def test_load_data_from_sql_file():
+    sql_file = rc.get_path('sql/short.sql')
+    args = ['-t', 'classification', '-f', rc.get_path('test.db'),
+            '-sf', sql_file]
+    pipeline = Pipeline(RappConfigParser().parse_args(args))
+
+    X_train, y_train, z_train = pipeline.get_data('train')
+    X_test, y_test, z_test = pipeline.get_data('test')
+
+    assert (len(X_train) == len(y_train) == len(z_train) == 80), "Wrong amount of training data"
+    assert (len(X_test) == len(y_test) == len(z_test) == 20), "Wrong amount of test data"
+
+
+def test_load_correct_sql_query_from_file():
+    sql_file = rc.get_path('sql/short.sql')
+    args = ['-t', 'classification', '-f', rc.get_path('test.db'),
+            '-sf', sql_file]
+    pipeline = Pipeline(RappConfigParser().parse_args(args))
+
+    expected = "SELECT * FROM student ORDER BY Pseudonym LIMIT 100\n"
+    actual = pipeline.sql_query
+
+    assert expected == actual, "SQL query does not match"

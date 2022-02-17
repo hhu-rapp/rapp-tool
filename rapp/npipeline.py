@@ -1,9 +1,10 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-from rapp import data as db
-from rapp import models
 from rapp import sqlbuilder
+from rapp import models
+from rapp import data as db
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import logging
+log = logging.getLogger('rapp.pipeline')
 
 
 class Pipeline():
@@ -38,7 +39,7 @@ class Pipeline():
         """
         self.config = config  # Keep for reference.
         self.type = config.type
-        self.estimators = _parse_estimators(config, self.type)
+        self.estimators = _parse_estimators(config.estimators, self.type)
 
         self.database_file = config.filename
         self.sql_query = _load_sql_query(config)
@@ -46,10 +47,29 @@ class Pipeline():
         self.data = self.prepare_data()
 
     def prepare_data(self):
-        db.connect(self.database_file)
-        df = db.query_sql
+        log.debug('Connecting to db %s', self.database_file)
+        con = db.connect(self.database_file)
+
+        log.debug('Loading SQL query', self.database_file)
+        df = db.query_sql(self.sql_query, con)
 
         return _load_test_split_from_dataframe(df, self.config)
+
+    def get_data(self, mode):
+        """
+        Parameters
+        ----------
+        mode : {'train', 'test'}
+
+        Returns
+        -------
+        X, y, z : Dataframe
+            Dataframes containing the data related to the specified mode.
+        """
+        X = self.data[mode]['X']
+        y = self.data[mode]['y']
+        z = self.data[mode]['z']
+        return X, y, z
 
 
 def _parse_estimators(estimator_ids, mode):
@@ -77,6 +97,8 @@ def _load_sql_query(config):
     if hasattr(config, 'sql_file') and config.sql_file is not None:
         with open(config.sql_file, 'r') as f:
             sql = f.read()
+    elif hasattr(config, 'sql_query') and config.sql_query is not None:
+        sql = config.sql_query
     else:
         feature_id = f"{config.studies_id}_{config.features_id}"
         label_id = config.labels_id
@@ -94,6 +116,7 @@ def _load_test_split_from_dataframe(df, config, random_state=42):
     # create data
     X = df.drop(label_col, axis=1, inplace=False)
     y = df[[label_col]]
+    # TODO: What if sensitive_attributes is empty?
     z = X[config.sensitive_attributes]
 
     # Adapt to categorical data.

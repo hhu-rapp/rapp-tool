@@ -15,16 +15,19 @@ def connect(db_path):
     return db_conn
 
 
-def query_sql(sql_query, connection=db_conn):
+def query_sql(sql_query, connection=None):
     """
     Execute an SQL query over the given database connection.
     Return the results as pandas.DataFrame.
     """
+    if connection is None:
+        global db_conn
+        connection = db_conn
     df = pd.read_sql_query(sql_query, connection)
     return df
 
 
-def query_sql_file(sql_file, connection=db_conn):
+def query_sql_file(sql_file, connection=None):
     """
     `sql_file`: Path to an sql file.
     `connection`: database connection.
