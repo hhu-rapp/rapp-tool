@@ -94,7 +94,6 @@ def _load_test_split_from_dataframe(df, config, random_state=42):
     # create data
     X = df.drop(label_col, axis=1, inplace=False)
     y = df[[label_col]]
-    # FIXME: Is it possible sensitive_attributes is not defined or empty?
     z = X[config.sensitive_attributes]
 
     # Adapt to categorical data.
