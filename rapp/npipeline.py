@@ -1,9 +1,12 @@
+import logging
+
+from sklearn.model_selection import train_test_split
+import pandas as pd
+
 from rapp import sqlbuilder
 from rapp import models
 from rapp import data as db
-from sklearn.model_selection import train_test_split
-import pandas as pd
-import logging
+
 log = logging.getLogger('rapp.pipeline')
 
 

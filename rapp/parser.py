@@ -1,6 +1,3 @@
-# RAPP_Prediction library
-
-# system
 import configargparse
 
 

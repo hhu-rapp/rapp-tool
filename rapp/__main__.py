@@ -1,5 +1,14 @@
-from rapp.pipeline.util import load_pipeline_from_config
+from rapp.npipeline import Pipeline
+from rapp.parser import RappConfigParser
 
 
 if __name__ == "__main__":
-    load_pipeline_from_config()
+    parser = RappConfigParser()
+    cf = parser.parse_args()
+
+    pl = Pipeline(cf)
+
+    # Todo:
+    #   * [ ] Train models
+    #   * [ ] Eval fairness
+    #   * [ ] Save report
