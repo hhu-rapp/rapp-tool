@@ -14,6 +14,8 @@ import pandas as pd
 from rapp import sqlbuilder
 from rapp import models
 from rapp import data as db
+from rapp.fair import notions
+from rapp.util import estimator_name
 
 log = logging.getLogger('rapp.pipeline')
 
@@ -41,15 +43,44 @@ class Pipeline():
     type : {'classification', 'regression}
         Which type of prediction task is tackled by the pipeline.
 
+    cross_validation : dict[estimator -> results]
+        Dictionary containing per estimator in pipeline.estimators
+        the cross validation results over the training set.
+
     score_functions : dict[name -> function]
         Dictionary of the score functions used for performance evaluation.
         Keys are the natural language names of the scoring functions
         while the values are callables expecting ground truth and prediction
         labels as input.
 
-    cross_validation : dict[estimator -> results]
-        Dictionary containing per estimator in pipeline.estimators
-        the cross validation results over the training set.
+    fairness_functions : dict[name -> function]
+        Dictionary of the norms used for fairness evaluation.
+        Keys are the natural language names of the norms
+        while the values are callables of the form
+
+            fun(X, y, z, pred, fav_label=1)
+
+        expecting the test data's features X, labels y, protected attributes z,
+        and a classifier's predictions pred as input.
+        Optionally, the favourable label can be set via fav_label, assuming
+        the default 1.
+
+    protected_attributes : list[str]
+        List of protected attribute names. May be empty.
+
+    fairness_results : dict[estimator -> results]
+        Dictionary with estimators as key which map onto possibly
+        calculated fairness results.
+
+        A fairness result has the form
+
+            {protected_attribute:
+                {notion_name: {'train': train_results,
+                               'test': test_results}},
+                 ...}
+
+        there the dictionary over group IDs is described by
+        `rapp.fair.notions.clf_fairness()`.
     """
 
     def __init__(self, config):
@@ -71,6 +102,13 @@ class Pipeline():
         self.data = self.prepare_data()
 
         self.score_functions = _get_score_functions(self.type)
+
+        # Fixme: The below fairness notions do not make sense for regression.
+        self.fairness_functions = {
+            'Statistical Parity': notions.group_fairness,
+            'Predictive Equality': notions.predictive_equality,
+            'Equality of Opportunity': notions.equality_of_opportunity,
+        }
 
     def prepare_data(self):
         log.debug('Connecting to db %s', self.database_file)
@@ -221,6 +259,7 @@ def _get_score_functions(type: str):
             'Area under ROC': lambda x, y: roc_auc_score(x, y, multi_class='ovr')
         }
     elif type == 'regression':
+        # TODO: Add regression metrics
         raise NotImplemented('Scoring functions for regression are NYI.')
     else:
         log.error("Unknown ML type '%s'; unable to select scoring functions",
@@ -228,3 +267,91 @@ def _get_score_functions(type: str):
         scores = {}
 
     return scores
+
+
+def evaluate_fairness(pipeline):
+    for est in pipeline.estimators:
+        est_name = estimator_name(est)
+        log.info("Evaluating fairness for %s", est_name)
+        for mode in pipeline.data:
+            X, y, z = (pipeline.data[mode]['X'],
+                       pipeline.data[mode]['y'],
+                       pipeline.data[mode]['z'])
+            for notion_name, notion in pipeline.fairness_functions.items():
+                pred = est.predict(X)
+                for prot_attr in pipeline.protected_attributes:
+                    log.debug("Evaluating %s over %s set for %s on %s",
+                              notion_name, mode, prot_attr, est_name)
+                    res = notion(X, y, z[prot_attr], pred)
+
+                    pipeline.fairness_results[est][prot_attr][mode] = res
+    return pipeline
+
+
+def evaluate_estimator_fairness(estimator, data, notion_dict,
+                                protected_attributes=None):
+    """
+    Parameters
+    ----------
+    estimator : Trained classifier with predict method
+
+    data : dict
+        Structure is assumed to be a mapping from modes to a dict of datasets
+
+            mode_name: {'X': X_df, 'y': y_df, 'z': z_df}
+
+        where usually `mode_name` in {'train', 'test'}.
+
+    notion_dict : dict[str -> callable]
+        Dictionary of the norms used for fairness evaluation.
+        Keys are the natural language names of the norms
+        while the values are callables of the form
+
+            fun(X, y, z, pred, fav_label=1)
+
+        expecting the test data's features X, labels y, protected attributes z,
+        and a classifier's predictions pred as input.
+        Optionally, the favourable label can be set via fav_label, assuming
+        the default 1.
+
+    protected_attributes : list[str], default: None
+        Column names of the protected attributes to evaluate.
+        If None, all are taken into account.
+
+    Returns
+    -------
+    fairness_results
+        Nested dictionary matching the format for Pipeline.fairness_results.
+    """
+
+    est_name = estimator_name(estimator)
+    log.info("Evaluating fairness for %s", est_name)
+
+    if protected_attributes is None:
+        # Get the protected attributes of one of the data modes.
+        # It does not matter which one we get; per convention
+        # all need to have the same protected attributes.
+        some_set = next(iter(data.values()))
+        protected_attributes = some_set['z'].columns
+    elif isinstance(protected_attributes, str):
+        protected_attributes = [protected_attributes]
+    fairness_results = {}
+
+
+    predictions = {mode: estimator.predict(data[mode]['X']) for mode in data}
+
+    for prot_attr in protected_attributes:
+        fairness_results[prot_attr] = {}
+        for notion_name, notion in notion_dict.items():
+            fairness_results[prot_attr][notion_name] = {}
+            for mode in data:
+                X, y, z = (data[mode]['X'],
+                        data[mode]['y'],
+                        data[mode]['z'])
+
+                log.debug("Evaluating %s over %s set for %s on %s",
+                            notion_name, mode, prot_attr, est_name)
+                res = notion(X, y, z[prot_attr], predictions[mode])
+
+                fairness_results[prot_attr][notion_name][mode] = res
+    return fairness_results

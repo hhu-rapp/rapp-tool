@@ -1,4 +1,4 @@
-from rapp.npipeline import Pipeline, train_models
+from rapp.npipeline import Pipeline, train_models, evaluate_fairness
 from rapp.parser import RappConfigParser
 
 
@@ -9,8 +9,9 @@ if __name__ == "__main__":
     pl = Pipeline(cf)
 
     train_models(pl, cross_validation=True)
+    evaluate_fairness(pl)
 
     # Todo:
     #   * [x] Train models
-    #   * [ ] Eval fairness
+    #   * [x] Eval fairness
     #   * [ ] Save report

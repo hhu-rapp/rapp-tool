@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.metrics import confusion_matrix
 
 
@@ -75,7 +76,8 @@ def predictive_equality(X, y, z, pred, fav_label=1):
     values = z.unique()
     for v in values:
         mask = (z == v)
-        pred_v = pred[mask & (y != fav_label)]
+        mask_v = np.logical_and(mask, y != fav_label)
+        pred_v = pred[mask_v]
 
         fav = pred_v[pred_v == fav_label]
 

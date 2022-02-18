@@ -11,10 +11,12 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from rapp import sqlbuilder
+from rapp.fair.notions import group_fairness, predictive_equality
 from rapp.npipeline import Pipeline, _parse_estimators
 from rapp.npipeline import _load_sql_query
 from rapp.npipeline import _load_test_split_from_dataframe
 from rapp.npipeline import train_models
+from rapp.npipeline import evaluate_estimator_fairness
 from rapp.parser import RappConfigParser
 
 import tests.resources as rc
@@ -381,3 +383,133 @@ def test_training_fits_each_estimator():
         check_is_fitted(est2)
     except Exception:
         pytest.fail("Not all estimators where fitted turing model training.")
+
+
+def test_fairness_results_structure():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = rng.integers(2, size=(10,))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 1)),
+                           columns=['protected'])
+    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+
+    est = DummyClassifier(strategy='constant', constant=1)
+    est.fit(X_train, y_train)
+
+    notions = {'pred parity': predictive_equality,
+               'statistical': group_fairness}
+
+    results = evaluate_estimator_fairness(est, data, notions)
+
+    expected = {
+        'protected': {
+            'pred parity': {
+                'train': {
+                    0: {
+                        "affected_total": 6,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 6, 0, 1]},
+                    1: {
+                        "affected_total": 2,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 2, 0, 1]},
+                }},
+            'statistical': {
+                'train': {
+                    0: {
+                        "affected_total": 7,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 6, 0, 1]},
+                    1: {
+                        "affected_total": 3,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 2, 0, 1]},
+                }}}}
+    assert expected == results
+
+
+def test_fairness_results_only_checks_given_attributes():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = rng.integers(2, size=(10,))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
+                           columns=['protected', 'sensitive'])
+    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+
+    est = DummyClassifier(strategy='constant', constant=1)
+    est.fit(X_train, y_train)
+
+    notions = {'pred parity': predictive_equality,
+               'statistical': group_fairness}
+
+    results = evaluate_estimator_fairness(est, data, notions,
+                                          protected_attributes='protected')
+
+    expected = {
+        'protected': {
+            'pred parity': {
+                'train': {
+                    0: {
+                        "affected_total": 6,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 6, 0, 2]},
+                    1: {
+                        "affected_total": 2,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 2, 0, 0]},
+                }},
+            'statistical': {
+                'train': {
+                    0: {
+                        "affected_total": 8,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 6, 0, 2]},
+                    1: {
+                        "affected_total": 2,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 2, 0, 0]},
+                }}}}
+    assert expected == results
+
+
+def test_fairness_results_for_all_protected_attributes():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = rng.integers(2, size=(10,))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
+                           columns=['protected', 'sensitive'])
+    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+
+    est = DummyClassifier(strategy='constant', constant=1)
+    est.fit(X_train, y_train)
+
+    notions = {'pred parity': predictive_equality}
+
+    results = evaluate_estimator_fairness(est, data, notions)
+
+    expected = {
+        'protected': {
+            'pred parity': {
+                'train': {
+                    0: {
+                        "affected_total": 6,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 6, 0, 2]},
+                    1: {
+                        "affected_total": 2,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 2, 0, 0]},
+                }}},
+        'sensitive': {
+            'pred parity': {
+                'train': {
+                    0: {
+                        "affected_total": 1,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 1, 0, 2]},
+                    1: {
+                        "affected_total": 7,
+                        "affected_percent": 1.,
+                        "confusion_matrix": [0, 7, 0, 0]},
+                }}}}
+    assert expected == results
