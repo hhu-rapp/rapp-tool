@@ -147,3 +147,37 @@ def test_config_file_is_optional():
     except SystemExit as e:
         pytest.fail(f"Should be able to parse arguments when no config file"
                     f"is given, but ended in SystemExit {e}")
+
+
+def test_parsing_from_file():
+    file = rc.get_path('sample.ini')
+    parser = RappConfigParser()
+
+    cf = parser.parse_file(file)
+
+    expected = {
+        'filename': "foo.db",
+        'sql_query': "select * from foo",
+        'categorical': ["bar"],
+        'type': "classification",
+    }
+
+    errors = []
+    for key, val in expected.items():
+        if not hasattr(cf, key):
+            errors.append(f"Missing entry: {key}->{val}")
+        elif cf.__dict__[key] != val:
+            wrong = cf.__dict__[key]
+            errors.append(f"Wrong entry: for {key} expected {val} "
+                          f"but got {wrong}")
+
+    assert not errors, "\n".join(errors)
+
+
+def test_parsing_from_empty_file_fails():
+    file = rc.get_path('empty.ini')
+    parser = RappConfigParser()
+
+
+    with pytest.raises(SystemExit):
+        cf = parser.parse_file(file)

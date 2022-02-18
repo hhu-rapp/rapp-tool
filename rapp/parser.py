@@ -6,6 +6,21 @@ class RappConfigParser(object):
     def __init__(self):
         self.parser = self._setup_parser()
 
+    def parse_file(self, path):
+        """
+        Parses a config file instead from the command line.
+
+        Parameters
+        ----------
+        path : str, pathlike
+        """
+
+        # We are just gonna cheat right here and now.
+        # Instead of doing anything fancy, we simply emulate what would
+        # happen if the config file was given via command line.
+        args = ['-cf', str(path)]
+        return self.parse_args(args)
+
     def parse_args(self, args):
         parsed = self.parser.parse_args(args=args)
 
