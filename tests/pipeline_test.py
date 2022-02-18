@@ -2,14 +2,19 @@ from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
-
+import pytest
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import accuracy_score
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.utils.validation import check_is_fitted
+
 from rapp import sqlbuilder
 from rapp.npipeline import Pipeline, _parse_estimators
 from rapp.npipeline import _load_sql_query
 from rapp.npipeline import _load_test_split_from_dataframe
+from rapp.npipeline import train_models
 from rapp.parser import RappConfigParser
 
 import tests.resources as rc
@@ -297,8 +302,10 @@ def test_load_data_from_sql_file():
     X_train, y_train, z_train = pipeline.get_data('train')
     X_test, y_test, z_test = pipeline.get_data('test')
 
-    assert (len(X_train) == len(y_train) == len(z_train) == 80), "Wrong amount of training data"
-    assert (len(X_test) == len(y_test) == len(z_test) == 20), "Wrong amount of test data"
+    assert (len(X_train) == len(y_train) == len(z_train)
+            == 80), "Wrong amount of training data"
+    assert (len(X_test) == len(y_test) == len(
+        z_test) == 20), "Wrong amount of test data"
 
 
 def test_load_correct_sql_query_from_file():
@@ -311,3 +318,66 @@ def test_load_correct_sql_query_from_file():
     actual = pipeline.sql_query
 
     assert expected == actual, "SQL query does not match"
+
+
+def test_training_with_cross_validation():
+    est = DummyClassifier()
+
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est]
+    pipeline.score_functions = {'Accuracy': accuracy_score}
+    pipeline.cross_validation = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((100, 2))
+    y_train = rng.integers(2, size=(100, 1))
+    pipeline.get_data = lambda _: (X_train, y_train, None)
+
+    train_models(pipeline, cross_validation=True)
+
+    expected = set(['train_Accuracy', 'test_Accuracy', 'estimator',
+                    'score_time', 'fit_time'])
+    actual = set(pipeline.cross_validation[est].keys())
+
+    assert expected == actual
+
+
+def test_training_without_cross_validation():
+    est = DummyClassifier()
+
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est]
+    pipeline.score_functions = {'Accuracy': accuracy_score}
+    pipeline.cross_validation = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((100, 2))
+    y_train = rng.integers(2, size=(100, 1))
+    pipeline.get_data = lambda _: (X_train, y_train, None)
+
+    train_models(pipeline, cross_validation=False)
+
+    assert pipeline.cross_validation == {}
+
+
+def test_training_fits_each_estimator():
+    est1 = DummyClassifier()
+    est2 = DummyClassifier()
+
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est1, est2]
+    pipeline.score_functions = {'Accuracy': accuracy_score}
+    pipeline.cross_validation = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((100, 2))
+    y_train = rng.integers(2, size=(100, 1))
+    pipeline.get_data = lambda _: (X_train, y_train, None)
+
+    train_models(pipeline, cross_validation=False)
+
+    try:
+        check_is_fitted(est1)
+        check_is_fitted(est2)
+    except Exception:
+        pytest.fail("Not all estimators where fitted turing model training.")
