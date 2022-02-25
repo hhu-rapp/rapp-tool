@@ -337,7 +337,6 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
         protected_attributes = [protected_attributes]
     fairness_results = {}
 
-
     predictions = {mode: estimator.predict(data[mode]['X']) for mode in data}
 
     for prot_attr in protected_attributes:
