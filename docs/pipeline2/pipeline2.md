@@ -20,3 +20,13 @@
 
 ## Structure
 tbd
+
+## Used files
+### rapp/
+rapp/npipeline.py
+rapp/__main__.py
+rapp/parser.py
+rapp/util.py
+
+### rapp/fair
+rapp/fair/notions.py
