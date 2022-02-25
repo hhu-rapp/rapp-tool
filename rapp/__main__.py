@@ -10,6 +10,7 @@ if __name__ == "__main__":
 
     train_models(pl, cross_validation=True)
     evaluate_fairness(pl)
+    # save_report(pl)
 
     # Todo:
     #   * [x] Train models
