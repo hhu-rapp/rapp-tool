@@ -354,3 +354,70 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
 
                 fairness_results[prot_attr][notion_name][mode] = res
     return fairness_results
+
+
+def evaluate_performance(pipeline):
+    for est in pipeline.estimators:
+        est_name = estimator_name(est)
+        data = pipeline.data
+        score_dict = _get_score_functions(pipeline.config.type)
+        res = evaluate_estimators_performance(est, data, score_dict)
+
+        pipeline.performance_results[est_name] = res
+    return pipeline
+
+
+def evaluate_estimators_performance(estimator, data, score_dict):
+
+    """
+    Parameters
+    ----------
+    estimator : Trained classifier with predict method
+
+    data : dict
+        Structure is assumed to be a mapping from modes to a dict of datasets
+
+            mode_name: {'X': X_df, 'y': y_df, 'z': z_df}
+
+        where usually `mode_name` in {'train', 'test'}.
+
+    score_functions : dict[name -> function]
+        Dictionary of the score functions used for performance evaluation.
+        Keys are the natural language names of the scoring functions
+        while the values are callables expecting ground truth and prediction
+        labels as input.
+
+    Returns
+    -------
+    evaluation_results
+        Nested dictionary matching the format for Pipeline.evaluation_results.
+    """
+
+    est_name = estimator_name(estimator)
+    log.info("Evaluating %s", est_name)
+
+    evaluation_results = {}
+
+    predictions = {mode: estimator.predict(data[mode]['X']) for mode in data}
+
+
+    for mode in data:
+        evaluation_results[mode]= {}
+        evaluation_results[mode]["scores"] = {}
+        for score_name, score in score_dict.items():
+
+            X, y, z = (data[mode]['X'],
+                    data[mode]['y'],
+                    data[mode]['z'])
+
+            log.debug("Evaluating %s over %s set on %s",
+                        score_name, mode, est_name)
+            res = score(y, predictions[mode])
+
+            evaluation_results[mode]["scores"][score_name] = res
+
+        cm = confusion_matrix(y, predictions[mode])
+        evaluation_results[mode]['confusion_matrix'] = cm.tolist()
+
+
+    return evaluation_results

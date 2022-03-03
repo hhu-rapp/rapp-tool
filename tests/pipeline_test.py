@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
+from sklearn.metrics import confusion_matrix
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -17,6 +18,7 @@ from rapp.npipeline import _load_sql_query
 from rapp.npipeline import _load_test_split_from_dataframe
 from rapp.npipeline import train_models
 from rapp.npipeline import evaluate_estimator_fairness
+from rapp.npipeline import evaluate_estimators_performance
 from rapp.parser import RappConfigParser
 
 import tests.resources as rc
@@ -512,4 +514,29 @@ def test_fairness_results_for_all_protected_attributes():
                         "affected_percent": 1.,
                         "confusion_matrix": [0, 7, 0, 0]},
                 }}}}
+    assert expected == results
+
+
+def test_performance_results_structure():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = rng.integers(2, size=(10,))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
+                           columns=['protected', 'sensitive'])
+    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+
+    est = DummyClassifier(strategy='constant', constant=1)
+    est.fit(X_train, y_train)
+
+    scores = {'Accuracy': accuracy_score,
+              'Balanced Accuracy': balanced_accuracy_score}
+
+    results = evaluate_estimators_performance(est, data, scores)
+
+    expected = {'train' :{
+                'scores':{
+                    'Accuracy' : 0.2,
+                    'Balanced Accuracy' : 0.5},
+                'confusion_matrix' : [[0, 8], [0, 2]]}}
+
     assert expected == results
