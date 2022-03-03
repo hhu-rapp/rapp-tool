@@ -7,6 +7,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import make_scorer
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -67,6 +68,10 @@ class Pipeline():
 
     protected_attributes : list[str]
         List of protected attribute names. May be empty.
+
+    performance_results : dict[estimator -> results]
+        Dictionary with estimators as key which map onto possibly
+        calculated performance results.
 
     fairness_results : dict[estimator -> results]
         Dictionary with estimators as key which map onto possibly
