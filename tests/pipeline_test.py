@@ -18,6 +18,7 @@ from rapp.npipeline import _load_sql_query
 from rapp.npipeline import _load_test_split_from_dataframe
 from rapp.npipeline import train_models
 from rapp.npipeline import evaluate_estimator_fairness
+from rapp.npipeline import calculate_set_statistics
 from rapp.npipeline import evaluate_estimators_performance
 from rapp.parser import RappConfigParser
 
@@ -538,5 +539,56 @@ def test_performance_results_structure():
                     'Accuracy' : 0.2,
                     'Balanced Accuracy' : 0.5},
                 'confusion_matrix' : [[0, 8], [0, 2]]}}
+
+    assert expected == results
+
+
+def test_calculate_set_statistics():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = pd.Series(rng.integers(2, size=(10,)))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
+                           columns=['protected', 'sensitive'])
+
+    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+
+    results = calculate_set_statistics(X_train, y_train, z_train)
+
+    expected = {
+        "total": 10,
+        "outcomes" : {
+            1 : 2,
+            0 : 8
+        },
+        'groups': {
+            'protected': {
+                0: {
+                    "total": 8,
+                    "outcomes" : {
+                        1 : 2,
+                        0 : 6
+                    }},
+                1: {
+                    "total": 2,
+                    "outcomes" : {
+                        1 : 0,
+                        0 : 2
+                    },
+            }},
+            'sensitive': {
+                0: {
+                    "total": 3,
+                    "outcomes" : {
+                        1 : 2,
+                        0 : 1
+                    }},
+                1: {
+                    "total": 7,
+                    "outcomes" : {
+                        1 : 0,
+                        0 : 7
+                    }
+            }}}}
+
 
     assert expected == results

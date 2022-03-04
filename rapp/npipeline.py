@@ -73,6 +73,9 @@ class Pipeline():
         Dictionary with estimators as key which map onto possibly
         calculated performance results.
 
+    statistics_results : dict[mode -> statistics]
+        Dictionary with mode as key which map onto calculated statistics.
+
     fairness_results : dict[estimator -> results]
         Dictionary with estimators as key which map onto possibly
         calculated fairness results.
@@ -108,6 +111,7 @@ class Pipeline():
 
         self.score_functions = _get_score_functions(self.type)
 
+        self.statistics_results = {}
         # Fixme: The below fairness notions do not make sense for regression.
         self.fairness_functions = {
             'Statistical Parity': notions.group_fairness,
@@ -426,3 +430,59 @@ def evaluate_estimators_performance(estimator, data, score_dict):
 
 
     return evaluation_results
+
+
+def calculate_statistics(pipeline):
+    for mode in pipeline.data:
+        est_name = estimator_name(est)
+
+        X, y, z = (data[mode]['X'],
+                data[mode]['y'],
+                data[mode]['z'])
+
+        res = calculate_set_statistics(X, y, z)
+        pipeline.statistics_results[mode] = res
+    return pipeline
+
+
+def calculate_set_statistics(X, y, z):
+    """
+    Calculates the statistics for a given set.
+
+    Parameters
+    ----------
+    X : Dataframe
+        Features
+
+    y : Dataframe
+        Labels
+
+    z : Dataframe
+        Protected attributes
+
+    Returns
+    -------
+    set_stats
+        Nested dictionary for the given set matching the format for Pipeline.statistics_results.
+    """
+    set_stats = {'total': len(y),
+                 'outcomes': {},
+                 'groups': {}}
+
+    values = y.unique()
+    for v in values:
+        num = len(y[y == v])
+        set_stats['outcomes'][v] = num
+
+    for g in z.columns:
+        group_stats = {}
+        for gvalue in z[g].unique():
+            data = y[z[g] == gvalue]
+            group_stats[gvalue] = {'total': len(data),
+                                   'outcomes': {}}
+            for v in values:
+                num = len(data[y == v])
+                group_stats[gvalue]['outcomes'][v] = num
+        set_stats['groups'][g] = group_stats
+
+    return set_stats
