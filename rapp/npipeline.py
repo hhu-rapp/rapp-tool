@@ -73,6 +73,12 @@ class Pipeline():
         Dictionary with estimators as key which map onto possibly
         calculated performance results.
 
+        A performance result has the form
+
+            {mode:
+                {'scores': {score_functions_results},
+                'confusion_matrix' : confusion_matrix_results}}
+
     statistics_results : dict[mode -> statistics]
         Dictionary with mode as key which map onto calculated statistics.
 
@@ -109,9 +115,15 @@ class Pipeline():
 
         self.data = self.prepare_data()
 
+        self.sensitive_attributes = config.sensitive_attributes
+
         self.score_functions = _get_score_functions(self.type)
 
+        self.cross_validation = {}
+        self.fairness_results = {}
+        self.performance_results = {}
         self.statistics_results = {}
+
         # Fixme: The below fairness notions do not make sense for regression.
         self.fairness_functions = {
             'Statistical Parity': notions.group_fairness,
@@ -281,19 +293,12 @@ def _get_score_functions(type: str):
 def evaluate_fairness(pipeline):
     for est in pipeline.estimators:
         est_name = estimator_name(est)
-        log.info("Evaluating fairness for %s", est_name)
-        for mode in pipeline.data:
-            X, y, z = (pipeline.data[mode]['X'],
-                       pipeline.data[mode]['y'],
-                       pipeline.data[mode]['z'])
-            for notion_name, notion in pipeline.fairness_functions.items():
-                pred = est.predict(X)
-                for prot_attr in pipeline.protected_attributes:
-                    log.debug("Evaluating %s over %s set for %s on %s",
-                              notion_name, mode, prot_attr, est_name)
-                    res = notion(X, y, z[prot_attr], pred)
+        res = evaluate_estimator_fairness(est,
+                                          pipeline.data,
+                                          pipeline.fairness_functions,
+                                          pipeline.sensitive_attributes)
 
-                    pipeline.fairness_results[est][prot_attr][mode] = res
+        pipeline.fairness_results[est] = res
     return pipeline
 
 
@@ -356,7 +361,7 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
                 X, y, z = (data[mode]['X'],
                         data[mode]['y'],
                         data[mode]['z'])
-
+                y = y.squeeze()
                 log.debug("Evaluating %s over %s set for %s on %s",
                             notion_name, mode, prot_attr, est_name)
                 res = notion(X, y, z[prot_attr], predictions[mode])
@@ -367,17 +372,14 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
 
 def evaluate_performance(pipeline):
     for est in pipeline.estimators:
-        est_name = estimator_name(est)
-        data = pipeline.data
-        score_dict = _get_score_functions(pipeline.config.type)
-        res = evaluate_estimators_performance(est, data, score_dict)
-
-        pipeline.performance_results[est_name] = res
+        res = evaluate_estimators_performance(est,
+                                              pipeline.data,
+                                              pipeline.score_functions)
+        pipeline.performance_results[est] = res
     return pipeline
 
 
 def evaluate_estimators_performance(estimator, data, score_dict):
-
     """
     Parameters
     ----------
@@ -398,48 +400,38 @@ def evaluate_estimators_performance(estimator, data, score_dict):
 
     Returns
     -------
-    evaluation_results
-        Nested dictionary matching the format for Pipeline.evaluation_results.
+    performance_results
+        Nested dictionary matching the format for Pipeline.performance_results.
     """
 
     est_name = estimator_name(estimator)
     log.info("Evaluating %s", est_name)
 
-    evaluation_results = {}
-
-    predictions = {mode: estimator.predict(data[mode]['X']) for mode in data}
-
+    performance_results = {}
 
     for mode in data:
-        evaluation_results[mode]= {}
-        evaluation_results[mode]["scores"] = {}
+        performance_results[mode]= {}
+        performance_results[mode]["scores"] = {}
+        X, y = (data[mode]['X'],
+                data[mode]['y'])
+        y_pred = estimator.predict(X)
+
         for score_name, score in score_dict.items():
-
-            X, y, z = (data[mode]['X'],
-                    data[mode]['y'],
-                    data[mode]['z'])
-
             log.debug("Evaluating %s over %s set on %s",
                         score_name, mode, est_name)
-            res = score(y, predictions[mode])
+            res = score(y, y_pred)
 
-            evaluation_results[mode]["scores"][score_name] = res
+            performance_results[mode]["scores"][score_name] = res
 
-        cm = confusion_matrix(y, predictions[mode])
-        evaluation_results[mode]['confusion_matrix'] = cm.tolist()
+        cm = confusion_matrix(y, y_pred)
+        performance_results[mode]['confusion_matrix'] = cm.tolist()
 
-
-    return evaluation_results
+    return performance_results
 
 
 def calculate_statistics(pipeline):
     for mode in pipeline.data:
-        est_name = estimator_name(est)
-
-        X, y, z = (data[mode]['X'],
-                data[mode]['y'],
-                data[mode]['z'])
-
+        X, y, z = pipeline.get_data(mode)
         res = calculate_set_statistics(X, y, z)
         pipeline.statistics_results[mode] = res
     return pipeline
@@ -468,7 +460,7 @@ def calculate_set_statistics(X, y, z):
     set_stats = {'total': len(y),
                  'outcomes': {},
                  'groups': {}}
-
+    y = y.squeeze()
     values = y.unique()
     for v in values:
         num = len(y[y == v])
