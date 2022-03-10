@@ -20,6 +20,7 @@ from rapp.npipeline import train_models
 from rapp.npipeline import evaluate_estimator_fairness
 from rapp.npipeline import calculate_set_statistics
 from rapp.npipeline import evaluate_estimators_performance
+from rapp.npipeline import evaluate_performance
 from rapp.parser import RappConfigParser
 
 import tests.resources as rc
@@ -539,6 +540,33 @@ def test_performance_results_structure():
                 'confusion_matrix' : [[0, 8], [0, 2]]}}
 
     assert expected == results
+
+
+def test_performance_results_with_estimators():
+    pipeline = SimpleNamespace()
+    est = DummyClassifier(strategy='constant', constant=1)
+    pipeline.estimators = [est]
+    pipeline.score_functions = {'Accuracy': accuracy_score,
+                                  'Balanced Accuracy': balanced_accuracy_score}
+    pipeline.performance_results = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = rng.integers(2, size=(10,))
+    pipeline.data = {'train': {'X': X_train, 'y': y_train}}
+
+    est.fit(X_train,y_train)
+
+    evaluate_performance(pipeline)
+
+    expected = {est :{
+                    'train' :{
+                        'scores':{
+                            'Accuracy' : 0.2,
+                            'Balanced Accuracy': 0.5},
+                        'confusion_matrix' : [[0, 8], [0, 2]]}}}
+
+    assert expected == pipeline.performance_results
 
 
 def test_calculate_set_statistics():
