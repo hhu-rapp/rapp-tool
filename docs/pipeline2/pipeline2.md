@@ -30,3 +30,8 @@ rapp/util.py
 
 ### rapp/fair
 rapp/fair/notions.py
+
+### rapp/report
+rapp/report/reports.py
+rapp/report/latex/__init __.py
+rapp/report/latex/tables.py
