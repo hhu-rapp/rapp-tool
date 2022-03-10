@@ -522,9 +522,7 @@ def test_performance_results_structure():
     rng = np.random.default_rng(seed=123)
     X_train = rng.random((10, 2))
     y_train = rng.integers(2, size=(10,))
-    z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
-                           columns=['protected', 'sensitive'])
-    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+    data = {'train': {'X': X_train, 'y': y_train}}
 
     est = DummyClassifier(strategy='constant', constant=1)
     est.fit(X_train, y_train)
