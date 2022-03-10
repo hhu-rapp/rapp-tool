@@ -1,6 +1,8 @@
 import chevron
 import rapp.report.resources as rc
 
+from rapp.util import estimator_name
+
 from rapp.report.latex.tables import tex_fairness, tex_performance, tex_cross_validation
 from rapp.report.latex.additionalmodels import tex_additional_models
 
@@ -23,8 +25,8 @@ def tex_dataset_report(report):
     #                      'label_sub_count})})})}
 
     mustache = {'modes': []}
-    for mode in report["datasets"]:
-        dataset = report["datasets"][mode]
+    for mode in report:
+        dataset = report[mode]
 
         # Fill in the group names
         groups = []
@@ -82,23 +84,27 @@ def tex_dataset_report(report):
 
 def tex_classification_report(report, feature_names=None, class_names=None):
     mustache = {'estimators': [],
-                'datasets': tex_dataset_report(report)}
+                'datasets': tex_dataset_report(report["statistics"])}
 
-    for estimator, results in report["estimators"].items():
-        est_dict = {'estimator_name': estimator}
+    for estimator, results in report["performance"].items():
+        est_name = estimator_name(estimator)
+        est_dict = {'estimator_name': est_name}
 
-        mtbl = tex_performance(estimator, results)
+        mtbl = tex_performance(est_name, results)
         est_dict['metrics_table'] = mtbl
 
-        fair = tex_fairness(estimator, results)
-        est_dict['fairness_evaluation'] = fair
+        if estimator in report["fairness"]:
+            fair = tex_fairness(est_name, report["fairness"][estimator])
+            est_dict['fairness_evaluation'] = fair
 
-        est_dict["cross_validation"] = tex_cross_validation(estimator, results)
+        if report["cross_validation"]:
+            est_dict["cross_validation"] = tex_cross_validation(est_name,
+                                            report["cross_validation"][estimator])
 
-        add_models = results.get("additional_models", [])
-        est_dict["additional_model_info"] = \
-            tex_additional_models(estimator, add_models,
-                                  feature_names, class_names)
+        # add_models = results.get("additional_models", [])
+        # est_dict["additional_model_info"] = \
+        #     tex_additional_models(estimator, add_models,
+        #                           feature_names, class_names)
 
         mustache['estimators'].append(est_dict)
 

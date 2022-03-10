@@ -22,7 +22,7 @@ def tex_performance(estimator, results):
 
 
 def tex_cross_validation(estimator, data):
-    cv_scores = data["cross_validation"]
+    cv_scores = data
 
     results = {}
     metrics = [metric[6:] for metric in cv_scores if metric[:6] == "train_"]
@@ -102,17 +102,16 @@ def tex_fairness(estimator, data):
     #              'is_last': bool}]
     # }
 
-    train_groups = data["train"]["fairness"]
-    groups = train_groups.keys()
+    groups = data.keys()
     notions = None  # Filled below.
     next_start = 3  # Two columns in front of first group info.
     for group in groups:
         group_dict = {'group': group}
 
         if notions is None:
-            notions = list(train_groups[group].keys())
+            notions = list(data[group].keys())
 
-        subgroups = train_groups[group][notions[0]]["outcomes"].keys()
+        subgroups = data[group][notions[0]]["train"].keys()
         group_dict['subgroups'] = [{'subgroup': sub} for sub in subgroups]
         group_dict['has_diff'] = (len(subgroups) == 2)
 
@@ -139,7 +138,7 @@ def tex_fairness(estimator, data):
                 group = group_dict['group']
                 subgroups = group_dict['subgroups']
 
-                outcomes = train_groups[group][notion]["outcomes"]
+                outcomes = data[group][notion][mode]
                 measures_dict = {
                     'group': group,
                     'measures': [{'value':

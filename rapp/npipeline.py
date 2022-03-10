@@ -41,6 +41,9 @@ class Pipeline():
     sql_query : str
         Used SQL-Query to access the data from the database_file
 
+    report_path : str
+        Path where the generated reports are saved.
+
     type : {'classification', 'regression}
         Which type of prediction task is tackled by the pipeline.
 
@@ -115,6 +118,7 @@ class Pipeline():
 
         self.data = self.prepare_data()
 
+        self.report_path = config.report_path
         self.sensitive_attributes = config.sensitive_attributes
 
         self.score_functions = _get_score_functions(self.type)
