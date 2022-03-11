@@ -110,10 +110,12 @@ class Pipeline():
         self.type = config.type
         self.estimators = _parse_estimators(config.estimators, self.type)
 
-        self.database_file = config.filename
-        self.sql_query = _load_sql_query(config)
-
-        self.data = self.prepare_data()
+        if config.filename is not None:
+            self.database_file = config.filename
+            self.sql_query = _load_sql_query(config)
+            self.data = self.prepare_data()
+        else:
+            self.data = self.prepare_data_from_df(config.sql_df)
 
         self.sensitive_attributes = config.sensitive_attributes
 
@@ -139,6 +141,9 @@ class Pipeline():
         df = db.query_sql(self.sql_query, con)
 
         return _load_test_split_from_dataframe(df, self.config)
+
+    def prepare_data_from_df(self, df):
+            return _load_test_split_from_dataframe(df, self.config)
 
     def get_data(self, mode):
         """
