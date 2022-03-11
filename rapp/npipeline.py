@@ -41,9 +41,6 @@ class Pipeline():
     sql_query : str
         Used SQL-Query to access the data from the database_file
 
-    report_path : str
-        Path where the generated reports are saved.
-
     type : {'classification', 'regression}
         Which type of prediction task is tackled by the pipeline.
 
@@ -118,7 +115,6 @@ class Pipeline():
 
         self.data = self.prepare_data()
 
-        self.report_path = config.report_path
         self.sensitive_attributes = config.sensitive_attributes
 
         self.score_functions = _get_score_functions(self.type)
@@ -362,11 +358,11 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
             fairness_results[prot_attr][notion_name] = {}
             for mode in data:
                 X, y, z = (data[mode]['X'],
-                        data[mode]['y'],
-                        data[mode]['z'])
+                           data[mode]['y'],
+                           data[mode]['z'])
                 y = y.squeeze()
                 log.debug("Evaluating %s over %s set for %s on %s",
-                            notion_name, mode, prot_attr, est_name)
+                          notion_name, mode, prot_attr, est_name)
                 res = notion(X, y, z[prot_attr], predictions[mode])
 
                 fairness_results[prot_attr][notion_name][mode] = res
@@ -413,7 +409,7 @@ def evaluate_estimators_performance(estimator, data, score_dict):
     performance_results = {}
 
     for mode in data:
-        performance_results[mode]= {}
+        performance_results[mode] = {}
         performance_results[mode]["scores"] = {}
         X, y = (data[mode]['X'],
                 data[mode]['y'])
@@ -421,7 +417,7 @@ def evaluate_estimators_performance(estimator, data, score_dict):
 
         for score_name, score in score_dict.items():
             log.debug("Evaluating %s over %s set on %s",
-                        score_name, mode, est_name)
+                      score_name, mode, est_name)
             res = score(y, y_pred)
 
             performance_results[mode]["scores"][score_name] = res

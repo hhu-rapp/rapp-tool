@@ -134,7 +134,7 @@ class RappConfigParser(object):
                             choices=['True', 'False'],
                             help='Boolean value whether a report should be exported',
                             required=False)
-        parser.add_argument('--report_path', type=str, default=None,
+        parser.add_argument('--report_path', type=str, default="reports/",
                             help='Path destination of report file. If path is given, then the report file will '
                             'be saved in path/results_report.csv. Note: Relative path to working directory.')
 

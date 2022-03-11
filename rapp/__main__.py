@@ -18,7 +18,7 @@ if __name__ == "__main__":
     evaluate_performance(pl)
     calculate_statistics(pl)
 
-    save_report(pl)
+    save_report(pl, cf.report_path)
 
     # Todo:
     #   * [x] Train models

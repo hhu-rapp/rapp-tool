@@ -12,19 +12,16 @@ from rapp.report import resources as rc
 from rapp.util import estimator_name
 
 
-def save_report(pipeline):
+def save_report(pipeline, path="reports/"):
     """
     Writes report with results stored in the `pipeline`.
 
     Parameters
     ----------
     pipeline : Pipeline instance
+    report_path : str, default: "reports/"
+        Path to a directory in which the report is stored.
     """
-
-    if pipeline.report_path is not None:
-        path = pipeline.report_path
-    else:
-        path="reports"
 
     report_data = {}
     report_data["statistics"] = pipeline.statistics_results
