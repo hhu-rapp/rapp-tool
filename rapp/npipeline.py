@@ -96,7 +96,7 @@ class Pipeline():
                                'test': test_results}},
                  ...}
 
-        there the dictionary over group IDs is described by
+        where the dictionary over group IDs is described by
         `rapp.fair.notions.clf_fairness()`.
     """
 
@@ -296,7 +296,6 @@ def _get_score_functions(type: str):
 
 def evaluate_fairness(pipeline):
     for est in pipeline.estimators:
-        est_name = estimator_name(est)
         res = evaluate_estimator_fairness(est,
                                           pipeline.data,
                                           pipeline.fairness_functions,
