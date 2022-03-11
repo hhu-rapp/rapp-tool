@@ -16,6 +16,7 @@ from rapp.gui.tabs import Tabs
 
 import logging
 log = logging.getLogger("GUI")
+log_pipeline = logging.getLogger("rapp.pipeline")
 
 db_filepath = "data/rapp.db"
 sql_temp_path = "sql_temp.sql"
@@ -36,6 +37,7 @@ class Window(QMainWindow):
         handler = LoggingHandler(self.loggingTextBrowser)
         handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
         log.addHandler(handler)
+        log_pipeline.addHandler(handler)
 
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()
