@@ -10,8 +10,6 @@ from rapp.gui.pipeline import Pipeline
 from rapp.gui.xai import XAI
 from rapp.gui.faml import FairML
 
-# rapp machine learning
-from rapp.pipeline import MLPipeline
 
 
 class Tabs(QtWidgets.QWidget):

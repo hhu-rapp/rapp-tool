@@ -11,7 +11,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # rapp
 from rapp import gui
 from rapp.gui import helper
-from rapp.pipeline import MLPipeline
+from rapp.npipeline import Pipeline as MLPipeline
+from rapp.npipeline import train_models, evaluate_fairness
+from rapp.npipeline import evaluate_performance, calculate_statistics
+from rapp.report.reports import save_report
 
 
 class Pipeline(QtWidgets.QWidget):
@@ -180,38 +183,55 @@ class Pipeline(QtWidgets.QWidget):
 
     def train(self):
         """
-        Get user input and parse to MLPipeline
+        Get user input and parse to Pipeline
         Returns
         -------
 
         """
 
-        args = argparse.Namespace()
+        cf = argparse.Namespace()
 
         if self.qmainwindow.sql_df is None:
-            log.warning('No SQL query to train from')
+            log.error('No SQL query to train from')
             return
 
         if len(self.cbEstimator.get_checked_items()) == 0:
-            log.warning('No Estimator selected')
+            log.error('No Estimator selected')
             return
 
-        args.sql_df = self.qmainwindow.sql_df
-        args.label_name = self.cbName.currentText()
-        args.categorical = self.leCVariables.text().replace(' ', '').split(',')
-        args.type = self.cbType.currentText().lower()
-        args.imputation = self.cbImputation.currentText().lower()
-        args.feature_selection = self.cbFSM.currentText().lower()
-        args.plot_confusion_matrix = 'True'
-        args.report_path = self.lePath.text()
-        args.save_report = args.report_path != ''  # Only report when path is given
-        args.sensitive_attributes = self.cbSAttributes.get_checked_items()
-        args.classifier = self.cbEstimator.get_checked_items()
+        cf.filename = None
+        cf.sql_df = self.qmainwindow.sql_df
+        cf.label_name = self.cbName.currentText()
+        cf.categorical = self.leCVariables.text().replace(' ', '').split(',')
+        cf.type = self.cbType.currentText().lower()
+        cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
+        cf.estimators = self.cbEstimator.get_checked_items()
 
-        log.info('Report generation started.')
+        # Do we still need these?
+        cf.imputation = self.cbImputation.currentText().lower()
+        cf.feature_selection = self.cbFSM.currentText().lower()
+
+        report_path = self.lePath.text()
+
         try:
-            MLPipeline(args)
-            log.info('Report generation finished.')
+            pl = MLPipeline(cf)
+
+            log.info('Training models...')
+            train_models(pl, cross_validation=True)
+
+            log.info('Evaluating fairness...')
+            evaluate_fairness(pl)
+
+            log.info('Evaluating performance...')
+            evaluate_performance(pl)
+
+            log.info('Calculating statistics...')
+            calculate_statistics(pl)
+
+            log.info('Generating report...')
+            save_report(pl, report_path)
+            log.info('Report saved to %s',report_path)
+
         except Exception as e:
-            log.error(str(e))
+            log.error(traceback.format_exc())
             traceback.print_exc()
