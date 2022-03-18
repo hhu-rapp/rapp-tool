@@ -157,8 +157,9 @@ class MenuBar(QtWidgets.QMenuBar):
                 return
 
             # load required settings
-            # load db
+
             self.qMainWindow.connectDatabase(os.path.normpath(cf.filename))
+
             self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(cf.type.capitalize())
 
             if hasattr(cf, 'sql_file') and cf.sql_file is not None:
@@ -171,6 +172,7 @@ class MenuBar(QtWidgets.QMenuBar):
                 sql = cf.sql_query
                 self.qMainWindow.sql_tabs.displaySql(sql)
                 self.qMainWindow.sql_tabs.set_sql(sql)
+
             else:
                 self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{cf.studies_id}_{cf.features_id}")
                 self.qMainWindow.sql_tabs.targetSelect.setCurrentText(cf.labels_id)
@@ -189,7 +191,6 @@ class MenuBar(QtWidgets.QMenuBar):
 
             if hasattr(cf, 'estimators'):
                 self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
-
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
