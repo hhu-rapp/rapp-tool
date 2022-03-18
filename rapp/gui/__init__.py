@@ -35,7 +35,7 @@ class Window(QMainWindow):
         # initialize logging handler
         self.loggingTextBrowser = LoggingTextBrowser()
         handler = LoggingHandler(self.loggingTextBrowser)
-        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s'))
+        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s',datefmt='%Y-%m-%d %H:%M:%S'))
         log.addHandler(handler)
         log_pipeline.addHandler(handler)
 
