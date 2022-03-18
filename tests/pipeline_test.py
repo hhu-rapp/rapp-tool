@@ -616,5 +616,4 @@ def test_calculate_set_statistics():
                     }
             }}}}
 
-
     assert expected == results
