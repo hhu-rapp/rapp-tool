@@ -336,7 +336,7 @@ def test_training_with_cross_validation():
 
     rng = np.random.default_rng(seed=123)
     X_train = rng.random((100, 2))
-    y_train = rng.integers(2, size=(100, 1))
+    y_train = pd.DataFrame(rng.integers(2, size=(100, 1)))
     pipeline.get_data = lambda _: (X_train, y_train, None)
 
     train_models(pipeline, cross_validation=True)
@@ -358,7 +358,7 @@ def test_training_without_cross_validation():
 
     rng = np.random.default_rng(seed=123)
     X_train = rng.random((100, 2))
-    y_train = rng.integers(2, size=(100, 1))
+    y_train = pd.DataFrane(rng.integers(2, size=(100, 1)))
     pipeline.get_data = lambda _: (X_train, y_train, None)
 
     train_models(pipeline, cross_validation=False)
@@ -377,7 +377,7 @@ def test_training_fits_each_estimator():
 
     rng = np.random.default_rng(seed=123)
     X_train = rng.random((100, 2))
-    y_train = rng.integers(2, size=(100, 1))
+    y_train = pd.DataFrame(rng.integers(2, size=(100, 1)))
     pipeline.get_data = lambda _: (X_train, y_train, None)
 
     train_models(pipeline, cross_validation=False)
