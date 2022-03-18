@@ -8,7 +8,7 @@ from rapp.gui import Window
 log = logging.getLogger('GUI')
 log.setLevel(logging.INFO)
 log_pipeline = logging.getLogger("rapp.pipeline")
-formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(filename)s: %(message)s')
+formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(filename)s: %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
 
 file_handler = logging.FileHandler('rapp.log')
 file_handler.setFormatter(formatter)
