@@ -7,9 +7,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # rapp gui
 from rapp import gui
 from rapp.gui.pipeline import Pipeline
-from rapp.gui.xai import XAI
-from rapp.gui.faml import FairML
-
 
 
 class Tabs(QtWidgets.QWidget):
@@ -34,9 +31,21 @@ class Tabs(QtWidgets.QWidget):
 
         # add widgets to tab
         self.tab.addTab(self.MLTab, 'Pipeline Settings')
-        self.tab.addTab(self.XAITab, 'Explainable AI')
-        self.tab.addTab(self.FairnessTab, 'Fairness-Aware ML')
+        # self.tab.addTab(self.XAITab, 'Explainable AI')
+        # self.tab.addTab(self.FairnessTab, 'Fairness-Aware ML')
 
         # add widgets to layout
         vLayout.addWidget(self.tab, 3)
         vLayout.addWidget(self.qmainwindow.loggingTextBrowser, 1)
+
+
+class XAI(QtWidgets.QWidget):
+
+    def __init__(self):
+        super(XAI, self).__init__()
+
+
+class FairML(QtWidgets.QWidget):
+
+    def __init__(self):
+        super(FairML, self).__init__()
