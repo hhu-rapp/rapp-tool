@@ -59,6 +59,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.targetSelect.addItem("4term_cp")
         self.targetSelect.addItem("master_admission")
         self.targetSelect.addItem("rsz")
+        self.targetSelect.addItem("reg_study_duration")
+        self.targetSelect.addItem("reg_final_grade")
 
         self.verifySelect = QtWidgets.QPushButton("Load")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
