@@ -82,7 +82,6 @@ class SQLWidget(QtWidgets.QWidget):
         self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
 
         tab_idx = self.tabs.addTab(self.advanced_tab, 'Advanced')
-        self._advanced_tab_index = tab_idx
         self.__advanced_tab_index = tab_idx
 
     def __init_buttons(self):
@@ -166,5 +165,4 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field.setPlainText(sql_query)
 
         # Change to advanced tab.
-        self.tabs.setCurrentIndex(self._advanced_tab_index)
         self.tabs.setCurrentIndex(self.__advanced_tab_index)
