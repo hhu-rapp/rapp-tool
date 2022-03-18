@@ -93,8 +93,8 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Opens a Config File"))
         self.actionLoad_Config.setShortcut(_translate("Window", "Ctrl+Shift+C"))
 
-        self.actionCopy.setText(_translate("Window", "Copy"))
-        self.actionPaste.setText(_translate("Window", "Paste"))
+        self.actionCopy.setText(_translate("Window", "Copy SQL"))
+        self.actionPaste.setText(_translate("Window", "Paste SQL"))
 
     def initMenuAction(self):
         # file
@@ -193,8 +193,10 @@ class MenuBar(QtWidgets.QMenuBar):
                 self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
 
     def copySQLQuery(self):
-        QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
+        QApplication.clipboard().setText(self.qMainWindow.sql_tabs.sql_field.toPlainText())
 
     def pasteSQLQuery(self):
         text = QApplication.clipboard().text()
-        self.qMainWindow.sqlTbox.setPlainText(text)
+        self.qMainWindow.sql_tabs.sql_field.setPlainText(text)
+        # Change to advanced tab.
+        self.qMainWindow.sql_tabs.tabs.setCurrentIndex(self.qMainWindow.sql_tabs._advanced_tab_index)
