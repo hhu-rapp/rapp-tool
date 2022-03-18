@@ -10,6 +10,7 @@ from PyQt5.Qt import QApplication, QClipboard
 
 from rapp import gui
 
+
 class MenuBar(QtWidgets.QMenuBar):
 
     def __init__(self, qMainWindow):
@@ -38,6 +39,9 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_Database.setObjectName("actionOpen_Database")
         self.actionLoad_Config = QtWidgets.QAction(self)
         self.actionLoad_Config.setObjectName("actionLoad_Config")
+        self.actionSave_Config = QtWidgets.QAction(self)
+        self.actionSave_Config.setObjectName("actionSave_Config")
+
         # Sql
         self.actionOpen_SQLite_Query = QtWidgets.QAction(self)
         self.actionOpen_SQLite_Query.setObjectName("actionOpen_SQLite_Query")
@@ -50,12 +54,15 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionPaste = QtWidgets.QAction(self)
         self.actionPaste.setObjectName("actionPaste")
 
-        # add entries to the menu
+        # add entries to the file menu
+        self.menuFile.addAction(self.actionLoad_Config)
+        self.menuFile.addAction(self.actionSave_Config)
         self.menuFile.addAction(self.actionOpen_Database)
         self.menuFile.addMenu(self.menuSql)
         self.menuSql.addAction(self.actionOpen_SQLite_Query)
         self.menuSql.addAction(self.actionSave_SQLite_Query)
-        self.menuFile.addAction(self.actionLoad_Config)
+
+        # Edit
         self.menuEdit.addAction(self.actionCopy)
         self.menuEdit.addAction(self.actionPaste)
 
@@ -93,6 +100,12 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Opens a Config File"))
         self.actionLoad_Config.setShortcut(_translate("Window", "Ctrl+Shift+C"))
 
+        self.actionSave_Config.setText(
+            _translate("Window", "Save Config File"))
+        self.actionSave_Config.setStatusTip(
+            _translate("Window", "Saves a Config File"))
+        self.actionSave_Config.setShortcut(_translate("Window", "Ctrl+Shift+V"))
+
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
 
@@ -102,6 +115,7 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
         self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
         self.actionLoad_Config.triggered.connect(self.loadConfigurationFile)
+        self.actionSave_Config.triggered.connect(self.saveConfigurationFile)
 
         self.actionCopy.triggered.connect(self.copySQLQuery)
         self.actionPaste.triggered.connect(self.pasteSQLQuery)
@@ -191,6 +205,9 @@ class MenuBar(QtWidgets.QMenuBar):
 
             if hasattr(cf, 'estimators'):
                 self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
+
+    def saveConfigurationFile(self):
+        pass
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
