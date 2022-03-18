@@ -1,0 +1,1 @@
+TermsNeeded.LastTerm as StudyDuration
