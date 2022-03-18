@@ -166,7 +166,6 @@ class MLPipeline(object):
         self.X_train = self.X_train.drop(columns, axis=1)
         self.X_test = self.X_test.drop(columns, axis=1)
 
-
     def feature_selection(self, method='variance'):
         """
         Selects the most important features based on the used strategy
@@ -217,7 +216,6 @@ class MLPipeline(object):
             for i, est in enumerate(self.cv_scores[estimator]["estimator"]):
                 model_path = os.path.join(target_path, f"fold_{i}.joblib")
                 joblib.dump(est, model_path)
-
 
     def train_additional_models(self):
         # Create a dictionary yielding possibly additionally trained models
