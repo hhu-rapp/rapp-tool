@@ -209,7 +209,33 @@ class MenuBar(QtWidgets.QMenuBar):
                 self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
 
     def saveConfigurationFile(self):
-        pass
+        cf = self.qMainWindow.qmainwindow.tabs.MLTab.parse_settings()
+
+        if cf is None:
+            return
+
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Pipeline Settings as a File", "",
+                                                                    "Configuration Files (*.ini)", options=options)
+
+        if fileName:
+            with open(fileName+".ini", 'w+') as file:
+                config = vars(cf)
+
+                if config["filename"] == None:
+                    config["filename"]="data/rapp.db"
+
+                for key in config:
+                    if key == "sql_df":
+                        continue
+                    file.write(key)
+                    file.write("=")
+                    file.write(str(config[key]))
+                    file.write("\n")
+
+            log.info("Saved pipeline settings as: %s.ini", fileName)
+
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sql_tabs.sql_field.toPlainText())

@@ -189,27 +189,7 @@ class Pipeline(QtWidgets.QWidget):
 
         """
 
-        cf = argparse.Namespace()
-
-        if self.qmainwindow.sql_df is None:
-            log.error('No SQL query to train from')
-            return
-
-        if len(self.cbEstimator.get_checked_items()) == 0:
-            log.error('No Estimator selected')
-            return
-
-        cf.filename = None
-        cf.sql_df = self.qmainwindow.sql_df
-        cf.label_name = self.cbName.currentText()
-        cf.categorical = self.leCVariables.text().replace(' ', '').split(',')
-        cf.type = self.cbType.currentText().lower()
-        cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
-        cf.estimators = self.cbEstimator.get_checked_items()
-
-        # Do we still need these?
-        cf.imputation = self.cbImputation.currentText().lower()
-        cf.feature_selection = self.cbFSM.currentText().lower()
+        cf = self.parse_settings()
 
         report_path = self.lePath.text()
 
@@ -235,3 +215,26 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             log.error(traceback.format_exc())
             traceback.print_exc()
+
+    def parse_settings(self):
+        cf = argparse.Namespace()
+
+        if self.qmainwindow.sql_df is None:
+            log.error('No SQL query selected')
+            return
+
+        if len(self.cbEstimator.get_checked_items()) == 0:
+            log.error('No Estimator selected')
+            return
+
+        cf.filename = None
+        cf.sql_df = self.qmainwindow.sql_df
+        cf.label_name = self.cbName.currentText()
+        cf.categorical = self.leCVariables.text().replace(' ', '').split(',')
+        cf.type = self.cbType.currentText().lower()
+        cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
+        cf.estimators = self.cbEstimator.get_checked_items()
+        cf.imputation = self.cbImputation.currentText().lower()
+        cf.feature_selection = self.cbFSM.currentText().lower()
+
+        return cf
