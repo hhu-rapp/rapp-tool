@@ -47,8 +47,9 @@ def save_report(pipeline, path="reports/"):
             f.write(tex)
 
     if pipeline.type == "regression":
-        log.error("Regression reports not yet implemented")
-        pass
+        with open(latex_report_file, 'w') as f:
+            tex = latex.tex_classification_report(report_data)
+            f.write(tex)
 
     with rc.get_path("hhulogo.pdf") as logo:
         shutil.copy(logo, path)

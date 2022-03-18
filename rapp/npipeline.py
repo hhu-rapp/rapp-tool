@@ -387,15 +387,24 @@ def evaluate_estimator_fairness(estimator, data, notion_dict,
 
 
 def evaluate_performance(pipeline):
+
     for est in pipeline.estimators:
-        res = evaluate_estimators_performance(est,
-                                              pipeline.data,
-                                              pipeline.score_functions)
-        pipeline.performance_results[est] = res
+        if pipeline.type == 'classification':
+            res = evaluate_estimators_performance(est,
+                                                  pipeline.data,
+                                                  pipeline.score_functions,
+                                                  calc_confusion_matrix=True)
+            pipeline.performance_results[est] = res
+        else:
+            res = evaluate_estimators_performance(est,
+                                                  pipeline.data,
+                                                  pipeline.score_functions,
+                                                  calc_confusion_matrix=False)
+            pipeline.performance_results[est] = res
     return pipeline
 
 
-def evaluate_estimators_performance(estimator, data, score_dict):
+def evaluate_estimators_performance(estimator, data, score_dict, calc_confusion_matrix=False):
     """
     Parameters
     ----------
@@ -439,8 +448,11 @@ def evaluate_estimators_performance(estimator, data, score_dict):
 
             performance_results[mode]["scores"][score_name] = res
 
-        cm = confusion_matrix(y, y_pred)
-        performance_results[mode]['confusion_matrix'] = cm.tolist()
+        if calc_confusion_matrix:
+            cm = confusion_matrix(y, y_pred)
+            performance_results[mode]['confusion_matrix'] = cm.tolist()
+        else:
+            performance_results[mode]['confusion_matrix'] = []
 
     return performance_results
 
