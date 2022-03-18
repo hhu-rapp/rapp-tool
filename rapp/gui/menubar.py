@@ -111,7 +111,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionCopy.setText(_translate("Window", "Copy SQL"))
         self.actionPaste.setText(_translate("Window", "Paste SQL"))
 
-
     def initMenuAction(self):
         # file
         self.actionOpen_Database.triggered.connect(self.openDatabase)
