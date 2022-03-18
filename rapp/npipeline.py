@@ -1,5 +1,6 @@
 import logging
 
+# classification metrics
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import f1_score
@@ -8,6 +9,12 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import make_scorer
 from sklearn.metrics import confusion_matrix
+# regression metrics
+from sklearn.metrics import max_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+# evaluation
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -280,14 +287,18 @@ def _get_score_functions(type: str):
         scores = {
             'Accuracy': accuracy_score,
             'Balanced Accuracy': balanced_accuracy_score,
-            'F1': lambda x, y: f1_score(x, y, average='macro'),
-            'Recall': lambda x, y: recall_score(x, y, average='macro'),
-            'Precision': lambda x, y: precision_score(x, y, average='macro'),
-            'Area under ROC': lambda x, y: roc_auc_score(x, y, multi_class='ovr')
+            'F1': lambda y, y_pred: f1_score(y, y_pred, average='macro'),
+            'Recall': lambda y, y_pred: recall_score(y, y_pred, average='macro'),
+            'Precision': lambda y, y_pred: precision_score(y, y_pred, average='macro'),
+            'Area under ROC': lambda y, y_pred: roc_auc_score(y, y_pred, multi_class='ovr')
         }
     elif type == 'regression':
-        # TODO: Add regression metrics
-        raise NotImplemented('Scoring functions for regression are NYI.')
+        scores = {
+            'Mean Absolute Error': mean_absolute_error,
+            'Mean Squared Error': mean_squared_error,
+            'Max Error': max_error,
+            'R2': r2_score,
+        }
     else:
         log.error("Unknown ML type '%s'; unable to select scoring functions",
                   type)
