@@ -153,8 +153,9 @@ class Pipeline():
 
         Returns
         -------
-        X, y, z : Dataframe
+        X, z : Dataframe
             Dataframes containing the data related to the specified mode.
+        y
         """
         X = self.data[mode]['X']
         y = self.data[mode]['y']
@@ -255,7 +256,7 @@ def train_models(pipeline, cross_validation=False):
     X_train, y_train, _ = pipeline.get_data('train')
     for est in pipeline.estimators:
         log.info("Training model: %s", est)
-        est.fit(X_train, y_train)
+        est.fit(X_train, y_train.to_numpy().ravel())
         if cross_validation:
             k = 5  # Number of fold, hard coded for now.
             log.info("%s-fold crossvalidation on model: %s", k, est)
@@ -264,7 +265,7 @@ def train_models(pipeline, cross_validation=False):
             scorers = {name: make_scorer(fun)
                        for name, fun in pipeline.score_functions.items()}
 
-            cv_result = cross_validate(est, X_train, y_train, cv=k,
+            cv_result = cross_validate(est, X_train, y_train.to_numpy().ravel(), cv=k,
                                        scoring=scorers,
                                        return_estimator=True,
                                        return_train_score=True)
