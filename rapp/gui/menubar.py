@@ -100,7 +100,6 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Opens a Config File"))
         self.actionLoad_Config.setShortcut(_translate("Window", "Ctrl+Shift+C"))
 
-<<<<<<< HEAD
         self.actionSave_Config.setText(
             _translate("Window", "Save Config File"))
         self.actionSave_Config.setStatusTip(
@@ -109,10 +108,9 @@ class MenuBar(QtWidgets.QMenuBar):
 
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
-=======
         self.actionCopy.setText(_translate("Window", "Copy SQL"))
         self.actionPaste.setText(_translate("Window", "Paste SQL"))
->>>>>>> bad919706b4df11c331f13a3eb9eb17f0e249f8b
+
 
     def initMenuAction(self):
         # file
@@ -221,4 +219,4 @@ class MenuBar(QtWidgets.QMenuBar):
         text = QApplication.clipboard().text()
         self.qMainWindow.sql_tabs.sql_field.setPlainText(text)
         # Change to advanced tab.
-        self.qMainWindow.sql_tabs.tabs.setCurrentIndex(self.qMainWindow.sql_tabs._advanced_tab_index)
+        self.qMainWindow.sql_tabs.tabs.setCurrentIndex(self.qMainWindow.sql_tabs.advanced_tab_index)
