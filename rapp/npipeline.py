@@ -28,7 +28,7 @@ from rapp.util import estimator_name
 log = logging.getLogger('rapp.pipeline')
 
 
-class Pipeline():
+class Pipeline:
     """
     Attributes
     ----------
@@ -219,7 +219,7 @@ def _load_test_split_from_dataframe(df, config, random_state=42):
 
     # Adapt to categorical data.
     cat_columns = [c for c in config.categorical if c != label_col]
-    if cat_columns != []:
+    if len(cat_columns) != 0:
         categorical = pd.get_dummies(data=X[cat_columns], columns=cat_columns)
         X = pd.concat([X, categorical], axis=1)
         # Remove old categorical attributes from input features
