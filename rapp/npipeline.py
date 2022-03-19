@@ -150,7 +150,7 @@ class Pipeline():
         return _load_test_split_from_dataframe(df, self.config)
 
     def prepare_data_from_df(self, df):
-            return _load_test_split_from_dataframe(df, self.config)
+        return _load_test_split_from_dataframe(df, self.config)
 
     def get_data(self, mode):
         """
