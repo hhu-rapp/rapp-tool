@@ -84,8 +84,11 @@ def test_sql_template_loading():
 
 def test_df_train_split():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'y': n, 'z': n}
-    def x_data(n): return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
+    def raw_data(n):
+        return {'a': n, 'b': f'c{n % 2}', 'y': n, 'z': n}
+
+    def x_data(n):
+        return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
 
     # Setup data frame
     df = pd.DataFrame([
@@ -132,8 +135,11 @@ def test_df_train_split():
 
 def test_df_train_split_without_label_name():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
-    def x_data(n): return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
+    def raw_data(n):
+        return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
+
+    def x_data(n):
+        return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
 
     # Setup data frame
     df = pd.DataFrame([
@@ -179,8 +185,11 @@ def test_df_train_split_without_label_name():
 
 def test_df_train_split_with_label_name_None():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
-    def x_data(n): return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
+    def raw_data(n):
+        return {'a': n, 'b': f'c{n % 2}', 'z': n, 'y': n + 1}
+
+    def x_data(n):
+        return {'a': n, 'z': n, 'b_c0': 1 - n % 2, 'b_c1': n % 2}
 
     # Setup data frame
     df = pd.DataFrame([
@@ -227,8 +236,11 @@ def test_df_train_split_with_label_name_None():
 
 def test_df_train_split__no_categorical():
     # Helper functions to create data.
-    def raw_data(n): return {'a': n, 'b': n, 'y': n, 'z': n}
-    def x_data(n): return {'a': n, 'b': n, 'z': n}
+    def raw_data(n):
+        return {'a': n, 'b': n, 'y': n, 'z': n}
+
+    def x_data(n):
+        return {'a': n, 'b': n, 'z': n}
 
     # Setup data frame
     df = pd.DataFrame([
@@ -531,13 +543,13 @@ def test_performance_results_structure():
     scores = {'Accuracy': accuracy_score,
               'Balanced Accuracy': balanced_accuracy_score}
 
-    results = evaluate_estimators_performance(est, data, scores)
+    results = evaluate_estimators_performance(est, data, scores, calc_confusion_matrix=True)
 
-    expected = {'train' :{
-                'scores':{
-                    'Accuracy' : 0.2,
-                    'Balanced Accuracy' : 0.5},
-                'confusion_matrix' : [[0, 8], [0, 2]]}}
+    expected = {'train': {
+        'scores': {
+            'Accuracy': 0.2,
+            'Balanced Accuracy': 0.5},
+        'confusion_matrix': [[0, 8], [0, 2]]}}
 
     assert expected == results
 
@@ -556,16 +568,16 @@ def test_performance_results_with_estimators():
     pipeline.data = {'train': {'X': X_train, 'y': y_train}}
     pipeline.type = 'classification'
 
-    est.fit(X_train,y_train)
+    est.fit(X_train, y_train)
 
     evaluate_performance(pipeline)
 
-    expected = {est :{
-                    'train' :{
-                        'scores':{
-                            'Accuracy' : 0.2,
-                            'Balanced Accuracy': 0.5},
-                        'confusion_matrix' : [[0, 8], [0, 2]]}}}
+    expected = {est: {
+        'train': {
+            'scores': {
+                'Accuracy': 0.2,
+                'Balanced Accuracy': 0.5},
+            'confusion_matrix': [[0, 8], [0, 2]]}}}
 
     assert expected == pipeline.performance_results
 
@@ -583,38 +595,38 @@ def test_calculate_set_statistics():
 
     expected = {
         "total": 10,
-        "outcomes" : {
-            1 : 2,
-            0 : 8
+        "outcomes": {
+            1: 2,
+            0: 8
         },
         'groups': {
             'protected': {
                 0: {
                     "total": 8,
-                    "outcomes" : {
-                        1 : 2,
-                        0 : 6
+                    "outcomes": {
+                        1: 2,
+                        0: 6
                     }},
                 1: {
                     "total": 2,
-                    "outcomes" : {
-                        1 : 0,
-                        0 : 2
+                    "outcomes": {
+                        1: 0,
+                        0: 2
                     },
-            }},
+                }},
             'sensitive': {
                 0: {
                     "total": 3,
-                    "outcomes" : {
-                        1 : 2,
-                        0 : 1
+                    "outcomes": {
+                        1: 2,
+                        0: 1
                     }},
                 1: {
                     "total": 7,
-                    "outcomes" : {
-                        1 : 0,
-                        0 : 7
+                    "outcomes": {
+                        1: 0,
+                        0: 7
                     }
-            }}}}
+                }}}}
 
     assert expected == results
