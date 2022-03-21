@@ -18,13 +18,12 @@ import logging
 log = logging.getLogger("GUI")
 log_pipeline = logging.getLogger("rapp.pipeline")
 
-db_filepath = "data/rapp.db"
 sql_temp_path = "sql_temp.sql"
 sql_df = None
 
 
 class Window(QMainWindow):
-    def __init__(self):
+    def __init__(self, db_filepath="data/rapp.db"):
         super().__init__()
 
         # variables before initializing gui
