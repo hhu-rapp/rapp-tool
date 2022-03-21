@@ -1,5 +1,5 @@
-from rapp.npipeline import Pipeline, train_models, evaluate_fairness
-from rapp.npipeline import evaluate_performance, calculate_statistics
+from rapp.pipeline import Pipeline, train_models, evaluate_fairness
+from rapp.pipeline import evaluate_performance, calculate_statistics
 from rapp.parser import RappConfigParser
 
 from rapp.report.reports import save_report
