@@ -13,14 +13,14 @@ from sklearn.utils.validation import check_is_fitted
 
 from rapp import sqlbuilder
 from rapp.fair.notions import group_fairness, predictive_equality
-from rapp.npipeline import Pipeline, _parse_estimators
-from rapp.npipeline import _load_sql_query
-from rapp.npipeline import _load_test_split_from_dataframe
-from rapp.npipeline import train_models
-from rapp.npipeline import evaluate_estimator_fairness
-from rapp.npipeline import calculate_set_statistics
-from rapp.npipeline import evaluate_estimators_performance
-from rapp.npipeline import evaluate_performance
+from rapp.pipeline import Pipeline, _parse_estimators
+from rapp.pipeline import _load_sql_query
+from rapp.pipeline import _load_test_split_from_dataframe
+from rapp.pipeline import train_models
+from rapp.pipeline import evaluate_estimator_fairness
+from rapp.pipeline import calculate_set_statistics
+from rapp.pipeline import evaluate_estimators_performance
+from rapp.pipeline import evaluate_performance
 from rapp.parser import RappConfigParser
 
 import tests.resources as rc

@@ -11,9 +11,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # rapp
 from rapp import gui
 from rapp.gui import helper
-from rapp.npipeline import Pipeline as MLPipeline
-from rapp.npipeline import train_models, evaluate_fairness
-from rapp.npipeline import evaluate_performance, calculate_statistics
+from rapp.pipeline import Pipeline as MLPipeline
+from rapp.pipeline import train_models, evaluate_fairness
+from rapp.pipeline import evaluate_performance, calculate_statistics
 from rapp.report.reports import save_report
 
 
