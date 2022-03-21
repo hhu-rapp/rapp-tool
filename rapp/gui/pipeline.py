@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 # rapp
 from rapp import gui
+from rapp import models
 from rapp.gui import helper
 from rapp.pipeline import Pipeline as MLPipeline
 from rapp.pipeline import train_models, evaluate_fairness
@@ -156,17 +157,14 @@ class Pipeline(QtWidgets.QWidget):
             self.cbSAttributes.setItemChecked(index, checked=False)
 
     def update_estimators(self):
-
-        # classifiers = ["Random Forest","Support Vector Machine","Decision Tree","Naive Bayes","Logistic Regression"]
-        # reggressors = ['Elastic Net','Linear Regression','Bayesian Ridge']
-        classifiers = ['RF', 'SVM', 'DT', 'NB', 'LR', 'NN']
-        reggressors = ['EL', 'LR', 'BR']
+        classifiers = models.models['classification'].keys()
+        regressors = models.models['regression'].keys()
 
         self.cbEstimator.clear()
         if self.cbType.currentText().lower() == 'classification':
             estimators = classifiers
         if self.cbType.currentText().lower() == 'regression':
-            estimators = reggressors
+            estimators = regressors
 
         for index, estimator in enumerate(estimators):
             self.cbEstimator.addItem(estimator)
