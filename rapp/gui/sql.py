@@ -3,7 +3,6 @@ log = logging.getLogger('GUI')
 
 from os import listdir
 from os.path import isdir, join
-import os
 
 import pandas as pd
 from pandas.io.sql import DatabaseError
