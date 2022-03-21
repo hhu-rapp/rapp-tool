@@ -41,11 +41,13 @@ class Pipeline(QtWidgets.QWidget):
         reportPathButton.setStatusTip('Select Report Path (Ctrl+R)')
         reportPathButton.setShortcut('Ctrl+r')
         reportPathButton.setMaximumWidth(50)
+        self.reportPathButton = reportPathButton
 
         trainButton = QtWidgets.QPushButton('Train')
         trainButton.clicked.connect(self.train)
         trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
         trainButton.setShortcut('Ctrl+t')
+        self.trainButton = trainButton
 
         # add buttons
         self.menubuttonsMainML.addWidget(trainButton)
