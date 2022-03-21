@@ -167,9 +167,8 @@ class MenuBar(QtWidgets.QMenuBar):
 
             try:
                 cf = parser.parse_file(fileName)
-            except Exception as e:
-                log.error(traceback.format_exc())
-                traceback.print_exc()
+            except ValueError as e:
+                log.error("Loading failed: " + str(e))
                 return
 
             # load required settings

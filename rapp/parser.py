@@ -22,7 +22,10 @@ class RappConfigParser(object):
         return self.parse_args(args)
 
     def parse_args(self, args):
-        parsed,_ = self.parser.parse_known_args(args=args)
+        parsed, unknown_values = self.parser.parse_known_args(args=args)
+
+        if unknown_values:
+            raise ValueError('%s are not valid configurations' %(unknown_values))
 
         # When `estimators` config is not given, we default based on type.
         if parsed.estimators is None:
