@@ -116,7 +116,7 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_Database.triggered.connect(self.openDatabase)
         self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
         self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
-        self.actionLoad_Config.triggered.connect(self.loadConfigurationFile)
+        self.actionLoad_Config.triggered.connect(self.showConfigurationFileDialog)
         self.actionSave_Config.triggered.connect(self.saveConfigurationFile)
 
         self.actionCopy.triggered.connect(self.copySQLQuery)
@@ -155,57 +155,59 @@ class MenuBar(QtWidgets.QMenuBar):
                 data = self.qMainWindow.sqlTbox.toPlainText()
                 file.write(data)
 
-    def loadConfigurationFile(self):
+    def showConfigurationFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Config File", "",
                                                             "Configuration Files (*.ini);;All Files (*)",
                                                             options=options)
-
         if fileName:
-            parser = RappConfigParser()
+            self.loadConfigurationFile(fileName)
 
-            try:
-                cf = parser.parse_file(fileName)
-            except ValueError as e:
-                log.error("Loading failed: " + str(e))
-                return
+    def loadConfigurationFile(self, fileName):
+        parser = RappConfigParser()
 
-            # load required settings
+        try:
+            cf = parser.parse_file(fileName)
+        except Exception as e:
+            log.error("Loading failed: " + str(e))
+            return
 
-            self.qMainWindow.connectDatabase(os.path.normpath(cf.filename))
+        # load required settings
 
-            self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(cf.type.capitalize())
+        self.qMainWindow.connectDatabase(os.path.normpath(cf.filename))
 
-            if hasattr(cf, 'sql_file') and cf.sql_file is not None:
-                with open(cf.sql_file, 'r') as f:
-                    sql = f.read()
-                    self.qMainWindow.sql_tabs.displaySql(sql)
-                    self.qMainWindow.sql_tabs.set_sql(sql)
+        self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(cf.type.capitalize())
 
-            elif hasattr(cf, 'sql_query') and cf.sql_query is not None:
-                sql = cf.sql_query
+        if hasattr(cf, 'sql_file') and cf.sql_file is not None:
+            with open(cf.sql_file, 'r') as f:
+                sql = f.read()
                 self.qMainWindow.sql_tabs.displaySql(sql)
                 self.qMainWindow.sql_tabs.set_sql(sql)
 
-            else:
-                self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{cf.studies_id}_{cf.features_id}")
-                self.qMainWindow.sql_tabs.targetSelect.setCurrentText(cf.labels_id)
-                self.qMainWindow.sql_tabs.load_selected_sql_template()
+        elif hasattr(cf, 'sql_query') and cf.sql_query is not None:
+            sql = cf.sql_query
+            self.qMainWindow.sql_tabs.displaySql(sql)
+            self.qMainWindow.sql_tabs.set_sql(sql)
 
-            # load optional settings
-            # TODO: Better way to access MLTab attributes
-            if hasattr(cf, 'label_name'):
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(cf.label_name)
+        else:
+            self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{cf.studies_id}_{cf.features_id}")
+            self.qMainWindow.sql_tabs.targetSelect.setCurrentText(cf.labels_id)
+            self.qMainWindow.sql_tabs.load_selected_sql_template()
 
-            if hasattr(cf, 'sensitive_attributes'):
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(cf.sensitive_attributes)
+        # load optional settings
+        # TODO: Better way to access MLTab attributes
+        if hasattr(cf, 'label_name'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(cf.label_name)
 
-            if hasattr(cf, 'report_path'):
-                self.qMainWindow.qmainwindow.tabs.MLTab.lePath.setText(cf.report_path)
+        if hasattr(cf, 'sensitive_attributes'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(cf.sensitive_attributes)
 
-            if hasattr(cf, 'estimators'):
-                self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
+        if hasattr(cf, 'report_path'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.lePath.setText(cf.report_path)
+
+        if hasattr(cf, 'estimators'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
 
     def saveConfigurationFile(self):
         cf = self.qMainWindow.qmainwindow.tabs.MLTab.parse_settings()

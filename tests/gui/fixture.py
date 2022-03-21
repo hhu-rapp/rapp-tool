@@ -1,9 +1,10 @@
 import pytest
-
+from pytestqt.qtbot import QtBot
 from PyQt5.QtCore import Qt
 from rapp.gui import Window
 
 import tests.resources as rc
+
 
 @pytest.fixture
 def gui(qtbot):
@@ -17,38 +18,42 @@ class GuiTestApi():
     Provides easy access to GUI functionalities to write clean tests.
     """
 
-    def __init__(self, gui : Window, qtbot):
-        self.widget = gui
+    def __init__(self, widget: Window, qtbot: QtBot):
+        self.widget = widget
         self.qtbot = qtbot
 
         # Setup links to all the window elements for shorter names/convenience.
-        self.statusbar = gui.statusbar
-        # self.tabs = gui.tabs
+        self.statusbar = widget.statusbar
+        # self.tabs = widget.tabs
 
-        ## SQL Field
-        self.sql_features_select_box = gui.databaseLayoutWidget.sql_tabs.featuresSelect
-        self.sql_target_select_box = gui.databaseLayoutWidget.sql_tabs.targetSelect
-        self.sql_template_load_btn = gui.databaseLayoutWidget.sql_tabs.verifySelect
+        # SQL Field
+        self.sql_features_select_box = widget.databaseLayoutWidget.sql_tabs.featuresSelect
+        self.sql_target_select_box = widget.databaseLayoutWidget.sql_tabs.targetSelect
+        self.sql_template_load_btn = widget.databaseLayoutWidget.sql_tabs.verifySelect
 
-        self.sql_table_box = gui.databaseLayoutWidget.pandasTv.combo
+        self.sql_table_box = widget.databaseLayoutWidget.pandasTv.combo
 
-        self.sql_tabs = gui.databaseLayoutWidget.sql_tabs.tabs
-        self.sql_text_field = gui.databaseLayoutWidget.sql_tabs.sql_field
-        self.execute_sql_btn = gui.databaseLayoutWidget.sql_tabs.qPushButtonExecuteSql
-        self.sql_undo_btn = gui.databaseLayoutWidget.sql_tabs.qPushButtonUndoSql
-        self.sql_redo_btn = gui.databaseLayoutWidget.sql_tabs.qPushButtonRedoSql
+        self.sql_tabs = widget.databaseLayoutWidget.sql_tabs.tabs
+        self.sql_text_field = widget.databaseLayoutWidget.sql_tabs.sql_field
+        self.execute_sql_btn = widget.databaseLayoutWidget.sql_tabs.qPushButtonExecuteSql
+        self.sql_undo_btn = widget.databaseLayoutWidget.sql_tabs.qPushButtonUndoSql
+        self.sql_redo_btn = widget.databaseLayoutWidget.sql_tabs.qPushButtonRedoSql
 
-        ## Pipeline settings
-        self.target_var_box = gui.tabs.MLTab.cbName
-        self.categorical_var_field = gui.tabs.MLTab.leCVariables
-        self.sensitive_attr_box = gui.tabs.MLTab.cbSAttributes
-        self.ml_type_box = gui.tabs.MLTab.cbType
-        self.report_path_field = gui.tabs.MLTab.lePath
-        self.report_path_btn = gui.tabs.MLTab.reportPathButton
-        self.imputation_box = gui.tabs.MLTab.cbImputation
-        self.feature_selection_box = gui.tabs.MLTab.cbFSM
-        self.estimator_select_box = gui.tabs.MLTab.cbEstimator
-        self.train_btn = gui.tabs.MLTab.trainButton
+        # Pipeline settings
+        self.target_var_box = widget.tabs.MLTab.cbName
+        self.categorical_var_field = widget.tabs.MLTab.leCVariables
+        self.sensitive_attr_box = widget.tabs.MLTab.cbSAttributes
+        self.ml_type_box = widget.tabs.MLTab.cbType
+        self.report_path_field = widget.tabs.MLTab.lePath
+        self.report_path_btn = widget.tabs.MLTab.reportPathButton
+        self.imputation_box = widget.tabs.MLTab.cbImputation
+        self.feature_selection_box = widget.tabs.MLTab.cbFSM
+        self.estimator_select_box = widget.tabs.MLTab.cbEstimator
+        self.train_btn = widget.tabs.MLTab.trainButton
+
+        # Menubar
+        self.menubar = widget.menubar
+        self.load_cf = lambda file: widget.menubar.loadConfigurationFile(file)
 
     def get_df(self):
         return self.widget.databaseLayoutWidget.sql_df
@@ -123,3 +128,9 @@ class GuiTestApi():
 
     def mouse_release(self, element, btn=Qt.MouseButton.LeftButton, **kwargs):
         self.qtbot.mousePress(element, btn, **kwargs)
+
+    def wait(self, milliseconds):
+        self.qtbot.wait(milliseconds)
+
+    def show(self):
+        self.widget.show()
