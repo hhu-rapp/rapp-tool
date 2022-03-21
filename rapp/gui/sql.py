@@ -1,6 +1,10 @@
 import logging
 log = logging.getLogger('GUI')
 
+from os import listdir
+from os.path import isdir, join
+import os
+
 import pandas as pd
 from pandas.io.sql import DatabaseError
 
@@ -40,27 +44,27 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab = QtWidgets.QWidget()
         self.simple_tab.setLayout(QtWidgets.QFormLayout())
 
+        # setup path
+        path = "rapp/resources/sqltemplates/"
+        feats_path = path + "features/"
+        labels_path = path + "labels/"
+
+        dirs_feats = [d for d in listdir(feats_path) if isdir(join(feats_path, d))]
+        dirs_feats.sort()
+        dirs_labels = [d for d in listdir(labels_path) if isdir(join(labels_path, d))]
+        dirs_labels.sort()
+
         # Setup SQL templating
         self.featuresSelect = QtWidgets.QComboBox()
         self.featuresSelect.addItem("")
-        self.featuresSelect.addItem("cs_first_term_modules")
-        self.featuresSelect.addItem("cs_first_term_grades")
-        self.featuresSelect.addItem("cs_first_term_ects")
-        self.featuresSelect.addItem("cs_first_term_grades_and_ectp")
-        self.featuresSelect.addItem("sw_first_term_grades")
-        self.featuresSelect.addItem("sw_first_term_ects")
-        self.featuresSelect.addItem("sw_first_term_grades_and_ectp")
-        self.featuresSelect.addItem("sw_second_term_base_modules")
+        for dir in dirs_feats:
+            self.featuresSelect.addItem(dir)
 
         self.targetSelect = QtWidgets.QComboBox()
         self.targetSelect.addItem("")
-        self.targetSelect.addItem("3_dropout")
-        self.targetSelect.addItem("4term_ap")
-        self.targetSelect.addItem("4term_cp")
-        self.targetSelect.addItem("master_admission")
-        self.targetSelect.addItem("rsz")
-        self.targetSelect.addItem("reg_study_duration")
-        self.targetSelect.addItem("reg_final_grade")
+        for dir in dirs_labels:
+            self.targetSelect.addItem(dir)
+            print(dir)
 
         self.verifySelect = QtWidgets.QPushButton("Load")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
