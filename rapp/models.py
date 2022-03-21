@@ -16,7 +16,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import BayesianRidge
-
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.neural_network import MLPRegressor
 
 # Dispatch information about how models are called and which methods are used.
 models = {
@@ -52,6 +53,12 @@ models = {
                'kwargs': {}
                },
         'DT': {'class': DecisionTreeRegressor,
+               'kwargs': {'random_state': 0}
+               },
+        'KR': {'class': KernelRidge,
+               'kwargs': {}
+               },
+        'NN': {'class': MLPRegressor,
                'kwargs': {'random_state': 0}
                },
     }
