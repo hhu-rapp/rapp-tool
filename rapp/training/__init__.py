@@ -3,7 +3,7 @@ import logging as log
 from functools import singledispatch
 from sklearn.tree import DecisionTreeClassifier
 
-from rapp.pipeline.training.dt import cost_complexity_pruning
+from rapp.training.dt import cost_complexity_pruning
 
 @singledispatch
 def get_additional_models(estimator, X_train, y_train, X_test, y_test):
