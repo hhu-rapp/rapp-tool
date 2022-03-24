@@ -43,12 +43,12 @@ def save_report(pipeline, path="reports/"):
 
     if pipeline.type == "classification":
         with open(latex_report_file, 'w') as f:
-            tex = latex.tex_classification_report(report_data)
+            tex = latex.tex_report(report_data)
             f.write(tex)
 
     if pipeline.type == "regression":
         with open(latex_report_file, 'w') as f:
-            tex = latex.tex_classification_report(report_data)
+            tex = latex.tex_report(report_data, stats_plot=True)
             f.write(tex)
 
     with rc.get_path("hhulogo.pdf") as logo:
