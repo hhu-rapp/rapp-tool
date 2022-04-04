@@ -42,12 +42,12 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
 
     fair_results = fairness(X, y, Z, pred, fav_label)
 
-
     return {'outcomes': fair_results}
 
 
 def __get_confusion_matrix(y_true, y_pred):
     return confusion_matrix(y_true, y_pred).ravel().tolist()
+
 
 def group_fairness(X, y, z, pred, fav_label=1):
     fair = {}
