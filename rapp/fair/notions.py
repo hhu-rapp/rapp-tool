@@ -2,49 +2,6 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 
-def regression_fairness(reg, fairness, X, y, Z, pred=None, fav_label=None):
-    """
-        Assesses the fairness of the given classifier over the data (X, y, z).
-        For each column c in `z`, a dictionary of the following form is returned
-
-            {c: {
-                    0: {"favourable_outcome": number_with_fav_outcome,
-                        "unfavourable_outcome": number_without_fav_outcome,
-                        "confusion_matrix": ... },
-                    1: {"favourable_outcome": number_with_fav_outcome,
-                        "unfavourable_outcome": number_without_fav_outcome,
-                        "confusion_matrix": ... },
-                    # ...
-                },
-             # ...
-             }
-
-        where one key for each unique value of the respective column exists.
-
-        Parameters
-        ----------
-        reg: Regressor with a `.predict(X)` method.
-        fairness: Fairness function from `rapp.fair.notions`.
-        X: Feature values of the input data, assumed as Pandas data frame.
-        y: Ground-truth labels of the input data.
-        Z: Sensitive attributes for input data.
-        pred: (default=None)
-            Predictions from classifier for X. If `pred=None`, `clf.predict(X)` will be called.
-        fav_label: None
-            Value of the favourable outcome of the prediction.
-
-        Returns
-        -------
-        dict: See description.
-    """
-    if pred is None:
-        pred = reg.predict(X)
-
-    fair_results = fairness(X, y, Z, pred, fav_label)
-
-    return {'outcomes': fair_results}
-
-
 def regression_individual_fairness(X, y, z, pred, fav_label=None):
     """
     Berk 2017 - A Convex Framework for Fair Regression
