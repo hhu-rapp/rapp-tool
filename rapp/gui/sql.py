@@ -44,9 +44,9 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab.setLayout(QtWidgets.QFormLayout())
 
         # setup path
-        path = "rapp/resources/sqltemplates/"
-        feats_path = path + "features/"
-        labels_path = path + "labels/"
+        work_dir = join("rapp", "resources", "sqltemplates")
+        feats_path = join(work_dir, "features")
+        labels_path = join(work_dir, "labels")
 
         dirs_feats = [d for d in listdir(feats_path) if isdir(join(feats_path, d))]
         dirs_feats.sort()
