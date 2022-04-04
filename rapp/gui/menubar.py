@@ -230,6 +230,9 @@ class MenuBar(QtWidgets.QMenuBar):
                 for key in config:
                     if key == "sql_df":
                         continue
+                    if len(config[key]) == 0:
+                        continue
+
                     file.write(key)
                     file.write("=")
                     file.write(str(config[key]))
