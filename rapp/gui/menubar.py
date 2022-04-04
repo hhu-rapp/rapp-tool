@@ -1,4 +1,5 @@
 import logging
+
 log = logging.getLogger('GUI')
 import os
 import traceback
@@ -218,10 +219,10 @@ class MenuBar(QtWidgets.QMenuBar):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Pipeline Settings as a File", "",
-                                                                    "Configuration Files (*.ini)", options=options)
+                                                            "Configuration Files (*.ini)", options=options)
 
         if fileName:
-            with open(fileName+".ini", 'w+') as file:
+            with open(fileName + ".ini", 'w+') as file:
                 config = vars(cf)
 
                 if config["filename"] == None:
@@ -239,7 +240,6 @@ class MenuBar(QtWidgets.QMenuBar):
                     file.write("\n")
 
             log.info("Saved pipeline settings as: %s.ini", fileName)
-
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.qMainWindow.sql_tabs.sql_field.toPlainText())
