@@ -663,6 +663,7 @@ superx/*
 rapp.db
 tmp.db
 data/*.csv
+data/*/*.db
 
 ## Report files
 reports/
