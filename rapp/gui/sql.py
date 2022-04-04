@@ -1,8 +1,8 @@
 import logging
 log = logging.getLogger('GUI')
 
-from os import listdir
-from os.path import isdir, join
+from os import listdir, getcwd
+from os.path import isdir, join, abspath
 
 import pandas as pd
 from pandas.io.sql import DatabaseError
@@ -44,7 +44,9 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab.setLayout(QtWidgets.QFormLayout())
 
         # setup path
-        work_dir = join("rapp", "resources", "sqltemplates")
+        abs_path = abspath(getcwd())
+        work_dir = join(abs_path, "data", "rapp", "sqltemplates")
+        print(work_dir)
         feats_path = join(work_dir, "features")
         labels_path = join(work_dir, "labels")
 
