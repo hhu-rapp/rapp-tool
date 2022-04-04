@@ -225,7 +225,7 @@ class MenuBar(QtWidgets.QMenuBar):
                 config = vars(cf)
 
                 if config["filename"] == None:
-                    config["filename"]="data/rapp.db"
+                    config["filename"] = "data/rapp/data.db"
 
                 for key in config:
                     if key == "sql_df":
