@@ -2,7 +2,7 @@ from rapp.pipeline import Pipeline, train_models, evaluate_fairness
 from rapp.pipeline import evaluate_performance, calculate_statistics
 from rapp.parser import RappConfigParser
 
-from rapp.report.reports import save_report
+from rapp.report import save_report
 
 import sys
 

@@ -15,7 +15,7 @@ from rapp.gui import helper
 from rapp.pipeline import Pipeline as MLPipeline
 from rapp.pipeline import train_models, evaluate_fairness
 from rapp.pipeline import evaluate_performance, calculate_statistics
-from rapp.report.reports import save_report
+from rapp.report import save_report
 
 
 class Pipeline(QtWidgets.QWidget):
