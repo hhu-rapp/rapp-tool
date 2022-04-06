@@ -1,4 +1,101 @@
+import numpy as np
 from sklearn.metrics import confusion_matrix
+
+
+def regression_individual_fairness(X, y, z, pred, fav_label=None):
+    """
+    Berk 2017 - A Convex Framework for Fair Regression
+
+    Parameters
+    ----------
+    X: pandas DataFrame
+    y: pandas DataFrame
+    z: pandas DataFrame
+    pred: pandas DataFrame
+    fav_label: numeric
+
+    Returns
+    -------
+
+    """
+    fair = {}
+
+    y_s1 = y[z == 0]
+    y_s2 = y[z == 1]
+    y_pred_s1 = pred[z == 0]
+    y_pred_s2 = pred[z == 1]
+    n1 = len(y_s1)
+    n2 = len(y_s2)
+
+    fairness_penalty = 0
+    for i in range(n1):
+        for j in range(n2):
+            yi, yj = y_s1[i], y_s2[j]
+            yi_pred, yj_pred = y_pred_s1[i], y_pred_s2[j]
+            fairness_penalty += cross_group_fairness_weights(yi, yj) * (yi_pred - yj_pred) ** 2
+    fairness_penalty = 1 / (n1 + n2) * fairness_penalty  # normalization
+
+    fair = {
+        "Individual Fairness": fairness_penalty
+    }
+
+    return fair
+
+
+def regression_group_fairness(X, y, z, pred, fav_label=None):
+    """
+    Berk 2017 - A Convex Framework for Fair Regression
+
+    Parameters
+    ----------
+    X: pandas DataFrame
+    y: pandas DataFrame
+    z: pandas DataFrame
+    pred: pandas DataFrame
+    fav_label: numeric
+
+    Returns
+    -------
+
+    """
+    fair = {}
+
+    y_s1 = y[z == 0]
+    y_s2 = y[z == 1]
+    y_pred_s1 = pred[z == 0]
+    y_pred_s2 = pred[z == 1]
+    n1 = len(y_s1)
+    n2 = len(y_s2)
+
+    fairness_penalty = 0
+    for i in range(n1):
+        for j in range(n2):
+            yi, yj = y_s1[i], y_s2[j]
+            yi_pred, yj_pred = y_pred_s1[i], y_pred_s2[j]
+            fairness_penalty += cross_group_fairness_weights(yi, yj) * (yi_pred - yj_pred)
+    fairness_penalty = (1 / (n1 + n2) * fairness_penalty) ** 2  # normalization
+
+    fair = {
+        "Group Fairness": fairness_penalty
+    }
+
+    return fair
+
+
+def cross_group_fairness_weights(yi, yj):
+    """
+    Berk 2017 - A Convex Framework for Fair Regression
+
+    Parameters
+    ----------
+    yi: numeric
+    yj: numeric
+
+    Returns
+    -------
+
+    """
+    return np.exp(-(yi-yj)**2)
 
 
 def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
@@ -41,12 +138,12 @@ def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
 
     fair_results = fairness(X, y, Z, pred, fav_label)
 
-
     return {'outcomes': fair_results}
 
 
 def __get_confusion_matrix(y_true, y_pred):
     return confusion_matrix(y_true, y_pred).ravel().tolist()
+
 
 def group_fairness(X, y, z, pred, fav_label=1):
     fair = {}
@@ -75,7 +172,8 @@ def predictive_equality(X, y, z, pred, fav_label=1):
     values = z.unique()
     for v in values:
         mask = (z == v)
-        pred_v = pred[mask & (y != fav_label)]
+        mask_v = np.logical_and(mask, y != fav_label)
+        pred_v = pred[mask_v]
 
         fav = pred_v[pred_v == fav_label]
 

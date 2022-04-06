@@ -17,14 +17,15 @@ from os import path
 
 import chevron
 
-import rapp.resources as rc
+import data as dt
 
 
-def load_sql(features_id, labels_id):
-    f_select, f_join, f_where = __load_components("features", features_id)
-    l_select, l_join, l_where = __load_components("labels", labels_id)
+def load_sql(features_id, labels_id, project_name="rapp"):
+    f_select, f_join, f_where = __load_components(project_name, "features", features_id)
+    l_select, l_join, l_where = __load_components(project_name, "labels", labels_id)
 
-    template = rc.get_text("sqltemplates/skeleton.sql")
+    templates_path = path.join(project_name, "sqltemplates", "skeleton.sql")
+    template = dt.get_text(templates_path)
     mustache = {
         "feature_select": f_select,
         "feature_join": f_join,
@@ -38,7 +39,7 @@ def load_sql(features_id, labels_id):
     return query
 
 
-def __load_components(type, id):
+def __load_components(project, type, id):
     """
     For the given type and identifier,
     load the contents of the SELECT, the JOIN, and the WHERE statements.
@@ -55,10 +56,10 @@ def __load_components(type, id):
     where: str
         Contents for the WHERE statement.
     """
-    template_path = path.join("sqltemplates/", type, id)
+    template_path = path.join(project, "sqltemplates/", type, id)
 
     sel_sql = path.join(template_path, "select.sql")
-    sel_sql = rc.get_text(sel_sql)
+    sel_sql = dt.get_text(sel_sql)
     join_sql = path.join(template_path, "join.sql")
     join_sql = __load_sql_if_exists(join_sql)
     where_sql = path.join(template_path, "where.sql")
@@ -69,7 +70,7 @@ def __load_components(type, id):
 
 def __load_sql_if_exists(resource_path):
     try:
-        sql = rc.get_text(resource_path)
+        sql = dt.get_text(resource_path)
     except FileNotFoundError:
         sql = ""
     return sql

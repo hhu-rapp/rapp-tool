@@ -1,14 +1,16 @@
 import logging
+
 log = logging.getLogger('GUI')
 import os
 import traceback
-from configparser import ConfigParser, MissingSectionHeaderError
+from rapp.parser import RappConfigParser
 
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.Qt import QApplication, QClipboard
 
 from rapp import gui
+
 
 class MenuBar(QtWidgets.QMenuBar):
 
@@ -38,6 +40,9 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_Database.setObjectName("actionOpen_Database")
         self.actionLoad_Config = QtWidgets.QAction(self)
         self.actionLoad_Config.setObjectName("actionLoad_Config")
+        self.actionSave_Config = QtWidgets.QAction(self)
+        self.actionSave_Config.setObjectName("actionSave_Config")
+
         # Sql
         self.actionOpen_SQLite_Query = QtWidgets.QAction(self)
         self.actionOpen_SQLite_Query.setObjectName("actionOpen_SQLite_Query")
@@ -50,12 +55,15 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionPaste = QtWidgets.QAction(self)
         self.actionPaste.setObjectName("actionPaste")
 
-        # add entries to the menu
+        # add entries to the file menu
+        self.menuFile.addAction(self.actionLoad_Config)
+        self.menuFile.addAction(self.actionSave_Config)
         self.menuFile.addAction(self.actionOpen_Database)
         self.menuFile.addMenu(self.menuSql)
         self.menuSql.addAction(self.actionOpen_SQLite_Query)
         self.menuSql.addAction(self.actionSave_SQLite_Query)
-        self.menuFile.addAction(self.actionLoad_Config)
+
+        # Edit
         self.menuEdit.addAction(self.actionCopy)
         self.menuEdit.addAction(self.actionPaste)
 
@@ -93,15 +101,24 @@ class MenuBar(QtWidgets.QMenuBar):
             _translate("Window", "Opens a Config File"))
         self.actionLoad_Config.setShortcut(_translate("Window", "Ctrl+Shift+C"))
 
+        self.actionSave_Config.setText(
+            _translate("Window", "Save Config File"))
+        self.actionSave_Config.setStatusTip(
+            _translate("Window", "Saves a Config File"))
+        self.actionSave_Config.setShortcut(_translate("Window", "Ctrl+Shift+V"))
+
         self.actionCopy.setText(_translate("Window", "Copy"))
         self.actionPaste.setText(_translate("Window", "Paste"))
+        self.actionCopy.setText(_translate("Window", "Copy SQL"))
+        self.actionPaste.setText(_translate("Window", "Paste SQL"))
 
     def initMenuAction(self):
         # file
         self.actionOpen_Database.triggered.connect(self.openDatabase)
         self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
         self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
-        self.actionLoad_Config.triggered.connect(self.loadConfigurationFile)
+        self.actionLoad_Config.triggered.connect(self.showConfigurationFileDialog)
+        self.actionSave_Config.triggered.connect(self.saveConfigurationFile)
 
         self.actionCopy.triggered.connect(self.copySQLQuery)
         self.actionPaste.triggered.connect(self.pasteSQLQuery)
@@ -139,72 +156,96 @@ class MenuBar(QtWidgets.QMenuBar):
                 data = self.qMainWindow.sqlTbox.toPlainText()
                 file.write(data)
 
-    def loadConfigurationFile(self):
+    def showConfigurationFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Config File", "",
                                                             "Configuration Files (*.ini);;All Files (*)",
                                                             options=options)
+        if fileName:
+            self.loadConfigurationFile(fileName)
+
+    def loadConfigurationFile(self, fileName):
+        parser = RappConfigParser()
+
+        try:
+            cf = parser.parse_file(fileName)
+        except Exception as e:
+            log.error("Loading failed: " + str(e))
+            return
+
+        # load required settings
+
+        self.qMainWindow.connectDatabase(os.path.normpath(cf.filename))
+
+        self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(cf.type.capitalize())
+
+        if hasattr(cf, 'sql_file') and cf.sql_file is not None:
+            with open(cf.sql_file, 'r') as f:
+                sql = f.read()
+                self.qMainWindow.sql_tabs.displaySql(sql)
+                self.qMainWindow.sql_tabs.set_sql(sql)
+
+        elif hasattr(cf, 'sql_query') and cf.sql_query is not None:
+            sql = cf.sql_query
+            self.qMainWindow.sql_tabs.displaySql(sql)
+            self.qMainWindow.sql_tabs.set_sql(sql)
+
+        else:
+            self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{cf.studies_id}_{cf.features_id}")
+            self.qMainWindow.sql_tabs.targetSelect.setCurrentText(cf.labels_id)
+            self.qMainWindow.sql_tabs.load_selected_sql_template()
+
+        # load optional settings
+        # TODO: Better way to access MLTab attributes
+        if hasattr(cf, 'label_name'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(cf.label_name)
+
+        if hasattr(cf, 'sensitive_attributes'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(cf.sensitive_attributes)
+
+        if hasattr(cf, 'report_path'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.lePath.setText(cf.report_path)
+
+        if hasattr(cf, 'estimators'):
+            self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
+
+    def saveConfigurationFile(self):
+        cf = self.qMainWindow.qmainwindow.tabs.MLTab.parse_settings()
+
+        if cf is None:
+            return
+
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Pipeline Settings as a File", "",
+                                                            "Configuration Files (*.ini)", options=options)
 
         if fileName:
-            config = ConfigParser()
+            with open(fileName + ".ini", 'w+') as file:
+                config = vars(cf)
 
-            try:
-                config.read(fileName)
-            except MissingSectionHeaderError as e:
-                log.error(".ini File is missing [required] Header")
+                if config["filename"] == None:
+                    config["filename"] = "data/rapp/data.db"
 
-                return
+                for key in config:
+                    if key == "sql_df":
+                        continue
+                    if len(config[key]) == 0:
+                        continue
 
-            # load required settings
-            if 'required' in config:
+                    file.write(key)
+                    file.write("=")
+                    file.write(str(config[key]))
+                    file.write("\n")
 
-                required = config['required']
-                try:
-                    # load db
-                    db_path = required['filename']
-                    self.qMainWindow.connectDatabase(os.path.normpath(db_path))
-
-                    # execute SQL query
-                    studies_id = required['studies_id']
-                    features_id = required['features_id']
-                    labels_id = required['labels_id']
-                    self.qMainWindow.sql_tabs.featuresSelect.setCurrentText(f"{studies_id}_{features_id}")
-                    self.qMainWindow.sql_tabs.targetSelect.setCurrentText(labels_id)
-                    self.qMainWindow.sql_tabs.load_selected_sql_template()
-                except KeyError as e:
-                    log.error(e)
-
-            # load optional settings
-            # TODO: Better way to access MLTab attributes
-            if 'optional' in config:
-
-                optional = config['optional']
-                if 'label_name' in optional:
-                    target = optional['label_name']
-                    self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(target)
-
-                if 'sensitive_attributes' in optional:
-                    sensitive_attributes=optional['sensitive_attributes']
-                    s_attributes_list = sensitive_attributes.replace('[','').replace(']', '')
-                    s_attributes_list = s_attributes_list.replace(' ', '')
-                    self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(s_attributes_list.split(','))
-
-                if 'type' in optional:
-                    type = optional['type']
-                    self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(type)
-
-                if 'estimators' in optional:
-                    # TODO: better way split string
-                    estimators = optional['estimators']
-                    estimators_list = estimators.replace('[','').replace(']', '')
-                    estimators_list = estimators_list.replace(' ', '')
-                    self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(estimators_list.split(','))
-
+            log.info("Saved pipeline settings as: %s.ini", fileName)
 
     def copySQLQuery(self):
-        QApplication.clipboard().setText(self.qMainWindow.sqlTbox.toPlainText())
+        QApplication.clipboard().setText(self.qMainWindow.sql_tabs.sql_field.toPlainText())
 
     def pasteSQLQuery(self):
         text = QApplication.clipboard().text()
-        self.qMainWindow.sqlTbox.setPlainText(text)
+        self.qMainWindow.sql_tabs.sql_field.setPlainText(text)
+        # Change to advanced tab.
+        self.qMainWindow.sql_tabs.tabs.setCurrentIndex(self.qMainWindow.sql_tabs.advanced_tab_index)

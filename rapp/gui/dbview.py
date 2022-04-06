@@ -159,6 +159,9 @@ class DataView(QtWidgets.QWidget):
 
         return df
 
+    def get_custom_sql(self):
+        return self.__sql_query
+
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 

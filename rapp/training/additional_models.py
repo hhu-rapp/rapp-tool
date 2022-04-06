@@ -1,9 +1,7 @@
-import logging as log
-
 from functools import singledispatch
 from sklearn.tree import DecisionTreeClassifier
 
-from rapp.pipeline.training.dt import cost_complexity_pruning
+from rapp.training.dt import cost_complexity_pruning
 
 @singledispatch
 def get_additional_models(estimator, X_train, y_train, X_test, y_test):
@@ -24,5 +22,4 @@ def get_additional_models(estimator, X_train, y_train, X_test, y_test):
 
 @get_additional_models.register
 def _(estimator: DecisionTreeClassifier, X_train, y_train, X_test, y_test):
-    log.info("Training additional models for DecisionTreeClassifier")
     return cost_complexity_pruning(estimator, X_train, y_train, X_test, y_test)

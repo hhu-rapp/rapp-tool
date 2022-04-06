@@ -1,0 +1,1 @@
+SELECT * FROM student ORDER BY Pseudonym LIMIT 100
