@@ -2,8 +2,9 @@ import chevron
 import rapp.report.resources as rc
 
 from rapp.util import estimator_name
+from rapp.pipeline import Pipeline
 
-from rapp.report.latex.tables import tex_fairness, tex_performance, tex_cross_validation
+from rapp.report.latex.tables import tex_fairness, tex_performance_table, tex_cross_validation
 from rapp.report.latex.additionalmodels import tex_additional_models
 
 
@@ -143,7 +144,8 @@ def tex_dataset_plot(report):
                             'label_sub_name': sub,
                             'label_sub_count': sub_count,
                         }
-                        label_group_data["label_subgroups"].append(label_sub_data)
+                        label_group_data["label_subgroups"].append(
+                            label_sub_data)
                     label_data["label_groups"].append(label_group_data)
                 labels.append(label_data)
 
@@ -170,7 +172,7 @@ def tex_report(report, stats_plot=False):
         est_name = estimator_name(estimator)
         est_dict = {'estimator_name': est_name}
 
-        mtbl = tex_performance(est_name, results)
+        mtbl = tex_performance_table(est_name, results)
         est_dict['metrics_table'] = mtbl
 
         if estimator in report["fairness"]:
@@ -179,7 +181,52 @@ def tex_report(report, stats_plot=False):
 
         if report["cross_validation"]:
             est_dict["cross_validation"] = tex_cross_validation(est_name,
-                                            report["cross_validation"][estimator])
+                                                                report["cross_validation"][estimator])
+
+        # add_models = results.get("additional_models", [])
+        # est_dict["additional_model_info"] = \
+        #     tex_additional_models(estimator, add_models,
+        #                           feature_names, class_names)
+
+        mustache['estimators'].append(est_dict)
+
+    tex = rc.get_text("report.tex")
+    tex = chevron.render(tex, mustache)
+    return tex
+
+
+def tex_classification_report(pipeline: Pipeline):
+    """
+    Prepares tex file for a classification report.
+
+    Parameters
+    ----------
+    pipeline : rapp.pipeline.Pipeline instance
+        Pipeline to create the report for.
+
+    Returns
+    -------
+    tex : str
+        Report of the pipeline in tex format.
+    """
+    mustache = {'estimators': []}
+    mustache['datasets'] = tex_dataset_report(pipeline.statistics_results)
+
+    for estimator, results in pipeline.performance_results.items():
+        est_name = estimator_name(estimator)
+        est_dict = {'estimator_name': est_name}
+
+        mtbl = tex_performance_table(est_name, results)
+        est_dict['metrics_table'] = mtbl
+
+        if estimator in pipeline.fairness_results:
+            fair = tex_fairness(est_name, pipeline.fairness_results[estimator])
+            est_dict['fairness_evaluation'] = fair
+
+        if estimator in pipeline.cross_validation:
+            est_cv = tex_cross_validation(est_name,
+                                          pipeline.cross_validation[estimator])
+            est_dict["cross_validation"] = est_cv
 
         # add_models = results.get("additional_models", [])
         # est_dict["additional_model_info"] = \

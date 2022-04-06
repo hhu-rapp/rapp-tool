@@ -5,7 +5,30 @@ import numpy as np
 import rapp.report.resources as rc
 
 
-def tex_performance(estimator, results):
+def tex_performance_table(estimator, results):
+    """
+    Translates the results for the given estimator into latex table source code.
+
+    Parameters
+    ----------
+    estimator : str
+        Name of the estimator; will be used in the table header.
+
+    results : dict[str -> dict]
+        Dictionary containing the results to display in the table.
+        Maps the two training modes 'train', 'test' onto performance measures.
+        The following form is expected for each mode:
+
+            {'scores': {'score_fun': float, ...}}
+
+        where score_fun is the name of a scoring function, mapping to the
+        respectively measured value.
+
+    Returns
+    -------
+    tex : str
+        Latex table source code.
+    """
     # Metrics table
     template = rc.get_text("metrics_table.tex")
     metrics = []
@@ -17,7 +40,7 @@ def tex_performance(estimator, results):
         metrics.append(res)
     mtbl = chevron.render(template, {'metrics': metrics,
                                      'title': estimator,
-                                     'label': results.get('label', False)})
+                                     'label': estimator})
     return mtbl
 
 
@@ -54,7 +77,6 @@ def tex_cross_validation(estimator, data):
             value_list = [{'value': str(f'{x:.2f}')} for x in values]
             mdict[f'{mode}_folds'] = value_list
 
-
             mdict[f"{mode}_avg"] = str(f"{np.average(values):.2f}")
             mdict[f"{mode}_std"] = str(f"{np.std(values):.2f}")
         mustache['metrics'].append(mdict)
@@ -71,28 +93,37 @@ def tex_cross_validation(estimator, data):
     mustache["test_col_start"] = test_start
     mustache["test_col_end"] = test_start + n_set_cols - 1
 
-
-
     template = rc.get_text("cv_table.tex")
     return chevron.render(template, mustache)
 
 
 def tex_fairness(estimator, data):
+    """
+    Translates the fairness evaluation for the given estimator
+    into latex table source code.
+
+    Parameters
+    ----------
+    estimator : str
+        Name of the estimator; will be used in the table header.
+    data : dict
+        Dictionary containing the fairness evaluation results.
+        A fairness result has the form
+
+            {protected_attribute:
+                {notion_name: {'train': train_results,
+                               'test': test_results}},
+                 ...}
+
+    Returns
+    -------
+    tex : str
+    """
     fairness = {'title': estimator,
                 'groups': [],
                 'modes': []}
 
-    # Building a dictionary of the following form
-    # {'title': estimator_name,
-    #  'modes': [{'mode': string,
-    #             'notions': [{'notion': string,
-    #                          'group_measures': [{
-    #                            'group': string,
-    #                            'measures': [{'value': double,
-    #                                          'subgroup': string},
-    #                                         ...]
-    #                            'difference': difference_if_binary}, ...]},
-    #             ...]}, ...],
+    # First, we build the info over the groups key, which will look like this:
     #  'groups': [{'group': string,
     #              'subgroups': [{'subgroup': string}, ...],
     #              'has_diff': bool,
@@ -105,6 +136,7 @@ def tex_fairness(estimator, data):
     groups = data.keys()
     notions = None  # Filled below.
     next_start = 3  # Two columns in front of first group info.
+
     for group in groups:
         group_dict = {'group': group}
 
@@ -123,11 +155,22 @@ def tex_fairness(estimator, data):
         next_start += num_colums
         group_dict['end_column'] = next_start - 1
         group_dict['num_cols'] = num_colums
+
     if len(groups) > 0:
-        fairness['groups'][-1]['is_last'] = True
+        fairness['groups'][-1]['is_last'] = True  # For table formatting.
     if notions is None:
         notions = []  # If no groups are given, value is not set in loop above.
 
+    # For the modes key, we want a list of dictionaries of the following form:
+    #  {'mode': string,
+    #   'notions': [{'notion': string,
+    #                'group_measures': [{
+    #                  'group': string,
+    #                  'measures': [{'value': double,
+    #                                'subgroup': string},
+    #                               ...]
+    #                  'difference': difference_if_binary}, ...]},
+    #   ...]}
     for mode in ["train", "test"]:
         mode_dict = {'mode': mode.capitalize(),
                      'notions': []}
