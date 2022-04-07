@@ -668,6 +668,8 @@ data/*/*.db
 ## Report files
 reports/
 *.pdf
+!rapp/reports/
+!tests/reports/
 
 ## Other logs
 *.log

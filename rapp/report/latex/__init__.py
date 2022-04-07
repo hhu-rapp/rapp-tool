@@ -9,6 +9,31 @@ from rapp.report.latex.additionalmodels import tex_additional_models
 
 
 def tex_dataset_report(report):
+    """
+    Parameters
+    ----------
+    report : dict[mode -> statistics]
+        Dictionary with mode as key which map onto calculated statistics
+        over a dataset.
+        The statistics are assumed to be in the following format:
+
+            {'groups':
+                {group1: {subgroup1: {'total': int,
+                                      'outcomes': {label1: int,
+                                                   label2: int,
+                                                   ...}},
+                          subgroup2: {...},
+                          ...},
+                 group2: {...},
+                 ...},
+             'outcomes': {label1: int, label2: int, ...},
+             'total': int}
+
+    Returns
+    -------
+    tex : str
+        Table displaying the classification statistics of the dataset.
+    """
 
     # Tex file expects the following format for Chevron per mode
     # {'total': int,
