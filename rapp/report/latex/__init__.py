@@ -160,39 +160,26 @@ def tex_dataset_plot(report):
     return tex
 
 
-def tex_report(report, stats_plot=False):
-    mustache = {'estimators': []}
+def tex_regression_report(pipeline: Pipeline):
+    """
+    Prepares tex file for a regression report.
 
-    if stats_plot:
-        mustache['datasets'] = tex_dataset_plot(report["statistics"])
-    if not stats_plot:
-        mustache['datasets'] = tex_dataset_report(report["statistics"])
+    Parameters
+    ----------
+    pipeline : rapp.pipeline.Pipeline instance
+        Pipeline to create the report for.
 
-    for estimator, results in report["performance"].items():
-        est_name = estimator_name(estimator)
-        est_dict = {'estimator_name': est_name}
-
-        mtbl = tex_performance_table(est_name, results)
-        est_dict['metrics_table'] = mtbl
-
-        if estimator in report["fairness"]:
-            fair = tex_fairness(est_name, report["fairness"][estimator])
-            est_dict['fairness_evaluation'] = fair
-
-        if report["cross_validation"]:
-            est_dict["cross_validation"] = tex_cross_validation(est_name,
-                                                                report["cross_validation"][estimator])
-
-        # add_models = results.get("additional_models", [])
-        # est_dict["additional_model_info"] = \
-        #     tex_additional_models(estimator, add_models,
-        #                           feature_names, class_names)
-
-        mustache['estimators'].append(est_dict)
-
-    tex = rc.get_text("report.tex")
-    tex = chevron.render(tex, mustache)
-    return tex
+    Returns
+    -------
+    tex : str
+        Report of the pipeline in tex format.
+    """
+    return _tex_report_with_functions(
+        pipeline,
+        dataset_tex_fun=tex_dataset_plot,
+        performance_tex_fun=tex_performance_table,
+        fairness_tex_fun=tex_fairness,
+        cross_validation_tex_fun=tex_cross_validation)
 
 
 def tex_classification_report(pipeline: Pipeline):
@@ -209,24 +196,56 @@ def tex_classification_report(pipeline: Pipeline):
     tex : str
         Report of the pipeline in tex format.
     """
+    return _tex_report_with_functions(pipeline)
+
+
+def _tex_report_with_functions(pipeline: Pipeline,
+                               dataset_tex_fun=tex_dataset_report,
+                               performance_tex_fun=tex_performance_table,
+                               fairness_tex_fun=tex_fairness,
+                               cross_validation_tex_fun=tex_cross_validation):
+    """
+    Unified function for tex report creation.
+    Can be used by both classification and regression reports to utilise a
+    common code logic.
+
+    Parameters
+    ----------
+    pipeline : rapp.pipeline.Pipeline
+        Pipeline to create the report for.
+    dataset_tex_fun : function(pipeline: Pipeline) -> str, default: rapp.report.latex.tex_dataset_report
+        Function to report dataset metrics.
+    performance_tex_fun : function(estimator_name: str, results: dict) -> str, default: rapp.report.latex.tex_performance_table
+        Function to report performance metrics.
+    fairness_tex_fun : function(estimator_name: str, results: dict) -> str, default: rapp.report.latex.tex_fairness
+        Function to report fairness metrics.
+    cross_validation_tex_fun : function(estimator_name: str, results: dict) -> str, default: rapp.report.latex.tex_cross_validation
+        Function to report cross validation metrics.
+
+    Returns
+    -------
+    tex : str
+        Report of the pipeline in tex format.
+    """
     mustache = {'estimators': []}
-    mustache['datasets'] = tex_dataset_report(pipeline.statistics_results)
+    mustache['datasets'] = dataset_tex_fun(pipeline.statistics_results)
 
     for estimator, results in pipeline.performance_results.items():
         est_name = estimator_name(estimator)
         est_dict = {'estimator_name': est_name}
 
-        mtbl = tex_performance_table(est_name, results)
+        mtbl = performance_tex_fun(est_name, results)
         est_dict['metrics_table'] = mtbl
 
         if estimator in pipeline.fairness_results:
-            fair = tex_fairness(est_name, pipeline.fairness_results[estimator])
+            fair = fairness_tex_fun(
+                est_name, pipeline.fairness_results[estimator])
             est_dict['fairness_evaluation'] = fair
 
-        if estimator in pipeline.cross_validation:
-            est_cv = tex_cross_validation(est_name,
+        if pipeline.cross_validation:
+            cv = cross_validation_tex_fun(est_name,
                                           pipeline.cross_validation[estimator])
-            est_dict["cross_validation"] = est_cv
+            est_dict["cross_validation"] = cv
 
         # add_models = results.get("additional_models", [])
         # est_dict["additional_model_info"] = \

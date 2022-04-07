@@ -6,13 +6,14 @@ import logging
 log = logging.getLogger('rapp.pipeline')
 import joblib
 
+from rapp.pipeline import Pipeline
 from rapp.report import latex
 from rapp.report import resources as rc
 
 from rapp.util import estimator_name
 
 
-def save_report(pipeline, path="reports/"):
+def save_report(pipeline : Pipeline, path="reports/"):
     """
     Writes report with results stored in the `pipeline`.
 
@@ -22,12 +23,6 @@ def save_report(pipeline, path="reports/"):
     report_path : str, default: "reports/"
         Path to a directory in which the report is stored.
     """
-
-    report_data = {}
-    report_data["statistics"] = pipeline.statistics_results
-    report_data["fairness"] = pipeline.fairness_results
-    report_data["performance"] = pipeline.performance_results
-    report_data["cross_validation"] = pipeline.cross_validation
 
     try:
         os.makedirs(path, exist_ok=True)
@@ -48,7 +43,7 @@ def save_report(pipeline, path="reports/"):
 
     if pipeline.type == "regression":
         with open(latex_report_file, 'w') as f:
-            tex = latex.tex_report(report_data, stats_plot=True)
+            tex = latex.tex_regression_report(pipeline)
             f.write(tex)
 
     with rc.get_path("hhulogo.pdf") as logo:
@@ -71,9 +66,8 @@ def save_report(pipeline, path="reports/"):
         log.error("Unable to compile the report file %s: %s",
                       latex_report_file, e)
 
-    if report_data['performance']:
-        for est, data in report_data['performance'].items():
-            write_estimator_report(est, data, path)
+    for est, data in pipeline.performance_results.items():
+        write_estimator_report(est, data, path)
 
 
 def write_estimator_report(est, performance_data, path):
