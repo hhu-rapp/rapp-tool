@@ -18,10 +18,13 @@ def regression_individual_fairness(X, y, z, pred, fav_label=1):
     -------
 
     """
-    y_s1 = y[z != fav_label]
-    y_s2 = y[z == fav_label]
-    y_pred_s1 = pred[z != fav_label]
-    y_pred_s2 = pred[z == fav_label]
+    z_values, z_group_counts = np.unique(z, return_counts=True)
+    majority_group = z_values[np.argmax(z_group_counts)]
+
+    y_s1 = y[z != majority_group]
+    y_s2 = y[z == majority_group]
+    y_pred_s1 = pred[z != majority_group]
+    y_pred_s2 = pred[z == majority_group]
     n1 = len(y_s1)
     n2 = len(y_s2)
 
@@ -50,10 +53,13 @@ def regression_group_fairness(X, y, z, pred, fav_label=1):
     -------
 
     """
-    y_s1 = y[z != fav_label]
-    y_s2 = y[z == fav_label]
-    y_pred_s1 = pred[z != fav_label]
-    y_pred_s2 = pred[z == fav_label]
+    z_values, z_group_counts = np.unique(z, return_counts=True)
+    majority_group = z_values[np.argmax(z_group_counts)]
+
+    y_s1 = y[z != majority_group]
+    y_s2 = y[z == majority_group]
+    y_pred_s1 = pred[z != majority_group]
+    y_pred_s2 = pred[z == majority_group]
     n1 = len(y_s1)
     n2 = len(y_s2)
 

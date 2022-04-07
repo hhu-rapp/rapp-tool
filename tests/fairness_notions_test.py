@@ -50,8 +50,7 @@ def test_use_of_fav_label_group_regression_fairness():
     pred = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_group_fairness(X, y, z, pred,
-                                                 fav_label='fav')
+        fair = notions.regression_group_fairness(X, y, z, pred)
     except ZeroDivisionError as err:
         assert False, f"ZeroDivisionError raised, {err}"
 
@@ -68,7 +67,6 @@ def test_use_of_fav_label_individual_regression_fairness():
     pred = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_individual_fairness(X, y, z, pred,
-                                                 fav_label='fav')
+        fair = notions.regression_individual_fairness(X, y, z, pred)
     except ZeroDivisionError as err:
         assert False, f"ZeroDivisionError raised, {err}"
