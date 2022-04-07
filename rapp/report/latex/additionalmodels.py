@@ -18,7 +18,7 @@ from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 
 import rapp.report.resources as rc
-from rapp.report.latex.tables import tex_performance, tex_fairness
+from rapp.report.latex.tables import tex_performance_table, tex_fairness
 
 
 def _default_dispatch(additional_model_info):
@@ -55,7 +55,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
              "test": dict}
 
         The modes train and test will be translated by
-        `rapp.report.latex.tex_performance`.
+        `rapp.report.latex.tex_performance_table`.
     """
     # We will do three things
     #   1. Plot the depth vs. the balanced accuracy, marking the pareto front
@@ -95,7 +95,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
         alpha = pareto['alpha']
         estimator = rf"DecisionTreeClassifier (\(\alpha={alpha}\))"
         pareto["label"] = rf"dt-{alpha}"
-        performance = tex_performance(estimator, pareto)
+        performance = tex_performance_table(estimator, pareto)
         fairness = tex_fairness(estimator, pareto)
 
         fairness_groups = [{'group': group}
