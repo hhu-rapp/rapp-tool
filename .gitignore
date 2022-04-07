@@ -670,6 +670,7 @@ reports/
 *.pdf
 !rapp/reports/
 !tests/reports/
+!tests/resources/reports/
 
 ## Other logs
 *.log
