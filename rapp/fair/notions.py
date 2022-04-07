@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 
-def regression_individual_fairness(X, y, z, pred, fav_label=None):
+def regression_individual_fairness(X, y, z, pred, fav_label=1):
     """
     Berk 2017 - A Convex Framework for Fair Regression
 
@@ -20,10 +20,10 @@ def regression_individual_fairness(X, y, z, pred, fav_label=None):
     """
     fair = {}
 
-    y_s1 = y[z == 0]
-    y_s2 = y[z == 1]
-    y_pred_s1 = pred[z == 0]
-    y_pred_s2 = pred[z == 1]
+    y_s1 = y[z != fav_label]
+    y_s2 = y[z == fav_label]
+    y_pred_s1 = pred[z != fav_label]
+    y_pred_s2 = pred[z == fav_label]
     n1 = len(y_s1)
     n2 = len(y_s2)
 
@@ -40,7 +40,7 @@ def regression_individual_fairness(X, y, z, pred, fav_label=None):
     return fair
 
 
-def regression_group_fairness(X, y, z, pred, fav_label=None):
+def regression_group_fairness(X, y, z, pred, fav_label=1):
     """
     Berk 2017 - A Convex Framework for Fair Regression
 
@@ -58,10 +58,10 @@ def regression_group_fairness(X, y, z, pred, fav_label=None):
     """
     fair = {}
 
-    y_s1 = y[z == 0]
-    y_s2 = y[z == 1]
-    y_pred_s1 = pred[z == 0]
-    y_pred_s2 = pred[z == 1]
+    y_s1 = y[z != fav_label]
+    y_s2 = y[z == fav_label]
+    y_pred_s1 = pred[z != fav_label]
+    y_pred_s2 = pred[z == fav_label]
     n1 = len(y_s1)
     n2 = len(y_s2)
 
