@@ -46,7 +46,7 @@ class SQLWidget(QtWidgets.QWidget):
         # setup path
         abs_path = abspath(getcwd())
         work_dir = join(abs_path, "data", "rapp", "sqltemplates")
-        print(work_dir)
+        
         feats_path = join(work_dir, "features")
         labels_path = join(work_dir, "labels")
 
