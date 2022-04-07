@@ -201,3 +201,71 @@ def tex_fairness(estimator, data):
     tex = rc.get_text("fairness_table.tex")
     tex = chevron.render(tex, fairness)
     return tex
+
+
+def tex_regression_fairness(estimator, data):
+    """
+    Translates the fairness evaluation for the given regressor
+    into latex table source code.
+
+    Parameters
+    ----------
+    estimator : str
+        Name of the estimator; will be used in the table header.
+    data : dict
+        Dictionary containing the fairness evaluation results.
+        A fairness result has the form
+
+            {protected_attribute:
+                {notion_name: {'train': train_results,
+                               'test': test_results}},
+                 ...}
+
+    Returns
+    -------
+    tex : str
+    """
+    fairness = {'title': estimator,
+                'modes': [],
+                'groups': []}
+    groups = [g for g in data]
+    fairness['groups'] = [{'group': g} for g in groups]
+
+    if len(groups) > 0:
+        # Todo: Does it even make sense to have no groups?
+        notions = list(data[groups[0]].keys())
+    else:
+        notions = []
+
+    # For the modes key, we want a list of dictionaries of the following form:
+    #  {'mode': string,
+    #   'notions': [{'notion': string,
+    #                'group_measures': [{
+    #                  'group': string,
+    #                  'outcome': float}, ...]},
+    #   ...]}
+    for mode in ["train", "test"]:
+        mode_dict = {'mode': mode.capitalize(),
+                     'notions': []}
+        for notion in notions:
+            notion_dict = {'notion': notion,
+                           'group_measures': []}
+            for group in groups:
+
+                outcome = data[group][notion][mode]
+                measures_dict = {
+                    'group': group,
+                    'outcome': f"{outcome:.3f}"
+                }
+
+                notion_dict['group_measures'].append(measures_dict)
+            mode_dict['notions'].append(notion_dict)
+        fairness["modes"].append(mode_dict)
+
+    # Mark last mode.
+    fairness['modes'][-1]['is_last'] = True
+
+    fairness['label'] = estimator
+    tex = rc.get_text("fairness_regressor_table.tex")
+    tex = chevron.render(tex, fairness)
+    return tex

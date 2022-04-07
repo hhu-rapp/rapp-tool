@@ -1,0 +1,24 @@
+\begin{table}[ht]
+  \centering
+  \caption{Fairness-Messung für {{title}} }%
+  {{#label}}
+  \label{tab:{{label}}-fairness}
+  {{/label}}
+  \begin{tabular}{ll{{#groups}}r{{/groups}}}
+    \toprule
+    Set & Fairness {{#groups}}& {{group}} {{/groups}}\\
+    \midrule
+    {{#modes}}
+      {{mode}}\\
+      {{#notions}}
+      & {{notion}}
+      {{#group_measures}}
+      & {{outcome}}
+      {{/group_measures}}
+      \\
+      {{/notions}}
+      {{^is_last}}\addlinespace{{/is_last}}
+    {{/modes}}
+    \bottomrule
+  \end{tabular}
+\end{table}

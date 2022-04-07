@@ -4,7 +4,12 @@ import rapp.report.resources as rc
 from rapp.util import estimator_name
 from rapp.pipeline import Pipeline
 
-from rapp.report.latex.tables import tex_fairness, tex_performance_table, tex_cross_validation
+from rapp.report.latex.tables import (
+    tex_cross_validation,
+    tex_fairness,
+    tex_performance_table,
+    tex_regression_fairness,
+)
 from rapp.report.latex.additionalmodels import tex_additional_models
 
 
@@ -203,7 +208,7 @@ def tex_regression_report(pipeline: Pipeline):
         pipeline,
         dataset_tex_fun=tex_dataset_plot,
         performance_tex_fun=tex_performance_table,
-        fairness_tex_fun=tex_fairness,
+        fairness_tex_fun=tex_regression_fairness,
         cross_validation_tex_fun=tex_cross_validation)
 
 

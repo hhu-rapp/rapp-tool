@@ -18,8 +18,6 @@ def regression_individual_fairness(X, y, z, pred, fav_label=1):
     -------
 
     """
-    fair = {}
-
     y_s1 = y[z != fav_label]
     y_s2 = y[z == fav_label]
     y_pred_s1 = pred[z != fav_label]
@@ -33,11 +31,7 @@ def regression_individual_fairness(X, y, z, pred, fav_label=1):
             fairness_penalty += cross_group_fairness_weights( yi, yj) * (yi_pred - yj_pred) ** 2
     fairness_penalty = 1 / (n1 + n2) * fairness_penalty  # normalization
 
-    fair = {
-        "Individual Fairness": fairness_penalty
-    }
-
-    return fair
+    return fairness_penalty
 
 
 def regression_group_fairness(X, y, z, pred, fav_label=1):
@@ -56,8 +50,6 @@ def regression_group_fairness(X, y, z, pred, fav_label=1):
     -------
 
     """
-    fair = {}
-
     y_s1 = y[z != fav_label]
     y_s2 = y[z == fav_label]
     y_pred_s1 = pred[z != fav_label]
@@ -71,11 +63,7 @@ def regression_group_fairness(X, y, z, pred, fav_label=1):
             fairness_penalty += cross_group_fairness_weights( yi, yj) * (yi_pred - yj_pred)
     fairness_penalty = (1 / (n1 + n2) * fairness_penalty) ** 2  # normalization
 
-    fair = {
-        "Group Fairness": fairness_penalty
-    }
-
-    return fair
+    return fairness_penalty
 
 
 def cross_group_fairness_weights(yi, yj):

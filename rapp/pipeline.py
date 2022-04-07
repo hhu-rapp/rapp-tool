@@ -133,12 +133,19 @@ class Pipeline:
         self.performance_results = {}
         self.statistics_results = {}
 
-        # Fixme: The below fairness notions do not make sense for regression.
-        self.fairness_functions = {
-            'Statistical Parity': notions.group_fairness,
-            'Predictive Equality': notions.predictive_equality,
-            'Equality of Opportunity': notions.equality_of_opportunity,
-        }
+        if self.type == 'classification':
+            self.fairness_functions = {
+                'Statistical Parity': notions.group_fairness,
+                'Predictive Equality': notions.predictive_equality,
+                'Equality of Opportunity': notions.equality_of_opportunity,
+            }
+        elif self.type == 'regression':
+            self.fairness_functions = {
+                'Reg. Group Fairness': notions.regression_group_fairness,
+                'Reg. Individual Fairness': notions.regression_individual_fairness,
+            }
+        else:
+            self.fairness_functions = {}
 
     def prepare_data(self):
         log.debug('Connecting to db %s', self.database_file)
