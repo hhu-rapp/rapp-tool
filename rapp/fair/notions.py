@@ -28,11 +28,9 @@ def regression_individual_fairness(X, y, z, pred, fav_label=None):
     n2 = len(y_s2)
 
     fairness_penalty = 0
-    for i in range(n1):
-        for j in range(n2):
-            yi, yj = y_s1[i], y_s2[j]
-            yi_pred, yj_pred = y_pred_s1[i], y_pred_s2[j]
-            fairness_penalty += cross_group_fairness_weights(yi, yj) * (yi_pred - yj_pred) ** 2
+    for yi, yi_pred in zip(y_s1, y_pred_s1):
+        for yj, yj_pred in zip(y_s2, y_pred_s2):
+            fairness_penalty += cross_group_fairness_weights( yi, yj) * (yi_pred - yj_pred) ** 2
     fairness_penalty = 1 / (n1 + n2) * fairness_penalty  # normalization
 
     fair = {
@@ -68,11 +66,9 @@ def regression_group_fairness(X, y, z, pred, fav_label=None):
     n2 = len(y_s2)
 
     fairness_penalty = 0
-    for i in range(n1):
-        for j in range(n2):
-            yi, yj = y_s1[i], y_s2[j]
-            yi_pred, yj_pred = y_pred_s1[i], y_pred_s2[j]
-            fairness_penalty += cross_group_fairness_weights(yi, yj) * (yi_pred - yj_pred)
+    for yi, yi_pred in zip(y_s1, y_pred_s1):
+        for yj, yj_pred in zip(y_s2, y_pred_s2):
+            fairness_penalty += cross_group_fairness_weights( yi, yj) * (yi_pred - yj_pred)
     fairness_penalty = (1 / (n1 + n2) * fairness_penalty) ** 2  # normalization
 
     fair = {
@@ -95,7 +91,7 @@ def cross_group_fairness_weights(yi, yj):
     -------
 
     """
-    return np.exp(-(yi-yj)**2)
+    return np.exp(-(yi - yj)**2)
 
 
 def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
@@ -155,7 +151,7 @@ def group_fairness(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
-        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+        affected_percent = 0 if len(pred_v) == 0 else len(fav) / len(pred_v)
 
         fair[v] = {
             "affected_total": len(fav),
@@ -177,7 +173,7 @@ def predictive_equality(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
-        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+        affected_percent = 0 if len(pred_v) == 0 else len(fav) / len(pred_v)
 
         fair[v] = {
             "affected_total": len(fav),
@@ -198,7 +194,7 @@ def equality_of_opportunity(X, y, z, pred, fav_label=1):
 
         fav = pred_v[pred_v == fav_label]
 
-        affected_percent = 0 if len(pred_v) == 0 else len(fav)/len(pred_v)
+        affected_percent = 0 if len(pred_v) == 0 else len(fav) / len(pred_v)
 
         fair[v] = {
             "affected_total": len(fav),
