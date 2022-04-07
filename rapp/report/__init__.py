@@ -1,19 +1,17 @@
+from rapp.util import estimator_name
+from rapp.report import resources as rc
+from rapp.report import latex
+from rapp.pipeline import Pipeline
+import joblib
 import os
 import json
 import shutil
 import subprocess
 import logging
 log = logging.getLogger('rapp.pipeline')
-import joblib
-
-from rapp.pipeline import Pipeline
-from rapp.report import latex
-from rapp.report import resources as rc
-
-from rapp.util import estimator_name
 
 
-def save_report(pipeline : Pipeline, path="reports/"):
+def save_report(pipeline: Pipeline, path="reports/"):
     """
     Writes report with results stored in the `pipeline`.
 
@@ -36,25 +34,28 @@ def save_report(pipeline : Pipeline, path="reports/"):
     latex_report_file = os.path.join(path, "report.tex")
     log.info("Writing LaTeX report to %s", latex_report_file)
 
-    if pipeline.type == "classification":
-        with open(latex_report_file, 'w') as f:
+    with open(latex_report_file, 'w') as f:
+        if pipeline.type == "classification":
             tex = latex.tex_classification_report(pipeline)
-            f.write(tex)
-
-    if pipeline.type == "regression":
-        with open(latex_report_file, 'w') as f:
+        elif pipeline.type == "regression":
             tex = latex.tex_regression_report(pipeline)
-            f.write(tex)
+        else:
+            log.error("Unknown pipeline type '%s' "
+                      "for selection of reporting function. "
+                      "Type needs to be one of 'classification', 'regression'.",
+                      pipeline.type)
+        f.write(tex)
 
-    with rc.get_path("hhulogo.pdf") as logo:
-        shutil.copy(logo, path)
-    with rc.get_path("hhuarticle.cls") as cls_file:
-        shutil.copy(cls_file, path)
+    # Copy over additionally needed resources for the Latex reports.
+    needed_resources = ['hhulogo.pdf', 'hhuarticle.cls']
+    for resource in needed_resources:
+        shutil.copy(rc.get_path(resource), path)
+
 
     # Attempt to compile latex report
     try:
         log.info("Compiling report.tex with latexmk: %s",
-                     latex_report_file)
+                 latex_report_file)
         subprocess.check_call([
             "latexmk",
             "-pdf",
@@ -64,7 +65,7 @@ def save_report(pipeline : Pipeline, path="reports/"):
         ], cwd=path)
     except subprocess.CalledProcessError as e:
         log.error("Unable to compile the report file %s: %s",
-                      latex_report_file, e)
+                  latex_report_file, e)
 
     for est, data in pipeline.performance_results.items():
         write_estimator_report(est, data, path)
