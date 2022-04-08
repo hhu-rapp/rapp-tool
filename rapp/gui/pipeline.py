@@ -80,6 +80,7 @@ class Pipeline(QtWidgets.QWidget):
 
         # create menus for configuration
         self.cbName = QtWidgets.QComboBox()
+        self.cbName.currentIndexChanged.connect(self.update_type)
         self.leCVariables = QtWidgets.QLineEdit()
         self.cbSAttributes = helper.CheckableComboBox()
         self.cbEstimator = helper.CheckableComboBox()
@@ -148,6 +149,7 @@ class Pipeline(QtWidgets.QWidget):
 
         self.update_estimators()
         self.update_sensitive_attributes()
+        self.update_type()
 
     def update_sensitive_attributes(self):
 
@@ -169,6 +171,15 @@ class Pipeline(QtWidgets.QWidget):
         for index, estimator in enumerate(estimators):
             self.cbEstimator.addItem(estimator)
             self.cbEstimator.setItemChecked(index)
+
+    def update_type(self):
+        # set type depending on number of unique values of the last column
+        if self.cbName.currentText() not in self.qmainwindow.sql_df.columns:
+            return
+        if len(self.qmainwindow.sql_df[self.cbName.currentText()].unique()) <= 2:
+            self.cbType.setCurrentText('Classification')
+        if len(self.qmainwindow.sql_df[self.cbName.currentText()].unique()) > 2:
+            self.cbType.setCurrentText('Regression')
 
     def set_report_path(self):
         options = QtWidgets.QFileDialog.Options()
