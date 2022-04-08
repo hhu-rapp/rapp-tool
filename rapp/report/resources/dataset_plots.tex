@@ -9,7 +9,10 @@
         height=8cm,
         width=12cm,
         grid=both,
-        ybar
+        ybar,
+        text opacity=1,
+        fill,
+        fill opacity=0.5,
       ]
         {{#modes}}
         \addplot+[hist={bins=10}]
@@ -20,8 +23,44 @@
           {{/labels}}
           };
         {{/modes}}
-       \legend{Trainset,Testset}
+       \legend{ {{#modes}}{{mode}}set,{{/modes}} }
      \end{axis}
   \end{tikzpicture}
   \caption{Überblick über den Datensatz.}
 \end{figure}
+{{#modes}}
+{{#groups}}
+\begin{figure}[ht]
+  \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        title={{group_name}} - {{mode}}set,
+        name={{group_name}},
+        xlabel=Labels,
+        ylabel=Total,
+        legend style={anchor=north, at={(0.5,-0.25)}, legend columns=-1},
+        height=6cm,
+        width=10cm,
+        grid=both,
+        ybar,
+        text opacity=1,
+        fill,
+        fill opacity=0.5,
+        bar width=1
+      ]
+        {{#subgroups}}
+        \addplot+[hist={bins=10}]
+          table[row sep=\\,y index=0] {
+          data\\
+          {{#sub_labels}}
+          {{sub_label}}\\
+          {{/sub_labels}}
+          };
+        {{/subgroups}}
+       \legend{ {{#subgroups}}{{sub_name}},{{/subgroups}} }
+     \end{axis}
+  \end{tikzpicture}
+  \caption{Überblick über {{group_name}} - {{mode}}set.}
+\end{figure}
+{{/groups}}
+{{/modes}}
