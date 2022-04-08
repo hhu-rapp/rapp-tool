@@ -18,7 +18,9 @@ from rapp.pipeline import _load_sql_query
 from rapp.pipeline import _load_test_split_from_dataframe
 from rapp.pipeline import train_models
 from rapp.pipeline import evaluate_estimator_fairness
-from rapp.pipeline import calculate_set_statistics
+from rapp.pipeline import calculate_classification_set_statistics
+from rapp.pipeline import calculate_regression_set_statistics
+from rapp.pipeline import calculate_statistics
 from rapp.pipeline import evaluate_estimators_performance
 from rapp.pipeline import evaluate_performance
 from rapp.parser import RappConfigParser
@@ -582,16 +584,14 @@ def test_performance_results_with_estimators():
     assert expected == pipeline.performance_results
 
 
-def test_calculate_set_statistics():
+def test_calculate_classification_set_statistics_structure():
     rng = np.random.default_rng(seed=123)
     X_train = rng.random((10, 2))
     y_train = pd.Series(rng.integers(2, size=(10,)))
     z_train = pd.DataFrame(rng.integers(2, size=(10, 2)),
                            columns=['protected', 'sensitive'])
 
-    data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
-
-    results = calculate_set_statistics(X_train, y_train, z_train)
+    results = calculate_classification_set_statistics(X_train, y_train, z_train)
 
     expected = {
         "total": 10,
@@ -630,3 +630,110 @@ def test_calculate_set_statistics():
                 }}}}
 
     assert expected == results
+
+
+def test_calculate_classification_set_statistics_with_pipeline():
+    pipeline = SimpleNamespace()
+    pipeline.statistics_results = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = pd.Series(rng.integers(2, size=(10,)))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 1)),
+                           columns=['protected'])
+
+    def get_data(self=None, n=None):
+        return X_train, y_train, z_train
+
+    pipeline.data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+    pipeline.get_data = get_data
+    pipeline.type = 'classification'
+    calculate_statistics(pipeline)
+
+    expected = {'train': {
+        "total": 10,
+        "outcomes": {
+            1: 2,
+            0: 8
+        },
+        'groups': {
+            'protected': {
+                0: {
+                    "total": 7,
+                    "outcomes": {
+                        1: 1,
+                        0: 6
+                    }},
+                1: {
+                    "total": 3,
+                    "outcomes": {
+                        1: 1,
+                        0: 2
+                    }
+                }}}}}
+
+    assert expected == pipeline.statistics_results
+
+
+def test_calculate_regression_set_statistics_structure():
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = pd.Series(rng.integers(2, size=(10,)))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 1)),
+                           columns=['protected'])
+
+    results = calculate_regression_set_statistics(X_train, y_train, z_train)
+
+    expected = {
+        'total': 10,
+        'outcomes': np.array([1, 0, 0, 0, 0, 0, 0, 1, 0, 0]),
+        'groups': {
+            'protected': {
+                0: {
+                    'total': 7,
+                    'outcomes': np.array([1, 0, 0, 0, 0, 0, 0])},
+                1: {'total': 3,
+                    'outcomes': np.array([0, 1, 0])}
+            }}}
+
+    try:
+        np.testing.assert_equal(expected, results)
+    except AssertionError:
+        pytest.fail(f"Items are not equal Expected: {expected} ,Got: {results}")
+
+
+def test_calculate_regression_set_statistics_with_pipeline():
+    pipeline = SimpleNamespace()
+    pipeline.statistics_results = {}  # Assumed to be present but empty.
+
+    rng = np.random.default_rng(seed=123)
+    X_train = rng.random((10, 2))
+    y_train = pd.Series(rng.integers(2, size=(10,)))
+    z_train = pd.DataFrame(rng.integers(2, size=(10, 1)),
+                           columns=['protected'])
+
+    def get_data(self=None, n=None):
+        return X_train, y_train, z_train
+
+    pipeline.data = {'train': {'X': X_train, 'y': y_train, 'z': z_train}}
+    pipeline.get_data = get_data
+    pipeline.type = 'regression'
+
+    calculate_statistics(pipeline)
+
+    expected = {'train': {
+                'total': 10,
+                'outcomes': np.array([1, 0, 0, 0, 0, 0, 0, 1, 0, 0]),
+                'groups': {
+                    'protected': {
+                        0: {
+                            'total': 7,
+                            'outcomes': np.array([1, 0, 0, 0, 0, 0, 0])},
+                        1: {'total': 3,
+                            'outcomes': np.array([0, 1, 0])}
+                    }}}}
+
+    try:
+        np.testing.assert_equal(expected, pipeline.statistics_results)
+    except AssertionError:
+        pytest.fail(f"Items are not equal Expected: {expected} ,Got: {pipeline.statistics_results}")
