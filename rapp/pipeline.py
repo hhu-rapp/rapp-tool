@@ -89,7 +89,7 @@ class Pipeline:
     statistics_results : dict[mode -> statistics]
         Dictionary with mode as key which map onto calculated statistics.
 
-        A statistic result has the form
+        A statistic result for classification has the form
 
         {'groups':
                 {group1: {subgroup1: {'total': int,
@@ -101,6 +101,18 @@ class Pipeline:
                  group2: {...},
                  ...},
              'outcomes': {label1: int, label2: int, ...},
+             'total': int}
+
+         A statistic result for regression has the form
+
+        {'groups':
+                {group1: {subgroup1: {'total': int,
+                                      'outcomes': np.array,
+                          subgroup2: {...},
+                          ...},
+                 group2: {...},
+                 ...},
+             'outcomes': np.array,
              'total': int}
 
     fairness_results : dict[estimator -> results]
@@ -481,14 +493,17 @@ def evaluate_estimators_performance(estimator, data, score_dict, calc_confusion_
 def calculate_statistics(pipeline):
     for mode in pipeline.data:
         X, y, z = pipeline.get_data(mode)
-        res = calculate_set_statistics(X, y, z)
+        if pipeline.type == 'classification':
+            res = calculate_classification_set_statistics(X, y, z)
+        if pipeline.type == 'regression':
+            res = calculate_regression_set_statistics(X, y, z)
         pipeline.statistics_results[mode] = res
     return pipeline
 
 
-def calculate_set_statistics(X, y, z):
+def calculate_classification_set_statistics(X, y, z):
     """
-    Calculates the statistics for a given set.
+    Calculates the classification statistics for a given set.
 
     Parameters
     ----------
@@ -504,7 +519,7 @@ def calculate_set_statistics(X, y, z):
     Returns
     -------
     set_stats
-        Nested dictionary for the given set matching the format for Pipeline.statistics_results.
+        Nested dictionary for the given set matching the format for Pipeline.statistics_results for classification.
     """
     set_stats = {'total': len(y),
                  'outcomes': {},
@@ -524,6 +539,42 @@ def calculate_set_statistics(X, y, z):
             for v in values:
                 num = len(data[y == v])
                 group_stats[gvalue]['outcomes'][v] = num
+        set_stats['groups'][g] = group_stats
+
+    return set_stats
+
+
+def calculate_regression_set_statistics(X, y, z):
+    """
+    Calculates the regression statistics for a given set.
+
+    Parameters
+    ----------
+    X : Dataframe
+        Features
+
+    y : Dataframe
+        Labels
+
+    z : Dataframe
+        Protected attributes
+
+    Returns
+    -------
+    set_stats
+        Nested dictionary for the given set matching the format for Pipeline.statistics_results for regression.
+    """
+    set_stats = {'total': len(y),
+                 'outcomes': y.squeeze().ravel(),
+                 'groups': {}}
+
+    for g in z.columns:
+        group_stats = {}
+        for gvalue in z[g].unique():
+            data = y[z[g] == gvalue]
+            group_stats[gvalue] = {'total': len(data),
+                                   'outcomes': data.squeeze().ravel()}
+
         set_stats['groups'][g] = group_stats
 
     return set_stats

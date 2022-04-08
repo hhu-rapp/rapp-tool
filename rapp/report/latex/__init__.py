@@ -124,14 +124,12 @@ def tex_dataset_plot(report):
 
             {'groups':
                 {group1: {subgroup1: {'total': int,
-                                      'outcomes': {label1: int,
-                                                   label2: int,
-                                                   ...}},
+                                      'outcomes': np.array,
                           subgroup2: {...},
                           ...},
                  group2: {...},
                  ...},
-             'outcomes': {label1: int, label2: int, ...},
+             'outcomes': np.array,
              'total': int}
 
     Returns
@@ -164,9 +162,8 @@ def tex_dataset_plot(report):
                     "sub_count": dataset["groups"][group][sub]["total"]
                 }
                 single_sub_labels = []
-                for sub_label in dataset["groups"][group][sub]["outcomes"].keys():
-                    for i in range(dataset["groups"][group][sub]["outcomes"][sub_label]):
-                        single_sub_labels.append({"sub_label": sub_label})
+                for sub_label in dataset["groups"][group][sub]["outcomes"]:
+                    single_sub_labels.append({"sub_label": sub_label})
 
                 sub_data["sub_labels"] = single_sub_labels
                 group_data["subgroups"].append(sub_data)
@@ -174,9 +171,8 @@ def tex_dataset_plot(report):
 
         # Fill the label data
         single_labels = []
-        for label in dataset["outcomes"].keys():
-            for i in range(dataset["outcomes"][label]):
-                single_labels.append({"label": label})
+        for label in dataset["outcomes"]:
+            single_labels.append({"label": label})
 
         mode_data = {"mode": mode.capitalize(),
                      "total": dataset["total"],
