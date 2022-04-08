@@ -89,6 +89,20 @@ class Pipeline:
     statistics_results : dict[mode -> statistics]
         Dictionary with mode as key which map onto calculated statistics.
 
+        A statistic result has the form
+
+        {'groups':
+                {group1: {subgroup1: {'total': int,
+                                      'outcomes': {label1: int,
+                                                   label2: int,
+                                                   ...}},
+                          subgroup2: {...},
+                          ...},
+                 group2: {...},
+                 ...},
+             'outcomes': {label1: int, label2: int, ...},
+             'total': int}
+
     fairness_results : dict[estimator -> results]
         Dictionary with estimators as key which map onto possibly
         calculated fairness results.
