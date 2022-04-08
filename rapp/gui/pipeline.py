@@ -126,22 +126,17 @@ class Pipeline(QtWidgets.QWidget):
         self.setLayout(self.vlayoutMainML)
 
     def refresh_labels(self):
-
         # refresh Target Variable comboBox
         self.cbName.clear()
         column_names = self.qmainwindow.sql_df.columns
-
         for feature in column_names:
             self.cbName.addItem(feature)
-
         self.cbName.setCurrentText(column_names[-1])
 
         # refresh Categorical Variable lineEdit
         self.leCVariables.clear()
         for feature in (self.qmainwindow.sql_df.select_dtypes(exclude=["number"])).columns:
-
             text = self.leCVariables.text()
-
             if text == '':
                 self.leCVariables.setText(feature)
             else:
@@ -152,7 +147,6 @@ class Pipeline(QtWidgets.QWidget):
         self.update_type()
 
     def update_sensitive_attributes(self):
-
         self.cbSAttributes.clear()
         for index, feature in enumerate(self.qmainwindow.sql_df.columns):
             self.cbSAttributes.addItem(feature)
