@@ -62,7 +62,7 @@ def tex_dataset_report(report):
         # Fill in the group names
         groups = []
         start_col_counter = 2
-        for group in dataset["groups"].keys():
+        for group in dataset["groups"]:
             group_data = {'group_name': group,
                           'subgroups': []}
             for sub in dataset["groups"][group].keys():
@@ -80,7 +80,7 @@ def tex_dataset_report(report):
 
         # Fill the label data
         labels = []
-        for label in dataset["outcomes"].keys():
+        for label in dataset["outcomes"]:
             label = label
             label_data = {'label': label,
                           'label_total': dataset["outcomes"][label],
@@ -152,11 +152,10 @@ def tex_dataset_plot(report):
 
         # Fill in the group names
         groups = []
-        start_col_counter = 2
-        for group in dataset["groups"].keys():
+        for group in dataset["groups"]:
             group_data = {'group_name': group,
                           'subgroups': []}
-            for sub in dataset["groups"][group].keys():
+            for sub in dataset["groups"][group]:
                 sub_data = {
                     "sub_name": sub,
                     "sub_count": dataset["groups"][group][sub]["total"]
