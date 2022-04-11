@@ -1,0 +1,52 @@
+\begin{figure}[ht]
+  \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+        xlabel=Labels,
+        ylabel=Total,
+        legend style={anchor=north, at={(0.5,-0.15)}, legend columns=-1},
+        height=8cm,
+        width=12cm,
+        grid=both,
+        ybar,
+        text opacity=1,
+        fill,
+        fill opacity=0.5,
+      ]
+        \addplot+[hist={bins=10}]
+          table[row sep=\\,y index=0] {
+          data\\
+          0\\
+          2\\
+          1\\
+          0\\
+          2\\
+          0\\
+          0\\
+          0\\
+          1\\
+          0\\
+          1\\
+          2\\
+          };
+        \addplot+[hist={bins=10}]
+          table[row sep=\\,y index=0] {
+          data\\
+          1\\
+          2\\
+          1\\
+          0\\
+          2\\
+          2\\
+          2\\
+          2\\
+          0\\
+          1\\
+          0\\
+          0\\
+          };
+       \legend{ Trainset,Testset, }
+     \end{axis}
+  \end{tikzpicture}
+  \caption{Überblick über den Datensatz.}
+\end{figure}
