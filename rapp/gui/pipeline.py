@@ -3,6 +3,7 @@ import os.path
 import traceback
 import logging
 import logging
+
 log = logging.getLogger('GUI')
 
 # PyQt5
@@ -180,7 +181,7 @@ class Pipeline(QtWidgets.QWidget):
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         options |= QtWidgets.QFileDialog.ShowDirsOnly
         path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select a Folder", "",
-                                                            options=options)
+                                                          options=options)
         if path == '':
             path = 'reports/'
 
@@ -215,7 +216,7 @@ class Pipeline(QtWidgets.QWidget):
 
             log.info('Generating report...')
             save_report(pl, report_path)
-            log.info('Report saved to %s',report_path)
+            log.info('Report saved to %s', report_path)
 
         except Exception as e:
             log.error(traceback.format_exc())
