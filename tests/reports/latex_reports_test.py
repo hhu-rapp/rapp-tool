@@ -45,7 +45,7 @@ def test_dataset_report_table__two_groups__two_labels():
         'total': 15
     }
 
-    expected = rc.get_text('reports/data_table_two_groups_two_labels.tex').replace('\r', '')  # Windows inserts a carriage return symbol
+    expected = rc.get_text('reports/data_table_two_groups_two_labels.tex')
     actual = tex_dataset_report(report)
 
     assert expected == actual
@@ -82,7 +82,7 @@ def test_dataset_report_plot__two_groups__two_labels():
         'total': 12
     }
 
-    expected = rc.get_text('reports/data_plot_two_groups_two_labels.tex').replace('\r', '')
+    expected = rc.get_text('reports/data_plot_two_groups_two_labels.tex')
     actual = tex_dataset_plot(report)
 
     assert expected == actual
@@ -105,7 +105,7 @@ def test_dataset_report_plot__no_groups():
         'total': 12
     }
 
-    expected = rc.get_text('reports/data_plot_no_groups.tex').replace('\r', '')
+    expected = rc.get_text('reports/data_plot_no_groups.tex')
     actual = tex_dataset_plot(report)
 
     assert expected == actual
@@ -127,7 +127,7 @@ def test_performance_table__two_metrics():
             'bar': 0}
     }
 
-    expected = rc.get_text('reports/metrics_table_two_metrics.tex').replace('\r', '')
+    expected = rc.get_text('reports/metrics_table_two_metrics.tex')
     actual = tex_performance_table(estimator, report)
 
     assert expected == actual
@@ -159,7 +159,7 @@ def test_cv_table__three_fold():
               'test_foo': [0, 1, 2],
               'test_bar': [0, 1, 2]}
 
-    expected = rc.get_text('reports/cv_table.tex').replace('\r', '')
+    expected = rc.get_text('reports/cv_table.tex')
     actual = tex_cross_validation(estimator, report)
 
     assert expected == actual
