@@ -87,3 +87,37 @@ def test_loading_config_file(gui: GuiTestApi, tmp_path):
                       f" but is {gui.ml_type_box.currentText()}")
 
     assert not errors, "\n".join(errors)
+
+
+def test_selecting_template_label_selects_prediction_type(gui: GuiTestApi):
+    features_id = "cs_first_term_modules"
+    labels_id = [gui.sql_target_select_box.itemText(i) for i in range(gui.sql_target_select_box.count())]
+    # Check whether
+    errors = []
+
+    for label in labels_id:
+
+        if len(label) == 0:
+            continue
+
+        gui.key_click(gui.sql_features_select_box, features_id)
+        gui.key_click(gui.sql_target_select_box, label)
+        gui.click(gui.sql_template_load_btn)
+
+        df = gui.get_df()
+
+        unique_label_count = len(df[gui.target_var_box.currentText()].unique())
+        total_label_count = len(df[gui.target_var_box.currentText()])
+        unique_label_ratio = unique_label_count / total_label_count
+
+        if unique_label_ratio > 0.5:
+            expected_type = 'Regression'
+        else:
+            expected_type = 'Classification'
+
+        if gui.ml_type_box.currentText() != expected_type:
+            errors.append(f"{gui.target_var_box.currentText()} unique label ratio is {unique_label_ratio}"
+                          f" prediction type should be {expected_type}"
+                          f" but is {gui.ml_type_box.currentText()}")
+
+    assert not errors, "\n".join(errors)
