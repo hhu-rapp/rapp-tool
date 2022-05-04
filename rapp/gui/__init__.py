@@ -104,6 +104,8 @@ class Window(QMainWindow):
         
         # add widgets
         tab_idx = self.tabs.addTab(self.fairness, 'Fairness')
+        self.fairness_tab_index = tab_idx
+        self.tabs.setTabEnabled(tab_idx, False)
     
     def __init_XAI_tab(self):
         self.XAI = QtWidgets.QWidget()
@@ -114,3 +116,5 @@ class Window(QMainWindow):
         
         # add widgets
         tab_idx = self.tabs.addTab(self.XAI, 'XAI')
+        self.xai_tab_index = tab_idx
+        self.tabs.setTabEnabled(tab_idx, False)

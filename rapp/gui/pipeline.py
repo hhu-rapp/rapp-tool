@@ -226,6 +226,10 @@ class Pipeline(QtWidgets.QWidget):
             log.error(traceback.format_exc())
             traceback.print_exc()
 
+        # Enable Fairness and XAI Tabs
+        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
+        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
+
     def parse_settings(self):
         cf = argparse.Namespace()
 
