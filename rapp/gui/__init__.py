@@ -12,7 +12,7 @@ from rapp.gui.helper import Color
 from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
 from rapp.gui.menubar import MenuBar
 from rapp.gui.dbview import DatabaseLayoutWidget
-from rapp.gui.tabs import Tabs
+from rapp.gui.settings import SimpleSettings
 
 import logging
 log = logging.getLogger("GUI")

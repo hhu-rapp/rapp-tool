@@ -9,10 +9,10 @@ from rapp import gui
 from rapp.gui.pipeline import Pipeline
 
 
-class Tabs(QtWidgets.QWidget):
+class SimpleSettings(QtWidgets.QWidget):
 
     def __init__(self, qmainwindow):
-        super(Tabs, self).__init__()
+        super(SimpleSettings, self).__init__()
 
         self.qmainwindow = qmainwindow
         self.initUI()
@@ -25,27 +25,11 @@ class Tabs(QtWidgets.QWidget):
 
         # create widgets
         self.tab = QtWidgets.QTabWidget()
-        self.MLTab = Pipeline(self.qmainwindow)
-        self.XAITab = XAI()
-        self.FairnessTab = FairML()
+        self.simple_tab = Pipeline(self.qmainwindow)
 
         # add widgets to tab
-        self.tab.addTab(self.MLTab, 'Pipeline Settings')
-        # self.tab.addTab(self.XAITab, 'Explainable AI')
-        # self.tab.addTab(self.FairnessTab, 'Fairness-Aware ML')
+        self.tab.addTab(self.simple_tab, 'Simple Settings')
 
         # add widgets to layout
         vLayout.addWidget(self.tab, 3)
         vLayout.addWidget(self.qmainwindow.loggingTextBrowser, 1)
-
-
-class XAI(QtWidgets.QWidget):
-
-    def __init__(self):
-        super(XAI, self).__init__()
-
-
-class FairML(QtWidgets.QWidget):
-
-    def __init__(self):
-        super(FairML, self).__init__()

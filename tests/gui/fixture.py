@@ -40,16 +40,16 @@ class GuiTestApi():
         self.sql_redo_btn = widget.databaseLayoutWidget.sql_tabs.qPushButtonRedoSql
 
         # Pipeline settings
-        self.target_var_box = widget.tabs.MLTab.cbName
-        self.categorical_var_field = widget.tabs.MLTab.leCVariables
-        self.sensitive_attr_box = widget.tabs.MLTab.cbSAttributes
-        self.ml_type_box = widget.tabs.MLTab.cbType
-        self.report_path_field = widget.tabs.MLTab.lePath
-        self.report_path_btn = widget.tabs.MLTab.reportPathButton
-        self.imputation_box = widget.tabs.MLTab.cbImputation
-        self.feature_selection_box = widget.tabs.MLTab.cbFSM
-        self.estimator_select_box = widget.tabs.MLTab.cbEstimator
-        self.train_btn = widget.tabs.MLTab.trainButton
+        self.target_var_box = widget.settings.simple_tab.cbName
+        self.categorical_var_field = widget.settings.simple_tab.leCVariables
+        self.sensitive_attr_box = widget.settings.simple_tab.cbSAttributes
+        self.ml_type_box = widget.settings.simple_tab.cbType
+        self.report_path_field = widget.settings.simple_tab.lePath
+        self.report_path_btn = widget.settings.simple_tab.reportPathButton
+        self.imputation_box = widget.settings.simple_tab.cbImputation
+        self.feature_selection_box = widget.settings.simple_tab.cbFSM
+        self.estimator_select_box = widget.settings.simple_tab.cbEstimator
+        self.train_btn = widget.settings.simple_tab.trainButton
 
         # Menubar
         self.menubar = widget.menubar

@@ -178,7 +178,7 @@ class MenuBar(QtWidgets.QMenuBar):
 
         self.qMainWindow.connectDatabase(os.path.normpath(cf.filename))
 
-        self.qMainWindow.qmainwindow.tabs.MLTab.cbType.setCurrentText(cf.type.capitalize())
+        self.qMainWindow.qmainwindow.settings.simple_tab.cbType.setCurrentText(cf.type.capitalize())
 
         if hasattr(cf, 'sql_file') and cf.sql_file is not None:
             with open(cf.sql_file, 'r') as f:
@@ -199,19 +199,19 @@ class MenuBar(QtWidgets.QMenuBar):
         # load optional settings
         # TODO: Better way to access MLTab attributes
         if hasattr(cf, 'label_name'):
-            self.qMainWindow.qmainwindow.tabs.MLTab.cbName.setCurrentText(cf.label_name)
+            self.qMainWindow.qmainwindow.settings.simple_tab.cbName.setCurrentText(cf.label_name)
 
         if hasattr(cf, 'sensitive_attributes'):
-            self.qMainWindow.qmainwindow.tabs.MLTab.cbSAttributes.check_items(cf.sensitive_attributes)
+            self.qMainWindow.qmainwindow.settings.simple_tab.cbSAttributes.check_items(cf.sensitive_attributes)
 
         if hasattr(cf, 'report_path'):
-            self.qMainWindow.qmainwindow.tabs.MLTab.lePath.setText(cf.report_path)
+            self.qMainWindow.qmainwindow.settings.simple_tab.lePath.setText(cf.report_path)
 
         if hasattr(cf, 'estimators'):
-            self.qMainWindow.qmainwindow.tabs.MLTab.cbEstimator.check_items(cf.estimators)
+            self.qMainWindow.qmainwindow.settings.simple_tab.cbEstimator.check_items(cf.estimators)
 
     def saveConfigurationFile(self):
-        cf = self.qMainWindow.qmainwindow.tabs.MLTab.parse_settings()
+        cf = self.qMainWindow.qmainwindow.settings.simple_tab.parse_settings()
 
         if cf is None:
             return

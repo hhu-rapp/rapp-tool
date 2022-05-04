@@ -226,7 +226,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             self.qmainwindow.sql_df = self.sql_df
 
             # TODO: better way to do access the method
-            self.qmainwindow.tabs.MLTab.refresh_labels()
+            self.qmainwindow.settings.simple_tab.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
             log.error(str(e))
