@@ -68,11 +68,6 @@ class Window(QMainWindow):
         self.__init_fairness_tab()
         self.__init_XAI_tab()
         
-        # layout.addWidget(self.tabs)
-        # skeletonWidget = QtWidgets.QWidget()
-        # skeletonWidget.setLayout(layout)
-        # self.setCentralWidget(skeletonWidget)
-        
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 10, 0, 0)
         self.setLayout(layout)
