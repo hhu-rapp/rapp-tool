@@ -8,6 +8,8 @@ from qt_material import apply_stylesheet
 from rapp.gui.dbview import DataView
 
 # import rapp gui widgets
+from rapp.gui.fairness import FairnessWidget
+from rapp.gui.XAI import XAIWidget
 from rapp.gui.helper import Color
 from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
 from rapp.gui.menubar import MenuBar
@@ -25,53 +27,90 @@ sql_df = None
 class Window(QMainWindow):
     def __init__(self, db_filepath="data/rapp/data.db"):
         super().__init__()
-
+        
         # variables before initializing gui
-        self.__conn = None # Database connection.
+        self.__conn = None  # Database connection.
         self.filepath_db = db_filepath
         self.sql_df = None
-
+        
         # initialize logging handler
         self.loggingTextBrowser = LoggingTextBrowser()
         handler = LoggingHandler(self.loggingTextBrowser)
-        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s',datefmt='%Y-%m-%d %H:%M:%S'))
+        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         log.addHandler(handler)
         log_pipeline.addHandler(handler)
-
+        
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()
         self.initLayout()
-
+        
         self.menubar = MenuBar(self.databaseLayoutWidget)
         self.setMenuBar(self.menubar)
-
+        
         # set status bar
         self.statusbar = QtWidgets.QStatusBar(self)
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
-
+    
     def initUI(self):
         # set the title
         self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
-
+        
         # setting the geometry of window
         self.width = 1280
         self.height = 800
         self.setGeometry(100, 60, self.width, self.height)
-
+    
     def initLayout(self):
-        skeletonWidget = QtWidgets.QWidget()
-        skeletonLayout = QtWidgets.QHBoxLayout()
-        skeletonWidget.setLayout(skeletonLayout)
-        self.setCentralWidget(skeletonWidget)
-
+        self.tabs = QtWidgets.QTabWidget()
+        
+        self.__init_pipeline_settings_tab()
+        self.__init_fairness_tab()
+        self.__init_XAI_tab()
+        
+        # layout.addWidget(self.tabs)
+        # skeletonWidget = QtWidgets.QWidget()
+        # skeletonWidget.setLayout(layout)
+        # self.setCentralWidget(skeletonWidget)
+        
+        layout = QtWidgets.QHBoxLayout()
+        layout.setContentsMargins(0, 10, 0, 0)
+        self.setLayout(layout)
+        self.setCentralWidget(self.tabs)
+    
+    def __init_pipeline_settings_tab(self):
+        self.pipeline_settings = QtWidgets.QWidget()
+        self.pipeline_settings.setLayout(QtWidgets.QHBoxLayout())
+        
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databaseLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
-        self.tabs = Tabs(self)
-
+        self.settings = SimpleSettings(self)
+        
         # add widgets
         splitter.addWidget(self.databaseLayoutWidget)
-        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.settings)
         splitter.setSizes([800, 480])
-        skeletonLayout.addWidget(splitter)
+        self.pipeline_settings.layout().addWidget(splitter)
+        
+        self.tabs.addTab(self.pipeline_settings, 'Pipeline Settings')
+    
+    def __init_fairness_tab(self):
+        self.fairness = QtWidgets.QWidget()
+        self.fairness.setLayout(QtWidgets.QHBoxLayout())
+        
+        # create widgets
+        self.fairness = FairnessWidget(self)
+        
+        # add widgets
+        tab_idx = self.tabs.addTab(self.fairness, 'Fairness')
+    
+    def __init_XAI_tab(self):
+        self.XAI = QtWidgets.QWidget()
+        self.XAI.setLayout(QtWidgets.QHBoxLayout())
+        
+        # create widgets
+        self.XAI = XAIWidget(self)
+        
+        # add widgets
+        tab_idx = self.tabs.addTab(self.XAI, 'XAI')
