@@ -8,6 +8,7 @@ from qt_material import apply_stylesheet
 from rapp.gui.dbview import DataView
 
 # import rapp gui widgets
+from rapp.gui.prediction import PredictionWidget
 from rapp.gui.fairness import FairnessWidget
 from rapp.gui.XAI import XAIWidget
 from rapp.gui.helper import Color
@@ -63,11 +64,12 @@ class Window(QMainWindow):
     
     def initLayout(self):
         self.tabs = QtWidgets.QTabWidget()
-        
+
         self.__init_pipeline_settings_tab()
+        self.__init_prediction_tab()
         self.__init_fairness_tab()
         self.__init_XAI_tab()
-        
+
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 10, 0, 0)
         self.setLayout(layout)
@@ -112,4 +114,16 @@ class Window(QMainWindow):
         # add widgets
         tab_idx = self.tabs.addTab(self.XAI, 'XAI')
         self.xai_tab_index = tab_idx
+        self.tabs.setTabEnabled(tab_idx, False)
+
+    def __init_prediction_tab(self):
+        self.predictionWidget = QtWidgets.QWidget()
+        self.predictionWidget.setLayout(QtWidgets.QHBoxLayout())
+
+        # create widgets
+        self.predictionWidget = PredictionWidget(self)
+
+        # add widgets
+        tab_idx = self.tabs.addTab(self.predictionWidget, 'Prediction')
+        self.prediction_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
