@@ -172,6 +172,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.filepath_db = filepath_db
         self.__conn = None
         self.sql_df = None
+        self.features_id = None
+        self.labels_id = None
 
         self.initUI()
         self.connectDatabase(self.filepath_db) # init database
@@ -220,16 +222,21 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.__conn = data.connect(self.filepath_db)
         self.pandasTv.set_connection(self.__conn)
 
-    def displaySql(self, sql_query=None):
+    def displaySql(self, sql_query=None, f_id=None, l_id=None):
         try:
             self.sql_df = self.pandasTv.set_custom_sql(sql_query)
             self.qmainwindow.sql_df = self.sql_df
+            self.features_id = f_id
+            self.labels_id = l_id
 
             # TODO: better way to do access the method
             self.qmainwindow.settings.simple_tab.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
             log.error(str(e))
+
+    def getDataSettings(self):
+        return self.sql_df, self.features_id, self.labels_id
 
     def load_sql(self, sql_query):
         self.sql_tabs.set_sql(sql_query)

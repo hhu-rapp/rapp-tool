@@ -65,7 +65,6 @@ class SQLWidget(QtWidgets.QWidget):
         self.targetSelect.addItem("")
         for dir in dirs_labels:
             self.targetSelect.addItem(dir)
-            print(dir)
 
         self.verifySelect = QtWidgets.QPushButton("Load")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
@@ -146,7 +145,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field.setPlainText(sql)
 
         # Load the data
-        self.displaySql(sql)
+        self.displaySql(sql, f_id, l_id)
 
         # Changing the custom SQL should reset the selections.
         self.sql_field.textChanged.connect(self.reset_simple_tab)
