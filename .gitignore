@@ -672,5 +672,8 @@ reports/
 !tests/reports/
 !tests/resources/reports/
 
+## ml models
+*.joblib
+
 ## Other logs
 *.log
