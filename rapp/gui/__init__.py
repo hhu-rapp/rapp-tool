@@ -125,11 +125,27 @@ class Window(QMainWindow):
     def __init_prediction_tab(self):
         self.predictionWidget = QtWidgets.QWidget()
         self.predictionWidget.setLayout(QtWidgets.QHBoxLayout())
+        self.vLayoutWidget = QtWidgets.QWidget()
+
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
 
         # create widgets
-        self.predictionWidget = PredictionWidget(self)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self.databasePredictionLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
+        self.predictionHandler = PredictionWidget(self)
+
+        # add widgets
+        splitter.addWidget(self.databasePredictionLayoutWidget)
+        splitter.addWidget(self.vLayoutWidget)
+        splitter.setSizes([480, 800])
+        self.predictionWidget.layout().addWidget(splitter)
+
+        vLayout.addWidget(self.predictionHandler, 3)
+        vLayout.addWidget(self.loggingTextBrowserPred, 1)
+        
+        self.vLayoutWidget.setLayout(vLayout)
 
         # add widgets
         tab_idx = self.tabs.addTab(self.predictionWidget, 'Prediction')
         self.prediction_tab_index = tab_idx
-        self.tabs.setTabEnabled(tab_idx, False)
