@@ -40,6 +40,11 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item.setCheckState(QtCore.Qt.Checked)
         else:
             item.setCheckState(QtCore.Qt.Unchecked)
+            
+    def find_item_index(self, text):
+        item = self.model().findItems(text)
+        item_index = self.model().indexFromItem(item[0])
+        return item_index.row()
 
     def handle_item_pressed(self, index):
 
@@ -76,6 +81,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item.setCheckState(QtCore.Qt.Unchecked)
 
         for option in options:
+            option = option.replace("'", "")
             item = self.model().findItems(option)
 
             if len(item) == 0:
