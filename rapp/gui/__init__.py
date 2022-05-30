@@ -19,6 +19,7 @@ from rapp.gui.settings import SimpleSettings
 
 import logging
 log = logging.getLogger("GUI")
+log_pred = logging.getLogger("prediction")
 log_pipeline = logging.getLogger("rapp.pipeline")
 
 sql_temp_path = "sql_temp.sql"
@@ -40,6 +41,11 @@ class Window(QMainWindow):
         handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         log.addHandler(handler)
         log_pipeline.addHandler(handler)
+        
+        self.loggingTextBrowserPred = LoggingTextBrowser()
+        handler_pred = LoggingHandler(self.loggingTextBrowserPred)
+        handler_pred.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        log_pred.addHandler(handler_pred)
         
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()
