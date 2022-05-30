@@ -100,10 +100,18 @@ class PredictionWidget(QtWidgets.QWidget):
         It assumes that the models loaded are compatible with the data.
         """
         data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
+        selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandasTv.table.selectionModel().selectedRows()
+
         # drop last column
         data_df = data_df.iloc[:, :-1]
+
         X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
-        
+        if len(selected_indexes) > 0:
+            selected_row = selected_indexes[0].row()
+            X = X.iloc[[selected_row]]
+            log.error(f"Student No. {selected_row} selected.")
+            log.error(f"Student's features: \n {X}")
+
         for i, modelCb in enumerate(self.loadedModelsCb):
             models = modelCb.get_checked_items()
             
@@ -111,8 +119,10 @@ class PredictionWidget(QtWidgets.QWidget):
                 item_index = modelCb.find_item_index(model)
                 y_pred = modelCb.itemData(item_index)['model'].predict(X)
                 # TODO: use majority voting when selecting prediction
-                # atm it only returns the first prediction of the last model
+                # atm it only returns the selected prediction of the last model
                 self.predLabels[i].setText(str(y_pred[0]))
+
+                log.error('Prediction finished.')
 
     def load_model(self, filename, index):
         """
