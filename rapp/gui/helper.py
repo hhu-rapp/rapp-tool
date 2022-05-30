@@ -115,3 +115,24 @@ class LoggingTextBrowser(QtWidgets.QWidget):
 
     def write(self, s):
         self.textBrowser.append(s)
+
+
+class LoadModelPushButton(QtWidgets.QPushButton):
+    
+    def __init__(self, id):
+        """
+        A QPushButton with an id.
+        
+        Parameters
+        ----------
+        id: int
+            id to be passed to clicked.connect method.
+        """
+        super().__init__('...')
+        self.id = id
+
+        super().setStatusTip('Load Model')
+        super().setMaximumWidth(50)
+    
+    def set_click_function(self, function):
+        super().clicked.connect(lambda: function(self.id))
