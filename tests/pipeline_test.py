@@ -13,7 +13,7 @@ from sklearn.utils.validation import check_is_fitted
 
 from rapp import sqlbuilder
 from rapp.fair.notions import group_fairness, predictive_equality
-from rapp.pipeline import Pipeline, _parse_estimators
+from rapp.pipeline import Pipeline, _parse_estimators, preprocess_data
 from rapp.pipeline import _load_sql_query
 from rapp.pipeline import _load_test_split_from_dataframe
 from rapp.pipeline import train_models
@@ -336,8 +336,35 @@ def test_load_correct_sql_query_from_file():
 
     expected = "SELECT * FROM student ORDER BY Pseudonym LIMIT 100\n"
     actual = pipeline.sql_query
-
     assert expected == actual, "SQL query does not match"
+    
+    
+def test_preprocess_data_without_label():
+    d = {'foo': [0, 2], 'bar': ["A", "B"]}
+    d1 = {'foo': [0, 2], 'bar_A': [1, 0], 'bar_B': [0, 1]}
+    X = pd.DataFrame(data=d)
+
+    expected = pd.DataFrame(data=d1)
+    expected["bar_A"] = pd.to_numeric(expected["bar_A"], downcast='unsigned')
+    expected["bar_B"] = pd.to_numeric(expected["bar_B"], downcast='unsigned')
+    
+    actual = preprocess_data(X, ['bar'])
+
+    pd.testing.assert_frame_equal(actual, expected)
+
+
+def test_preprocess_data_with_label():
+    d = {'foo': [0, 2], 'bar': ["A", "B"], 'foobar': ["A", "B"]}
+    d1 = {'foo': [0, 2], 'foobar': ["A", "B"], 'bar_A': [1, 0], 'bar_B': [0, 1]}
+    X = pd.DataFrame(data=d)
+    
+    expected = pd.DataFrame(data=d1)
+    expected["bar_A"] = pd.to_numeric(expected["bar_A"], downcast='unsigned')
+    expected["bar_B"] = pd.to_numeric(expected["bar_B"], downcast='unsigned')
+    
+    actual = preprocess_data(X, ['bar', 'foobar'], label='foobar')
+    
+    pd.testing.assert_frame_equal(actual, expected)
 
 
 def test_training_with_cross_validation():
