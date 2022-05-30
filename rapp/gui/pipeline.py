@@ -226,9 +226,14 @@ class Pipeline(QtWidgets.QWidget):
             log.error(traceback.format_exc())
             traceback.print_exc()
 
+        if pl.fairness_results:
+            data_settings = {"studies_id": cf.studies_id,
+                             "features_id": cf.features_id,
+                             "labels_id": cf.labels_id}
+            self.populate_fairness_tab(pl, data_settings)
+
         # Enable Fairness and XAI Tabs
-        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
-        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
+        # self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
 
     def parse_settings(self):
         cf = argparse.Namespace()
@@ -242,7 +247,11 @@ class Pipeline(QtWidgets.QWidget):
             return
 
         cf.filename = None
-        cf.sql_df = self.qmainwindow.sql_df
+        studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
+        cf.studies_id = studies_feat_id[0]
+        cf.features_id = studies_feat_id[1]
+        cf.labels_id = self.qmainwindow.databaseLayoutWidget.labels_id
+        cf.sql_df = self.qmainwindow.databaseLayoutWidget.sql_df
         cf.label_name = self.cbName.currentText()
         cf.categorical = self.leCVariables.text().replace(' ', '').split(',')
         cf.type = self.cbType.currentText().lower()
@@ -252,3 +261,9 @@ class Pipeline(QtWidgets.QWidget):
         cf.feature_selection = self.cbFSM.currentText().lower()
 
         return cf
+
+    def populate_fairness_tab(self, results, data_settings):
+        # Enable Fairness tab
+        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
+        # FIXME: allow reload of layout
+        self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).initUI(results, data_settings)

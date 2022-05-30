@@ -1,12 +1,8 @@
-import argparse
-import os.path
-
 # PyQt5
+import joblib
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-# rapp gui
-from rapp import gui
-from rapp.gui.pipeline import Pipeline
+from rapp.util import estimator_name
 
 
 class FairnessWidget(QtWidgets.QWidget):
@@ -15,9 +11,19 @@ class FairnessWidget(QtWidgets.QWidget):
 		super(FairnessWidget, self).__init__()
 		
 		self.qmainwindow = qmainwindow
-		self.initUI()
 	
-	def initUI(self):
+	def initUI(self, pipeline, data_settings):
+		"""
+		Parameters
+		----------
+		pipeline: rapp.pipeline object
+		    A pipeline object with trained models.
+		    
+		data_settings: a dict with the features and labels of the train data, with the form of:
+			{'studies_id': studies_id of train data,
+        	'features_id': features_id of train data,
+        	'labels_id': predicting label_id of the model}
+		"""
 		# create layout
 		layout = QtWidgets.QHBoxLayout()
 		layout.setContentsMargins(0, 10, 0, 0)
@@ -26,6 +32,8 @@ class FairnessWidget(QtWidgets.QWidget):
 		# create widgets
 		self.tabs = QtWidgets.QTabWidget()
 		
+		self.pipeline = pipeline
+		self.data_settings = data_settings
 		self.__init_dataset_tab()
 		self.__init_overview_tab()
 		self.__init_individual_tab()
@@ -49,7 +57,68 @@ class FairnessWidget(QtWidgets.QWidget):
 	
 	def __init_individual_tab(self):
 		self.individual_tab = QtWidgets.QWidget()
-		self.individual_tab.setLayout(QtWidgets.QGridLayout())
+		self.individual_tab.setLayout(QtWidgets.QVBoxLayout())
+		self.topLayout = QtWidgets.QHBoxLayout()
+		self.topLayout.setContentsMargins(11, 11, 11, 0)
+		
+		labelModels = QtWidgets.QLabel()
+		labelModels.setText("Model: ")
+		self.cbModels = QtWidgets.QComboBox(
+		
+		)
+		self.cbModels.clear()
+		
+		saveButton = QtWidgets.QPushButton('Save Model')
+		saveButton.clicked.connect(self.saveModel)
+		saveButton.setStatusTip('Save Selected model')
+		
+		for model in self.pipeline.fairness_results:
+		
+			self.cbModels.addItem(estimator_name(model))
 		
 		# add to layout
-		self.tabs.addTab(self.individual_tab, 'Individual Model')
+		self.topLayout.addWidget(labelModels)
+		self.topLayout.addWidget(self.cbModels)
+		self.topLayout.addWidget(saveButton)
+		
+		self.individual_tab.layout().addLayout(self.topLayout)
+		
+		# sensitive labels
+		for sensitive in self.pipeline.sensitive_attributes:
+			sensitiveLayout = QtWidgets.QGridLayout()
+			labelSensitive = QtWidgets.QLabel()
+			labelSensitive.setText(sensitive)
+			
+			# mode labels
+			for i, mode in enumerate(self.pipeline.data):
+				labelMode = QtWidgets.QLabel()
+				labelMode.setText(mode.capitalize())
+				labelMode.setStyleSheet("font-weight: bold")
+				
+				sensitiveLayout.addWidget(labelMode, 0, i)
+			
+			# add to layout
+			self.individual_tab.layout().addWidget(labelSensitive)
+			self.individual_tab.layout().addLayout(sensitiveLayout)
+
+		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
+		self.individual_tab_idx = tab_idx
+		
+	def saveModel(self):
+		"""
+		The Model is saved in a dictionary as a .joblib file
+		
+		{'model' : trained estimator,
+		'studies_id': studies_id of train data,
+        'features_id': features_id of train data,
+        'labels_id': predicting label_id of the model}
+		"""
+		model_idx = self.cbModels.currentIndex()
+		self.data_settings['model'] = list(self.pipeline.fairness_results.keys())[model_idx]
+		
+		options = QtWidgets.QFileDialog.Options()
+		options |= QtWidgets.QFileDialog.DontUseNativeDialog
+		fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File", "",
+															"Joblib Files (*.joblib);;All Files (*)", options=options)
+		if fileName:
+			joblib.dump(self.data_settings, f"{fileName}.joblib")
