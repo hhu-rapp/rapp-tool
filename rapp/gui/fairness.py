@@ -68,10 +68,6 @@ class FairnessWidget(QtWidgets.QWidget):
 		)
 		self.cbModels.clear()
 		
-		saveButton = QtWidgets.QPushButton('Save Model')
-		saveButton.clicked.connect(self.saveModel)
-		saveButton.setStatusTip('Save Selected model')
-		
 		for model in self.pipeline.fairness_results:
 		
 			self.cbModels.addItem(estimator_name(model))
@@ -79,7 +75,6 @@ class FairnessWidget(QtWidgets.QWidget):
 		# add to layout
 		self.topLayout.addWidget(labelModels)
 		self.topLayout.addWidget(self.cbModels)
-		self.topLayout.addWidget(saveButton)
 		
 		self.individual_tab.layout().addLayout(self.topLayout)
 		
@@ -103,22 +98,3 @@ class FairnessWidget(QtWidgets.QWidget):
 
 		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
 		self.individual_tab_idx = tab_idx
-		
-	def saveModel(self):
-		"""
-		The Model is saved in a dictionary as a .joblib file
-		
-		{'model' : trained estimator,
-		'studies_id': studies_id of train data,
-        'features_id': features_id of train data,
-        'labels_id': predicting label_id of the model}
-		"""
-		model_idx = self.cbModels.currentIndex()
-		self.data_settings['model'] = list(self.pipeline.fairness_results.keys())[model_idx]
-		
-		options = QtWidgets.QFileDialog.Options()
-		options |= QtWidgets.QFileDialog.DontUseNativeDialog
-		fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File", "",
-															"Joblib Files (*.joblib);;All Files (*)", options=options)
-		if fileName:
-			joblib.dump(self.data_settings, f"{fileName}.joblib")

@@ -234,6 +234,7 @@ class Pipeline(QtWidgets.QWidget):
                              "features_id": cf.features_id,
                              "labels_id": cf.labels_id}
             self.populate_fairness_tab(pl, data_settings)
+            self.qmainwindow.settings.refresh_data(pl, data_settings)
 
         # Enable Fairness and XAI Tabs
         # self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
