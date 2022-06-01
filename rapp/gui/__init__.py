@@ -133,7 +133,7 @@ class Window(QMainWindow):
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databasePredictionLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
-        self.predictionHandler = PredictionWidget(self)
+        self.prediction = PredictionWidget(self)
 
         # add widgets
         splitter.addWidget(self.databasePredictionLayoutWidget)
@@ -141,7 +141,7 @@ class Window(QMainWindow):
         splitter.setSizes([480, 800])
         self.predictionWidget.layout().addWidget(splitter)
 
-        vLayout.addWidget(self.predictionHandler, 3)
+        vLayout.addWidget(self.prediction, 3)
         vLayout.addWidget(self.loggingTextBrowserPred, 1)
         
         self.vLayoutWidget.setLayout(vLayout)
