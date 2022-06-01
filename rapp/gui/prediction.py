@@ -101,6 +101,10 @@ class PredictionWidget(QtWidgets.QWidget):
         """
         data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
         selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandasTv.table.selectionModel().selectedRows()
+        
+        if data_df is None or data_f_id is None or data_l_id is None:
+            log.error(f"No valid data to predict")
+            return
 
         # drop last column
         data_df = data_df.iloc[:, :-1]
@@ -115,14 +119,18 @@ class PredictionWidget(QtWidgets.QWidget):
         for i, modelCb in enumerate(self.loadedModelsCb):
             models = modelCb.get_checked_items()
             
-            for model in models:
-                item_index = modelCb.find_item_index(model)
-                y_pred = modelCb.itemData(item_index)['model'].predict(X)
-                # TODO: use majority voting when selecting prediction
-                # atm it only returns the selected prediction of the last model
-                self.predLabels[i].setText(str(y_pred[0]))
-
-                log.error('Prediction finished.')
+            if models is None:
+                log.error(f"No Model Selected")
+                return
+            else:
+                for model in models:
+                    item_index = modelCb.find_item_index(model)
+                    y_pred = modelCb.itemData(item_index)['model'].predict(X)
+                    # TODO: use majority voting when selecting prediction
+                    # atm it only returns the selected prediction of the last model
+                    self.predLabels[i].setText(str(y_pred[0]))
+    
+                    log.error('Prediction finished.')
 
     def load_model(self, filename, index):
         """
