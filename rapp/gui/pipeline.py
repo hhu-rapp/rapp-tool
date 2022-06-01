@@ -200,6 +200,9 @@ class Pipeline(QtWidgets.QWidget):
         """
 
         cf = self.parse_settings()
+        
+        if cf is None:
+            return
 
         report_path = self.lePath.text()
 
@@ -240,11 +243,11 @@ class Pipeline(QtWidgets.QWidget):
 
         if self.qmainwindow.sql_df is None:
             log.error('No SQL query selected')
-            return
+            return None
 
         if len(self.cbEstimator.get_checked_items()) == 0:
             log.error('No Estimator selected')
-            return
+            return None
 
         cf.filename = None
         studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
