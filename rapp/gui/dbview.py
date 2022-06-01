@@ -236,7 +236,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             log.error(str(e))
 
     def getDataSettings(self):
-        return self.sql_df, self.features_id, self.labels_id
+        current_df = self.pandasTv.table.model()._df
+        return current_df, self.features_id, self.labels_id
 
     def load_sql(self, sql_query):
         self.sql_tabs.set_sql(sql_query)
