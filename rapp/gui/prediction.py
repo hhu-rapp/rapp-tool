@@ -26,9 +26,12 @@ class PredictionWidget(QtWidgets.QWidget):
         # create layout
         self.vlayoutPrediction = QtWidgets.QVBoxLayout()
         self.vlayoutPrediction.setContentsMargins(25, 11, 0, 0)
+        self.featuresLayout = QtWidgets.QFormLayout()
+        self.featuresLayout.setContentsMargins(0,11,11,22)
         self.gridlayoutPrediction = QtWidgets.QGridLayout()
         self.menubuttonsPrediction = QtWidgets.QHBoxLayout()
 
+        self.vlayoutPrediction.addLayout(self.featuresLayout)
         self.vlayoutPrediction.addLayout(self.gridlayoutPrediction)
         self.vlayoutPrediction.addStretch(1)
         self.vlayoutPrediction.addLayout(self.menubuttonsPrediction)
@@ -41,7 +44,7 @@ class PredictionWidget(QtWidgets.QWidget):
         self.predictButton = predictButton
 
         clearButton = QtWidgets.QPushButton('Clear')
-        clearButton.clicked.connect(self.clearLodedModels)
+        clearButton.clicked.connect(self.clear_loaded_models)
         clearButton.setStatusTip('Clear all loaded models')
         self.clearButton = clearButton
 
@@ -64,12 +67,17 @@ class PredictionWidget(QtWidgets.QWidget):
         self.loadModelButtons = []
         
         # add headers
+        self.featuresIdLabel = QtWidgets.QLabel()
+        self.featuresIdLabel.setText("")
+        
         for i, header in enumerate(headers):
             headerLabel = QtWidgets.QLabel()
             headerLabel.setText(header)
             headerLabel.setStyleSheet("font-weight: bold")
             self.gridlayoutPrediction.addWidget(headerLabel, 0, i, alignment=Qt.AlignCenter)
-            
+
+        self.featuresLayout.addRow('Features:', self.featuresIdLabel)
+        
         # add rows
         for i, target in enumerate(self.label_ids):
             targetLabel = QtWidgets.QLabel()
@@ -165,6 +173,12 @@ class PredictionWidget(QtWidgets.QWidget):
         if fileName:
             self.load_model(fileName, index)
 
-    def clearLodedModels(self):
+    def clear_loaded_models(self):
         for modelCb in self.loadedModelsCb:
             modelCb.clear()
+            
+    def refresh_labels(self):
+        self.clear_loaded_models()
+
+        _, f_id, _ = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
+        self.featuresIdLabel.setText(f_id)

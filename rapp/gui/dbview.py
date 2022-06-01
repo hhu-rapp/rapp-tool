@@ -231,6 +231,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
             # TODO: better way to do access the method
             self.qmainwindow.settings.simple_tab.refresh_labels()
+            self.qmainwindow.prediction.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
             log.error(str(e))
