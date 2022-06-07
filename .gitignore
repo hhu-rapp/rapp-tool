@@ -674,3 +674,4 @@ reports/
 
 ## Other logs
 *.log
+*.joblib
