@@ -48,14 +48,15 @@ class SQLWidget(QtWidgets.QWidget):
         # Setup SQL templating
         self.featuresSelect = QtWidgets.QComboBox()
         self.featuresSelect.addItem("")
-        for dir in dirs_feats:
-            self.featuresSelect.addItem(dir)
+        for feat_id in dirs_feats:
+            log.debug(f"Adding feature '{feat_id}' to SQL templates")
+            self.featuresSelect.addItem(feat_id)
 
         self.targetSelect = QtWidgets.QComboBox()
         self.targetSelect.addItem("")
-        for dir in dirs_labels:
-            self.targetSelect.addItem(dir)
-            print(dir)
+        for label_id in dirs_labels:
+            log.debug(f"Adding label '{label_id}' to SQL templates")
+            self.targetSelect.addItem(label_id)
 
         self.verifySelect = QtWidgets.QPushButton("Load")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
