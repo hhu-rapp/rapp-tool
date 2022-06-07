@@ -1,7 +1,7 @@
 import pytest
 from pandas import read_sql_query
 
-from rapp.sqlbuilder import load_sql
+from rapp.sqlbuilder import load_sql, list_available_features, list_available_labels
 
 from tests import resources as rc
 from tests import testutil
@@ -463,3 +463,34 @@ def test_sw_combined_ectp_and_grade_should_have_same_grades_as_grade_only_featur
     combined = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
 
     assert grade_only.equals(combined)
+
+
+def test_listing_available_features():
+
+    expected = ['cs_first_term_ects',
+                'cs_first_term_grades',
+                'cs_first_term_grades_and_ectp',
+                'cs_first_term_modules',
+                'sw_first_term_ects',
+                'sw_first_term_grades',
+                'sw_first_term_grades_and_ectp',
+                'sw_second_term_base_modules'
+                ]
+    actual = list_available_features()
+
+    assert expected == actual
+
+
+def test_listing_available_labels():
+
+    expected = ['3_dropout',
+                '4term_ap',
+                '4term_cp',
+                'master_admission',
+                'reg_final_grade',
+                'reg_study_duration',
+                'rsz'
+                ]
+    actual = list_available_labels()
+
+    assert expected == actual

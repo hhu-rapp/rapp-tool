@@ -1,9 +1,6 @@
 import logging
 log = logging.getLogger('GUI')
 
-from os import listdir, getcwd
-from os.path import isdir, join, abspath
-
 import pandas as pd
 from pandas.io.sql import DatabaseError
 
@@ -11,6 +8,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 
 from rapp.sqlbuilder import load_sql
+from rapp import sqlbuilder
 
 
 class SQLWidget(QtWidgets.QWidget):
@@ -44,16 +42,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab.setLayout(QtWidgets.QFormLayout())
 
         # setup path
-        abs_path = abspath(getcwd())
-        work_dir = join(abs_path, "rapp", "resources", "sqltemplates")
-
-        feats_path = join(work_dir, "features")
-        labels_path = join(work_dir, "labels")
-
-        dirs_feats = [d for d in listdir(feats_path) if isdir(join(feats_path, d))]
-        dirs_feats.sort()
-        dirs_labels = [d for d in listdir(labels_path) if isdir(join(labels_path, d))]
-        dirs_labels.sort()
+        dirs_feats = sqlbuilder.list_available_features()
+        dirs_labels = sqlbuilder.list_available_labels()
 
         # Setup SQL templating
         self.featuresSelect = QtWidgets.QComboBox()
