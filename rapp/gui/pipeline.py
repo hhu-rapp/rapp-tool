@@ -228,12 +228,12 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             log.error(traceback.format_exc())
             traceback.print_exc()
-
-        if pl.fairness_results:
+        # FIXME: atm fairness tab is only implemented for classification
+        if pl.fairness_results and pl.type == "classification":
             data_settings = {"studies_id": cf.studies_id,
                              "features_id": cf.features_id,
-                             "labels_id": cf.labels_id}
-            self.populate_fairness_tab(pl, data_settings)
+                             "labels_id": cf.labels_id} 
+            self.populate_fairness_tab(pl)
             self.qmainwindow.settings.refresh_data(pl, data_settings)
 
         # Enable Fairness and XAI Tabs
@@ -266,8 +266,7 @@ class Pipeline(QtWidgets.QWidget):
 
         return cf
 
-    def populate_fairness_tab(self, results, data_settings):
+    def populate_fairness_tab(self, pipeline):
         # Enable Fairness tab
         self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
-        # FIXME: allow reload of layout
-        self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).initUI(results, data_settings)
+        self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).populate_fairness_tabs(pipeline)
