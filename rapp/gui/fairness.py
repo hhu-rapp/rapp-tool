@@ -53,27 +53,13 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.tabs.addTab(self.overview_tab, 'Model Overview')
 	
 	def __init_individual_tab(self):
+		# create layout
 		self.individual_tab = QtWidgets.QWidget()
 		self.individual_tab.setLayout(QtWidgets.QVBoxLayout())
-		self.topLayout = QtWidgets.QHBoxLayout()
-		self.topLayout.setContentsMargins(11, 11, 11, 0)
-		
-		labelModels = QtWidgets.QLabel()
-		labelModels.setText("Model: ")
-		self.cbModels = QtWidgets.QComboBox(
-		
-		)
-		self.cbModels.clear()
-		
-		for model in self.pipeline.fairness_results:
-		
-			self.cbModels.addItem(estimator_name(model))
 		
 		# add to layout
-		self.topLayout.addWidget(labelModels)
-		self.topLayout.addWidget(self.cbModels)
-		
-		self.individual_tab.layout().addLayout(self.topLayout)
+		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
+		self.individual_tab_idx = tab_idx
 		
 	def populate_fairness_tabs(self, pipeline):
 		"""
@@ -91,6 +77,7 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.refresh_tabs()
 		self.populate_dataset_tab()
 		self.populate_overview_tab()
+		self.populate_individual_tab()
 
 	def populate_dataset_tab(self):	
 		# one groupBox per sensitive attribute
@@ -279,24 +266,125 @@ class FairnessWidget(QtWidgets.QWidget):
 
 		# add to layout
 		self.overview_tab.layout().addWidget(self.overview_groupBox)
-			for i, mode in enumerate(self.pipeline.data):
-				labelMode = QtWidgets.QLabel()
-				labelMode.setText(mode.capitalize())
-				labelMode.setStyleSheet("font-weight: bold")
-				
-				sensitiveLayout.addWidget(labelMode, 0, i)
-			
-			# add to layout
-			self.individual_tab.layout().addWidget(labelSensitive)
-			self.individual_tab.layout().addLayout(sensitiveLayout)
 
-		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
-		self.individual_tab_idx = tab_idx
+
+	def populate_individual_tab(self):
+		# comboBox for filtering
+		self.cbModels = QtWidgets.QComboBox()
+		self.individual_cbMetrics = QtWidgets.QComboBox()
+
+		# groupBox for the filters
+		self.individual_metrics_groupBox = QGroupBox("Filters")
+		individualTopLayout = QtWidgets.QFormLayout()
+		self.individual_metrics_groupBox.setLayout(individualTopLayout)
+
+		# load comboBoxes
+		for model in self.pipeline.performance_results:
+			self.cbModels.addItem(estimator_name(model))
+		self.individual_cbMetrics.addItem("Performance")
+		self.individual_cbMetrics.addItem("Fairness")
+
+		self.individual_cbMetrics.currentIndexChanged.connect(self.populate_individual_table)
+		self.cbModels.currentIndexChanged.connect(self.populate_individual_table)
+
+		# add to groupBox
+		individualTopLayout.addRow('Model:', self.cbModels)
+		individualTopLayout.addRow('Metrics:', self.individual_cbMetrics)
+
+		# add to layout
+		self.individual_tab.layout().addWidget(self.individual_metrics_groupBox)
+		self.populate_individual_table()
+
+	def populate_individual_table(self):
+		self.clear_individual_table()
+		# get values from filters
+		type = self.individual_cbMetrics.currentText()
+
+		model_idx = self.cbModels.currentIndex()
+		models = list(self.pipeline.performance_results.keys())
+		model = models[model_idx]
+
+
+		if type == "Performance":
+			# one groupBox per mode
+			for i, mode in enumerate(self.pipeline.data):
+				self.individual_mode_groupBox.append(QGroupBox(mode.capitalize()))
+				tableGridLayout = QtWidgets.QGridLayout()
+				self.individual_mode_groupBox[i].setLayout(tableGridLayout)
+
+				# performance metrics labels
+				metrics = self.pipeline.performance_results[model][mode]['scores']
+				for j, metric in enumerate(metrics):
+					labelMetric = QtWidgets.QLabel()
+					labelMetric.setText(str(metric).capitalize())
+					tableGridLayout.addWidget(labelMetric, j , 0)
+					# performance measures
+					value = metrics[metric]
+					labelValue = QtWidgets.QLabel()
+					labelValue.setText(f"{value:.3f}")
+					tableGridLayout.addWidget(labelValue, j, 1)
+
+				# add to layout
+				self.individual_tab.layout().addWidget(self.individual_mode_groupBox[i])
+
+		if type == "Fairness":
+			# one groupBox per mode
+			for i, mode in enumerate(self.pipeline.data):
+				self.individual_mode_groupBox.append(QGroupBox(mode.capitalize()))
+				tableGridLayout = QtWidgets.QGridLayout()
+				self.individual_mode_groupBox[i].setLayout(tableGridLayout)
+				# cumulative offset for the sensitive attributes labels
+				cum_offset = 0
+
+				for j, sensitive in enumerate(self.pipeline.sensitive_attributes):
+					metrics = self.pipeline.fairness_results[model][sensitive]
+
+					for k, metric in enumerate(self.pipeline.fairness_results[model][sensitive]):
+						# fairness metrics labels
+						labelMetric = QtWidgets.QLabel()
+						labelMetric.setText(str(metric).capitalize())
+						tableGridLayout.addWidget(labelMetric, k + 2, 0)
+
+						values = metrics[metric][mode]
+						# offset for group title
+						offset = len(values)
+
+						for l, value in enumerate(values):
+							measure = values[value]['affected_percent']
+							# subgroup labels
+							labelSubgroup = QtWidgets.QLabel()
+							labelSubgroup.setText(str(value).capitalize())
+							tableGridLayout.addWidget(labelSubgroup,1, l + cum_offset + 1)
+							# fairness measures labels
+							labelValue = QtWidgets.QLabel()
+							labelValue.setText(f"{measure:.3f}")
+							tableGridLayout.addWidget(labelValue, k+2,l + cum_offset + 1)
+
+					# group labels
+					labelGroup = QtWidgets.QLabel()
+					labelGroup.setText(str(sensitive).capitalize())
+					tableGridLayout.addWidget(labelGroup, 0, j + cum_offset, 1, offset, alignment=Qt.AlignCenter)
+
+					cum_offset += offset
+				# add to layout
+				self.individual_tab.layout().addWidget(self.individual_mode_groupBox[i])
+
+	def clear_individual_table(self):
+		try:
+			for widget in self.individual_mode_groupBox:
+				widget.setParent(None)
+			self.individual_mode_groupBox = []
+			self.individual_groupBox.setParent(None)
+		except AttributeError:
+			return
+
 	def refresh_tabs(self):
 		try:
+			self.individual_metrics_groupBox.setParent(None)
 			self.overview_metrics_groupBox.setParent(None)
 		except AttributeError:
 			return
 
 		self.clear_dataset_table()
 		self.clear_overview_table()
+		self.clear_individual_table()
