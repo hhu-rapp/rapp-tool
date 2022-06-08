@@ -27,6 +27,8 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.tabs = QtWidgets.QTabWidget()
 		
 		self.sensitiveGroupBox = []
+		self.individual_mode_groupBox = []
+		
 		self.__init_dataset_tab()
 		self.__init_overview_tab()
 		self.__init_individual_tab()
@@ -43,8 +45,9 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.tabs.addTab(self.dataset_tab, 'Dataset')
 	
 	def __init_overview_tab(self):
+		# create layout
 		self.overview_tab = QtWidgets.QWidget()
-		self.overview_tab.setLayout(QtWidgets.QGridLayout())
+		self.overview_tab.setLayout(QtWidgets.QVBoxLayout())
 		
 		# add to layout
 		self.tabs.addTab(self.overview_tab, 'Model Overview')
@@ -87,6 +90,7 @@ class FairnessWidget(QtWidgets.QWidget):
 
 		self.refresh_tabs()
 		self.populate_dataset_tab()
+		self.populate_overview_tab()
 
 	def populate_dataset_tab(self):	
 		# one groupBox per sensitive attribute
@@ -169,12 +173,112 @@ class FairnessWidget(QtWidgets.QWidget):
 			widget.setParent(None)
 		self.sensitiveGroupBox = []
 
+	def populate_overview_tab(self):
+		# comboBox for filtering
+		self.cbPerformance = CheckableComboBox()
+		self.cbFairness = CheckableComboBox()
+		self.cbOverviewModes = QtWidgets.QComboBox()
+		self.cbSenstitiveAttributes = QtWidgets.QComboBox()
+
+		# groupBox for the filters
+		self.overview_metrics_groupBox = QGroupBox("Filters")
+		self.overview_metrics_groupBox.size()
+		overviewTopLayout = QtWidgets.QFormLayout()
+		self.overview_metrics_groupBox.setLayout(overviewTopLayout)
+
+		# load comboBoxes
+		performance_metrics = list(self.pipeline.score_functions.keys())
+		for metric in performance_metrics:
+			self.cbPerformance.addItem(str(metric))
+		self.cbPerformance.check_items(performance_metrics)
+
+		fairness_notions = list(self.pipeline.fairness_functions.keys())
+		for notion in fairness_notions:
+			self.cbFairness.addItem(str(notion))
+		self.cbFairness.check_items(fairness_notions)
+
+		modes = list(self.pipeline.data.keys())
+		for mode in modes:
+			self.cbOverviewModes.addItem(str(mode).capitalize())
+
 		for sensitive in self.pipeline.sensitive_attributes:
-			sensitiveLayout = QtWidgets.QGridLayout()
-			labelSensitive = QtWidgets.QLabel()
-			labelSensitive.setText(sensitive)
-			
-			# mode labels
+			self.cbSenstitiveAttributes.addItem(str(sensitive).capitalize())
+
+		self.cbPerformance.currentIndexChanged.connect(self.populate_overview_table)
+		self.cbFairness.currentIndexChanged.connect(self.populate_overview_table)
+		self.cbOverviewModes.currentIndexChanged.connect(self.populate_overview_table)
+		self.cbSenstitiveAttributes.currentIndexChanged.connect(self.populate_overview_table)
+
+		# add to groupBox
+		overviewTopLayout.addRow('Performance:', self.cbPerformance)
+		overviewTopLayout.addRow('Fairness:', self.cbFairness)
+		overviewTopLayout.addRow('Mode:', self.cbOverviewModes)
+		overviewTopLayout.addRow('Sensitive Attribute:', self.cbSenstitiveAttributes)
+
+		# add to layout
+		self.overview_tab.layout().addWidget(self.overview_metrics_groupBox)
+		self.populate_overview_table()
+
+	def clear_overview_table(self):
+		try:
+			self.overview_groupBox.setParent(None)
+		except AttributeError:
+			return
+
+	def populate_overview_table(self):
+		self.clear_overview_table()
+		# get values from filters
+		mode = self.cbOverviewModes.currentText().lower()
+		sensitive = self.cbSenstitiveAttributes.currentText()
+		performance_metrics = self.cbPerformance.get_checked_items()
+		fairness_notions = self.cbFairness.get_checked_items()
+		metrics = self.cbPerformance.get_checked_items()
+		metrics.extend(fairness_notions)
+
+		models = list(self.pipeline.performance_results.keys())
+
+		# create groupBox
+		self.overview_groupBox = QGroupBox(f"{str(mode).capitalize()} - {sensitive}:")
+		self.overview_groupBox.setFlat(True)
+		self.overview_groupBox.setStyleSheet("border:0;")
+		tableGridLayout = QtWidgets.QGridLayout()
+		self.overview_groupBox.setLayout(tableGridLayout)
+
+		# model labels
+		for i, model in enumerate(models):
+			labelModel = QtWidgets.QLabel()
+			labelModel.setText(estimator_name(model))
+			labelModel.setStyleSheet("font-weight: bold")
+			tableGridLayout.addWidget(labelModel, i+1, 0)
+
+			# metrics labels
+			for j, metric in enumerate(metrics):
+				labelMetric = QtWidgets.QLabel()
+				labelMetric.setText(str(metric))
+				labelMetric.setStyleSheet("font-weight: bold")
+				tableGridLayout.addWidget(labelMetric, 0, j+1)
+
+				if metric in performance_metrics:
+					# performance metrics
+					value = self.pipeline.performance_results[model][mode]['scores'][metric]
+					labelValue = QtWidgets.QLabel()
+					labelValue.setText(f"{value:.3f}")
+					tableGridLayout.addWidget(labelValue, i+1, j+1)
+
+				if metric in fairness_notions:
+					# fairness notions
+					values = self.pipeline.fairness_results[model][sensitive][metric][mode]
+					# average value per sensitive attribute
+					measure = np.zeros(len(values))
+					for k, value in enumerate(values):
+						measure[k] = values[value]['affected_percent']
+					avg_measure = np.mean(measure)
+					labelValue = QtWidgets.QLabel()
+					labelValue.setText(f"{avg_measure:.3f}")
+					tableGridLayout.addWidget(labelValue, i + 1, j + 1)
+
+		# add to layout
+		self.overview_tab.layout().addWidget(self.overview_groupBox)
 			for i, mode in enumerate(self.pipeline.data):
 				labelMode = QtWidgets.QLabel()
 				labelMode.setText(mode.capitalize())
@@ -189,4 +293,10 @@ class FairnessWidget(QtWidgets.QWidget):
 		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
 		self.individual_tab_idx = tab_idx
 	def refresh_tabs(self):
+		try:
+			self.overview_metrics_groupBox.setParent(None)
+		except AttributeError:
+			return
+
 		self.clear_dataset_table()
+		self.clear_overview_table()
