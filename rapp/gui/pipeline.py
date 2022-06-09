@@ -228,13 +228,21 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             log.error(traceback.format_exc())
             traceback.print_exc()
-        # FIXME: atm fairness tab is only implemented for classification
-        if pl.fairness_results and pl.type == "classification":
+            return
+
+        if pl.fairness_results[next(iter(pl.fairness_results))]:
             data_settings = {"studies_id": cf.studies_id,
                              "features_id": cf.features_id,
-                             "labels_id": cf.labels_id} 
-            self.populate_fairness_tab(pl)
+                             "labels_id": cf.labels_id}
+
+            # Enable Fairness tab
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
+            self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).populate_fairness_tabs(pl,
+                                                                                                     data_settings)
             self.qmainwindow.settings.refresh_data(pl, data_settings)
+        else:
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, False)
+            log.warning("No sensitive attributes selected, fairness overview was skipped.")
 
         # Enable Fairness and XAI Tabs
         # self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
@@ -265,8 +273,3 @@ class Pipeline(QtWidgets.QWidget):
         cf.feature_selection = self.cbFSM.currentText().lower()
 
         return cf
-
-    def populate_fairness_tab(self, pipeline):
-        # Enable Fairness tab
-        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
-        self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).populate_fairness_tabs(pipeline)

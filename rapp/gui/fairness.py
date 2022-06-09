@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QGroupBox
 from rapp.gui.helper import CheckableComboBox
 from rapp.util import estimator_name
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 
 class FairnessWidget(QtWidgets.QWidget):
 	
@@ -61,7 +63,7 @@ class FairnessWidget(QtWidgets.QWidget):
 		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
 		self.individual_tab_idx = tab_idx
 		
-	def populate_fairness_tabs(self, pipeline):
+	def populate_fairness_tabs(self, pipeline, data_settings):
 		"""
 		Parameters
 		----------
@@ -70,22 +72,73 @@ class FairnessWidget(QtWidgets.QWidget):
 
 		It is expected that the object has following attributes:
 		data, sensitive_attributes, score_functions, statistics_results,
-		fairness_functions, performance_results, fairness_results
+		fairness_functions, performance_results, fairness_results, type.
+		
+		data_settings: dict
+			It represents the loaded data in the pipeline, it has the form:
+	
+			{'studies_id': studies_id of train data,
+			'features_id': features_id of train data,
+			'labels_id': predicting label_id of the model}
 		"""
 		self.pipeline = pipeline
+		self.data_settings = data_settings
 
 		self.refresh_tabs()
 		self.populate_dataset_tab()
 		self.populate_overview_tab()
 		self.populate_individual_tab()
 
-	def populate_dataset_tab(self):	
+	def populate_dataset_tab(self):
+		pl_type = self.pipeline.type
+
+		if pl_type == "classification":
+			self.populate_dataset_table()
+		if pl_type == "regression":
+			self.populate_dataset_plot()
+
+	def populate_dataset_plot(self):
 		# one groupBox per sensitive attribute
 		for i, sensitive in enumerate(self.pipeline.sensitive_attributes):
 			sensitiveHBoxLayout = QtWidgets.QHBoxLayout()
 			self.sensitiveGroupBox.append(QGroupBox(sensitive.capitalize()))
 			self.sensitiveGroupBox[i].setLayout(sensitiveHBoxLayout)
+			# one groupBox per mode
+			groupbox = []
+			for j, mode in enumerate(self.pipeline.data):
+				groupbox.append(QGroupBox(mode.capitalize()))
+				vBoxLayout = QtWidgets.QVBoxLayout()
+				groupbox[j].setLayout(vBoxLayout)
 
+				# add fig canvas to groupBox
+				fig, ax = plt.subplots(figsize=(5, 3))
+				plotCanvas = FigureCanvas(fig)
+				vBoxLayout.addWidget(plotCanvas, alignment=Qt.AlignCenter)
+
+				# plot subgroups outcomes
+				subgroups = list(self.pipeline.statistics_results[mode]['groups'][sensitive].keys())
+				for k, subgroup in enumerate(subgroups):
+					outcomes = self.pipeline.statistics_results[mode]['groups'][sensitive][subgroup]['outcomes']
+					ax.hist(outcomes, label=str(subgroup), density=True, histtype="step")
+
+					plt.legend()
+					plt.xlabel(self.data_settings['labels_id'])
+					plt.ylabel('Density')
+					fig.tight_layout()
+
+				plotCanvas.draw()
+
+				sensitiveHBoxLayout.addWidget(groupbox[j])
+			# add to layout
+			self.dataset_tab.layout().addWidget(self.sensitiveGroupBox[i])
+
+
+	def populate_dataset_table(self):
+		# one groupBox per sensitive attribute
+		for i, sensitive in enumerate(self.pipeline.sensitive_attributes):
+			sensitiveHBoxLayout = QtWidgets.QHBoxLayout()
+			self.sensitiveGroupBox.append(QGroupBox(sensitive.capitalize()))
+			self.sensitiveGroupBox[i].setLayout(sensitiveHBoxLayout)
 			# one groupBox per mode
 			groupbox = []
 			for j, mode in enumerate(self.pipeline.data):
