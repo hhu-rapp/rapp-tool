@@ -358,14 +358,14 @@ class FairnessWidget(QtWidgets.QWidget):
 	def populate_individual_table(self):
 		self.clear_individual_table()
 		# get values from filters
-		type = self.individual_cbMetrics.currentText()
+		metric_type = self.individual_cbMetrics.currentText()
 
 		model_idx = self.cbModels.currentIndex()
 		models = list(self.pipeline.performance_results.keys())
 		model = models[model_idx]
 
-
-		if type == "Performance":
+		pl_type = self.pipeline.type
+		if metric_type == "Performance":
 			# one groupBox per mode
 			for i, mode in enumerate(self.pipeline.data):
 				self.individual_mode_groupBox.append(QGroupBox(mode.capitalize()))
@@ -377,17 +377,18 @@ class FairnessWidget(QtWidgets.QWidget):
 				for j, metric in enumerate(metrics):
 					labelMetric = QtWidgets.QLabel()
 					labelMetric.setText(str(metric).capitalize())
-					tableGridLayout.addWidget(labelMetric, j , 0)
+					labelMetric.setStyleSheet("font-weight: bold")
+					tableGridLayout.addWidget(labelMetric, j, 0, alignment=Qt.AlignCenter)
 					# performance measures
 					value = metrics[metric]
 					labelValue = QtWidgets.QLabel()
 					labelValue.setText(f"{value:.3f}")
-					tableGridLayout.addWidget(labelValue, j, 1)
+					tableGridLayout.addWidget(labelValue, j, 1, alignment=Qt.AlignCenter)
 
 				# add to layout
 				self.individual_tab.layout().addWidget(self.individual_mode_groupBox[i])
 
-		if type == "Fairness":
+		if metric_type == "Fairness":
 			# one groupBox per mode
 			for i, mode in enumerate(self.pipeline.data):
 				self.individual_mode_groupBox.append(QGroupBox(mode.capitalize()))
@@ -399,33 +400,57 @@ class FairnessWidget(QtWidgets.QWidget):
 				for j, sensitive in enumerate(self.pipeline.sensitive_attributes):
 					metrics = self.pipeline.fairness_results[model][sensitive]
 
-					for k, metric in enumerate(self.pipeline.fairness_results[model][sensitive]):
-						# fairness metrics labels
-						labelMetric = QtWidgets.QLabel()
-						labelMetric.setText(str(metric).capitalize())
-						tableGridLayout.addWidget(labelMetric, k + 2, 0)
+					if pl_type == "classification":
+						for k, metric in enumerate(self.pipeline.fairness_results[model][sensitive]):
+							# fairness metrics labels
+							labelMetric = QtWidgets.QLabel()
+							labelMetric.setText(str(metric).capitalize())
+							labelMetric.setStyleSheet("font-weight: bold")
+							tableGridLayout.addWidget(labelMetric, k + 2, 0)
 
-						values = metrics[metric][mode]
-						# offset for group title
-						offset = len(values)
+							values = metrics[metric][mode]
+							# offset for group title
+							offset = len(values)
 
-						for l, value in enumerate(values):
-							measure = values[value]['affected_percent']
-							# subgroup labels
-							labelSubgroup = QtWidgets.QLabel()
-							labelSubgroup.setText(str(value).capitalize())
-							tableGridLayout.addWidget(labelSubgroup,1, l + cum_offset + 1)
+							for l, value in enumerate(values):
+								measure = values[value]['affected_percent']
+								# subgroup labels
+								labelSubgroup = QtWidgets.QLabel()
+								labelSubgroup.setText(str(value).capitalize())
+								tableGridLayout.addWidget(labelSubgroup, 1, l + cum_offset + 1)
+								# fairness measures labels
+								labelValue = QtWidgets.QLabel()
+								labelValue.setText(f"{measure:.3f}")
+								tableGridLayout.addWidget(labelValue, k+2, l + cum_offset + 1)
+
+						# group labels
+						labelGroup = QtWidgets.QLabel()
+						labelGroup.setText(str(sensitive).capitalize())
+						labelGroup.setStyleSheet("font-weight: bold")
+						tableGridLayout.addWidget(labelGroup, 0, j + cum_offset, 1, offset, alignment=Qt.AlignCenter)
+
+						cum_offset += offset
+
+					if pl_type == "regression":
+						for k, metric in enumerate(self.pipeline.fairness_results[model][sensitive]):
+							# fairness metrics labels
+							labelMetric = QtWidgets.QLabel()
+							labelMetric.setText(str(metric).capitalize())
+							labelMetric.setStyleSheet("font-weight: bold")
+							tableGridLayout.addWidget(labelMetric, k + 1, 0, alignment=Qt.AlignCenter)
+
+							measure = metrics[metric][mode]
 							# fairness measures labels
 							labelValue = QtWidgets.QLabel()
 							labelValue.setText(f"{measure:.3f}")
-							tableGridLayout.addWidget(labelValue, k+2,l + cum_offset + 1)
+							tableGridLayout.addWidget(labelValue, k + 1, j+1, alignment=Qt.AlignCenter)
 
-					# group labels
-					labelGroup = QtWidgets.QLabel()
-					labelGroup.setText(str(sensitive).capitalize())
-					tableGridLayout.addWidget(labelGroup, 0, j + cum_offset, 1, offset, alignment=Qt.AlignCenter)
+						# group labels
+						labelGroup = QtWidgets.QLabel()
+						labelGroup.setText(str(sensitive).capitalize())
+						labelGroup.setStyleSheet("font-weight: bold")
+						tableGridLayout.addWidget(labelGroup, 0, j+1, alignment=Qt.AlignCenter)
 
-					cum_offset += offset
 				# add to layout
 				self.individual_tab.layout().addWidget(self.individual_mode_groupBox[i])
 
