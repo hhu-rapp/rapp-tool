@@ -214,6 +214,7 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.sensitiveGroupBox = []
 
 	def populate_overview_tab(self):
+		pl_type = self.pipeline.type.capitalize()
 		# comboBox for filtering
 		self.cbPerformance = CheckableComboBox()
 		self.cbFairness = CheckableComboBox()
@@ -250,8 +251,8 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.cbSenstitiveAttributes.currentIndexChanged.connect(self.populate_overview_table)
 
 		# add to groupBox
-		overviewTopLayout.addRow('Performance:', self.cbPerformance)
-		overviewTopLayout.addRow('Fairness:', self.cbFairness)
+		overviewTopLayout.addRow(f"{pl_type} Metrics:", self.cbPerformance)
+		overviewTopLayout.addRow('Fairness Metrics:', self.cbFairness)
 		overviewTopLayout.addRow('Mode:', self.cbOverviewModes)
 		overviewTopLayout.addRow('Sensitive Attribute:', self.cbSenstitiveAttributes)
 
@@ -276,6 +277,7 @@ class FairnessWidget(QtWidgets.QWidget):
 		metrics.extend(fairness_notions)
 
 		models = list(self.pipeline.performance_results.keys())
+		pl_type = self.pipeline.type
 
 		# create groupBox
 		self.overview_groupBox = QGroupBox(f"{str(mode).capitalize()} - {sensitive}:")
@@ -308,18 +310,23 @@ class FairnessWidget(QtWidgets.QWidget):
 				if metric in fairness_notions:
 					# fairness notions
 					values = self.pipeline.fairness_results[model][sensitive][metric][mode]
-					# average value per sensitive attribute
-					measure = np.zeros(len(values))
-					for k, value in enumerate(values):
-						measure[k] = values[value]['affected_percent']
-					avg_measure = np.mean(measure)
+					if pl_type == "classification":
+						# average value across sensitive attribute
+						measure = np.zeros(len(values))
+						for k, value in enumerate(values):
+							measure[k] = values[value]['affected_percent']
+
+						measure = np.mean(measure)
+
+					if pl_type == "regression":
+							measure = values
+
 					labelValue = QtWidgets.QLabel()
-					labelValue.setText(f"{avg_measure:.3f}")
+					labelValue.setText(f"{measure:.3f}")
 					tableGridLayout.addWidget(labelValue, i + 1, j + 1)
 
 		# add to layout
 		self.overview_tab.layout().addWidget(self.overview_groupBox)
-
 
 	def populate_individual_tab(self):
 		# comboBox for filtering
