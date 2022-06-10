@@ -4,6 +4,7 @@ log = logging.getLogger('GUI')
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
+
 class Color(QtWidgets.QWidget):
     # Works as a placeholder
     def __init__(self, color, label_str='Label'):
@@ -40,7 +41,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item.setCheckState(QtCore.Qt.Checked)
         else:
             item.setCheckState(QtCore.Qt.Unchecked)
-            
+
     def find_item_index(self, text):
         item = self.model().findItems(text)
         item_index = self.model().indexFromItem(item[0])
@@ -118,11 +119,11 @@ class LoggingTextBrowser(QtWidgets.QWidget):
 
 
 class LoadModelPushButton(QtWidgets.QPushButton):
-    
+
     def __init__(self, id):
         """
         A QPushButton with an id.
-        
+
         Parameters
         ----------
         id: int
@@ -133,6 +134,25 @@ class LoadModelPushButton(QtWidgets.QPushButton):
 
         super().setStatusTip('Load Model')
         super().setMaximumWidth(50)
-    
+
     def set_click_function(self, function):
         super().clicked.connect(lambda: function(self.id))
+
+
+class ClickableLabel(QtWidgets.QLabel):
+
+    def __init__(self, index):
+        """
+        A QLabel with an id.
+
+        Parameters
+        ----------
+        id: int
+            id to be passed to clicked.connect method.
+        """
+        super().__init__()
+        self.mouseReleaseEvent = super().mouseReleaseEvent
+        self.id = index
+
+    def set_click_function(self, function):
+        self.mouseReleaseEvent = (lambda i: function(self.id))
