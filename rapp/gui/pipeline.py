@@ -153,6 +153,9 @@ class Pipeline(QtWidgets.QWidget):
             self.cbSAttributes.addItem(feature)
             self.cbSAttributes.setItemChecked(index, checked=False)
 
+            if feature == "Deutsch" or feature == "Geschlecht":
+                self.cbSAttributes.setItemChecked(index, checked=True)
+
     def update_estimators(self):
         classifiers = models.models['classification'].keys()
         regressors = models.models['regression'].keys()
