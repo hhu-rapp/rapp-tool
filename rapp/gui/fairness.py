@@ -5,78 +5,77 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGroupBox
 
-from rapp.gui.helper import CheckableComboBox
+from rapp.gui.helper import CheckableComboBox, ClickableLabel
 from rapp.util import estimator_name
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
 class FairnessWidget(QtWidgets.QWidget):
-	
+
 	def __init__(self, qmainwindow):
 		super(FairnessWidget, self).__init__()
-		
+
 		self.qmainwindow = qmainwindow
 		self.initUI()
-	
+
 	def initUI(self):
 		# create layout
 		layout = QtWidgets.QHBoxLayout()
 		layout.setContentsMargins(0, 10, 0, 0)
 		self.setLayout(layout)
-		
+
 		# create widgets
 		self.tabs = QtWidgets.QTabWidget()
-		
+
 		self.sensitiveGroupBox = []
 		self.individual_mode_groupBox = []
-		
+
 		self.__init_dataset_tab()
 		self.__init_overview_tab()
 		self.__init_individual_tab()
-		
+
 		# add widgets to layout
 		layout.addWidget(self.tabs)
-	
+
 	def __init_dataset_tab(self):
 		# create layout
 		self.dataset_tab = QtWidgets.QWidget()
 		self.dataset_tab.setLayout(QtWidgets.QVBoxLayout())
-		
+
 		# add to layout
 		self.tabs.addTab(self.dataset_tab, 'Dataset')
-	
+
 	def __init_overview_tab(self):
 		# create layout
 		self.overview_tab = QtWidgets.QWidget()
 		self.overview_tab.setLayout(QtWidgets.QVBoxLayout())
-		
+
 		# add to layout
-		self.tabs.addTab(self.overview_tab, 'Model Overview')
-	
+		self.tabs.addTab(self.overview_tab, 'Model Summary')
+
 	def __init_individual_tab(self):
 		# create layout
 		self.individual_tab = QtWidgets.QWidget()
 		self.individual_tab.setLayout(QtWidgets.QVBoxLayout())
-		
+
 		# add to layout
-		tab_idx = self.tabs.addTab(self.individual_tab, 'Individual Model')
+		tab_idx = self.tabs.addTab(self.individual_tab, 'Model Inspection')
 		self.individual_tab_idx = tab_idx
-		
+
 	def populate_fairness_tabs(self, pipeline, data_settings):
 		"""
 		Parameters
 		----------
 		pipeline: rapp.pipeline object
-		    A pipeline object with trained models.
+			A pipeline object with trained models.
 
 		It is expected that the object has following attributes:
 		data, sensitive_attributes, score_functions, statistics_results,
 		fairness_functions, performance_results, fairness_results, type.
-		
+
 		data_settings: dict
 			It represents the loaded data in the pipeline, it has the form:
-	
 			{'studies_id': studies_id of train data,
 			'features_id': features_id of train data,
 			'labels_id': predicting label_id of the model}
@@ -288,7 +287,8 @@ class FairnessWidget(QtWidgets.QWidget):
 
 		# model labels
 		for i, model in enumerate(models):
-			labelModel = QtWidgets.QLabel()
+			labelModel = ClickableLabel(i)
+			labelModel.set_click_function(self.open_individual_tab)
 			labelModel.setText(estimator_name(model))
 			labelModel.setStyleSheet("font-weight: bold")
 			tableGridLayout.addWidget(labelModel, i+1, 0)
@@ -473,3 +473,7 @@ class FairnessWidget(QtWidgets.QWidget):
 		self.clear_dataset_table()
 		self.clear_overview_table()
 		self.clear_individual_table()
+
+	def open_individual_tab(self, model_index):
+		self.tabs.setCurrentIndex(self.individual_tab_idx)
+		self.cbModels.setCurrentIndex(model_index)
