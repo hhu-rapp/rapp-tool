@@ -2,30 +2,23 @@
 Allows the building of quick SQL queries by giving only the
 desired features id and label id.
 
-The allowed ids are
-
-* for features
-    * cs_first_term_modules
-* for labels
-    * master_admission
-    * 3_dropout
-    * 4term_cp
-    * 4term_ap
-    * rsz
+It is assumed, that the features and labels are stored under the directories
+called `sqltemplates/features` and `sqltemplates/labels`, respectively.
 """
+import os
 from os import path
 
 import chevron
 
-import rapp.resources as rc
+__TEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 
 
-def load_sql(features_id, labels_id, project_name="rapp"):
+def load_sql(features_id, labels_id):
     f_select, f_join, f_where = __load_components("features", features_id)
     l_select, l_join, l_where = __load_components("labels", labels_id)
 
-    templates_path = path.join("sqltemplates", "skeleton.sql")
-    template = rc.get_text(templates_path)
+    templates_path = path.join(__TEMPLATEDIR, 'basetemplate.sql')
+    template = __load_text(templates_path)
     mustache = {
         "feature_select": f_select,
         "feature_join": f_join,
@@ -56,10 +49,10 @@ def __load_components(type, id):
     where: str
         Contents for the WHERE statement.
     """
-    template_path = path.join("sqltemplates/", type, id)
+    template_path = path.join(__TEMPLATEDIR, type, id)
 
     sel_sql = path.join(template_path, "select.sql")
-    sel_sql = rc.get_text(sel_sql)
+    sel_sql = __load_text(sel_sql)
     join_sql = path.join(template_path, "join.sql")
     join_sql = __load_sql_if_exists(join_sql)
     where_sql = path.join(template_path, "where.sql")
@@ -70,21 +63,33 @@ def __load_components(type, id):
 
 def __load_sql_if_exists(resource_path):
     try:
-        sql = rc.get_text(resource_path)
+        sql = __load_text(resource_path)
     except FileNotFoundError:
         sql = ""
     return sql
+
+
+def __load_text(file_path):
+    with open(file_path, 'r') as f:
+        return f.read()
 
 
 def list_available_features():
     """
     List all available features.
     """
-    return sorted(rc.list_subdirs('sqltemplates/features'))
+    dir = path.join(__TEMPLATEDIR, 'features')
+    return sorted(__list_subdirs(dir))
 
 
 def list_available_labels():
     """
     List all available labels.
     """
-    return sorted(rc.list_subdirs('sqltemplates/labels'))
+    dir = path.join(__TEMPLATEDIR, 'labels')
+    return sorted(__list_subdirs(dir))
+
+
+def __list_subdirs(directory: str):
+    with os.scandir(directory) as it:
+        return [d.name for d in it if d.is_dir()]
