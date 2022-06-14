@@ -1,5 +1,5 @@
 import chevron
-import rapp.report.resources as rc
+import rapp.resources as rc
 
 from rapp.util import estimator_name
 from rapp.pipeline import Pipeline
@@ -108,7 +108,7 @@ def tex_dataset_report(report):
                      "labels": labels}
         mustache["modes"].append(mode_data)
 
-    template = rc.get_text("dataset_table.tex")
+    template = rc.get_text("reports/latex/dataset_table.tex")
     tex = chevron.render(template, mustache)
     return tex
 
@@ -179,7 +179,7 @@ def tex_dataset_plot(report):
                      "labels": single_labels}
         mustache["modes"].append(mode_data)
 
-    template = rc.get_text("dataset_plots.tex")
+    template = rc.get_text("reports/latex/dataset_plots.tex")
     tex = chevron.render(template, mustache)
     return tex
 
@@ -278,6 +278,6 @@ def _tex_report_with_functions(pipeline: Pipeline,
 
         mustache['estimators'].append(est_dict)
 
-    tex = rc.get_text("report.tex")
+    tex = rc.get_text("reports/latex/report.tex")
     tex = chevron.render(tex, mustache)
     return tex
