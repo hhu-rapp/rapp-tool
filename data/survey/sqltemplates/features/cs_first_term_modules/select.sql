@@ -12,7 +12,7 @@
 -- protected attributes
 -- S.Geburtsjahr,
 S.Geschlecht,
-S.Deutsch,
+S.Staatsangehoerigkeit,
 strftime("%Y", E.Immatrikulationsdatum) - S.Geburtsjahr as AlterEinschreibung,
 --
 case when LA.Bestanden IS NOT NULL then LA.Bestanden else 0 end as LABestanden,

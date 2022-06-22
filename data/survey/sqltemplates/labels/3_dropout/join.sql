@@ -5,7 +5,7 @@ INNER JOIN
     E.Abschluss,
     -- E.Bestanden,
     -- LetztePruefung.SemesterCode,
-    CASE WHEN LetztePruefung.SemesterCode < 20192 THEN NOT E.Bestanden ELSE null END as Dropout
+    CASE WHEN LetztePruefung.SemesterCode < 20222 THEN NOT E.Bestanden ELSE null END as Dropout
     -- 20192 is the code for wintersemester 2019 (summersemester would be 20191).
     -- This is three terms ago, given the age of the dataset.
     -- Thus, everybody not writing an exam in the last three terms is assumed

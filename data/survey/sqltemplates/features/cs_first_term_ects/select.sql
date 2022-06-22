@@ -2,7 +2,7 @@
 --
 -- protected attributes
 S.Geschlecht,
-S.Deutsch,
+S.Staatsangehoerigkeit,
 strftime("%Y", E.Immatrikulationsdatum) - S.Geburtsjahr as AlterEinschreibung,
 --
 SUM(CASE WHEN SSP.Fachsemester = 1 THEN SSP.ECTS ELSE 0 END) as EctsFirstTerm,
