@@ -178,9 +178,13 @@ class Pipeline(QtWidgets.QWidget):
             unique_label_count = len(self.qmainwindow.sql_df[self.cbName.currentText()].unique())
             total_label_count = len(self.qmainwindow.sql_df[self.cbName.currentText()])
 
-            if unique_label_count / total_label_count > 0.5:
-                self.cbType.setCurrentText("Regression")
-            else:
+            try:
+                if unique_label_count / total_label_count > 0.5:
+                    self.cbType.setCurrentText("Regression")
+                else:
+                    self.cbType.setCurrentText("Classification")
+            except:
+                log.debug('Database empty after query.')
                 self.cbType.setCurrentText("Classification")
 
     def set_report_path(self):
