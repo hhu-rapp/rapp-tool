@@ -20,7 +20,7 @@ import chevron
 import data as dt
 
 
-def load_sql(features_id, labels_id, project_name="survey"):
+def load_sql(features_id, labels_id, project_name="rapp"):
     f_select, f_join, f_where = __load_components(project_name, "features", features_id)
     l_select, l_join, l_where = __load_components(project_name, "labels", labels_id)
 

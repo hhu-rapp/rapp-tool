@@ -2,7 +2,7 @@
 --
 -- protected attributes
 S.Geschlecht,
-S.Staatsangehoerigkeit,
+S.Deutsch,
 strftime("%Y", E.Immatrikulationsdatum) - S.Geburtsjahr as AlterEinschreibung,
 --
 FirstTermData.KlausurenGeschrieben,
