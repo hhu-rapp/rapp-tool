@@ -140,3 +140,96 @@ class DatasetTable(QtWidgets.QGroupBox):
 
             self.sensitiveHBoxLayout.addWidget(groupbox[j])
 
+
+class OverviewTable(QtWidgets.QGroupBox):
+    def __init__(self, mode, models, metrics, pl_type, performance_metrics, performance_results, fairness_notions=None,
+                 fairness_results=None, sensitive_attribute=None):
+        """
+        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        for each model.
+
+        Parameters
+        ----------
+        mode: str
+            Mode to use.
+
+        models: list
+            List of Scikit-learn estimators.
+
+        metrics: list
+            List of metrics to be added to the table.
+
+        pl_type: {'classification', 'regression}
+            Which type of prediction task is tackled by the pipeline.
+
+        performance_metrics: list
+            List of performance metrics to generate in the table.
+
+        performance_results: dict
+            Performance results with the form of: rapp.pipeline.performance_results.
+
+        fairness_notions: list (optional)
+            List of fairness notions to generate in the table.
+
+        fairness_results: dict (optional)
+            Fairness results with the form of: rapp.pipeline.fairness_results.
+
+        sensitive_attribute: str (optional)
+            Sensitive attribute to use, only needed if fairness results.
+
+        """
+
+        if sensitive_attribute is not None:
+            super(OverviewTable, self).__init__(f"{str(mode).capitalize()} - {sensitive_attribute}:")
+        if sensitive_attribute is None:
+            super(OverviewTable, self).__init__(f"{str(mode).capitalize()}:")
+
+        self.setFlat(True)
+        self.setStyleSheet("border:0;")
+        tableGridLayout = QtWidgets.QGridLayout()
+        self.setLayout(tableGridLayout)
+        self.labelModels = []
+
+        # model labels
+        for i, model in enumerate(models):
+            self.labelModels.append(ClickableLabel(i))
+            self.labelModels[i].setText(estimator_name(model))
+            self.labelModels[i].setStyleSheet("font-weight: bold")
+            tableGridLayout.addWidget(self.labelModels[i], i + 1, 0)
+
+            # metrics labels
+            for j, metric in enumerate(metrics):
+                labelMetric = QtWidgets.QLabel()
+                labelMetric.setText(str(metric))
+                labelMetric.setStyleSheet("font-weight: bold")
+                tableGridLayout.addWidget(labelMetric, 0, j + 1)
+
+                if metric in performance_metrics:
+                    # performance metrics
+                    value = performance_results[model][mode]['scores'][metric]
+                    labelValue = QtWidgets.QLabel()
+                    labelValue.setText(f"{value:.3f}")
+                    tableGridLayout.addWidget(labelValue, i + 1, j + 1)
+
+                if metric in fairness_notions:
+                    # fairness notions
+                    values = fairness_results[model][sensitive_attribute][metric][mode]
+                    if pl_type == "classification":
+                        # average value across sensitive attribute
+                        measure = np.zeros(len(values))
+                        for k, value in enumerate(values):
+                            measure[k] = values[value]['affected_percent']
+
+                        measure = np.mean(measure)
+
+                    if pl_type == "regression":
+                        measure = values
+
+                    labelValue = QtWidgets.QLabel()
+                    labelValue.setText(f"{measure:.3f}")
+                    tableGridLayout.addWidget(labelValue, i + 1, j + 1)
+
+    def set_model_click_function(self, function):
+        for labelModel in self.labelModels:
+            labelModel.set_click_function(function)
+
