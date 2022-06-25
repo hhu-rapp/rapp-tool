@@ -100,11 +100,16 @@ class FairnessWidget(QtWidgets.QWidget):
 
             # add to layout
             self.dataset_tab.layout().addWidget(self.sensitiveDatasetTable[i])
+        # add removable stretch
+        self.stretch_dataset = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                     QtWidgets.QSizePolicy.Expanding)
+        self.dataset_tab.layout().addItem(self.stretch_dataset)
 
     def clear_dataset_table(self):
         for widget in self.sensitiveDatasetTable:
             widget.setParent(None)
         self.sensitiveDatasetTable = []
+        self.dataset_tab.layout().removeItem(self.stretch_dataset)
 
     def populate_overview_tab(self):
         pl_type = self.pipeline.type.capitalize()
@@ -191,6 +196,7 @@ class FairnessWidget(QtWidgets.QWidget):
         self.individual_metrics_groupBox = QGroupBox("Filters")
         individualTopLayout = QtWidgets.QFormLayout()
         self.individual_metrics_groupBox.setLayout(individualTopLayout)
+        self.individual_metrics_groupBox.setAlignment(Qt.AlignTop)
 
         # load comboBoxes
         for model in self.pipeline.performance_results:
@@ -233,6 +239,10 @@ class FairnessWidget(QtWidgets.QWidget):
 
                 # add to layout
                 self.individual_tab.layout().addWidget(self.sensitiveIndividualTable[i])
+            # add removable stretch
+            self.stretch_individual = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                            QtWidgets.QSizePolicy.Expanding)
+            self.individual_tab.layout().addItem(self.stretch_individual)
 
     def clear_individual_table(self):
         try:
@@ -240,6 +250,7 @@ class FairnessWidget(QtWidgets.QWidget):
                 widget.setParent(None)
             self.sensitiveIndividualTable = []
             self.individualPerformanceTable.setParent(None)
+            self.individual_tab.layout().removeItem(self.stretch_individual)
         except AttributeError:
             return
 

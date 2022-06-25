@@ -5,14 +5,14 @@ from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-from rapp.gui.helper import ClickableLabel
+from rapp.gui.helper import ClickableLabel, CollapsibleBox
 from rapp.util import estimator_name
 
 
-class DatasetTable(QtWidgets.QGroupBox):
+class DatasetTable(CollapsibleBox):
     def __init__(self, sensitive_attribute, data, statistics_results, data_settings=None):
         """
-        Generates a table with the statistics result values, for a specific sensitive attribute, for each mode
+        Generates a collapsible box with the statistics result values, for a specific sensitive attribute, for each mode
 
         Parameters
         ----------
@@ -31,7 +31,7 @@ class DatasetTable(QtWidgets.QGroupBox):
                         'features_id': features_id of train data,
                         'labels_id': predicting label_id of the model}
         """
-        super(DatasetTable, self).__init__()
+        super(DatasetTable, self).__init__(sensitive_attribute.capitalize())
 
         self.sensitive = sensitive_attribute
         self.data = data
@@ -39,11 +39,8 @@ class DatasetTable(QtWidgets.QGroupBox):
         self.labels_id = data_settings.get("labes_id", None)
 
         self.sensitiveHBoxLayout = QtWidgets.QHBoxLayout()
-        self.setTitle(sensitive_attribute.capitalize())
-        self.setLayout(self.sensitiveHBoxLayout)
 
     def populate_table(self):
-        # TODO Upgrade groupBox to collapsible section
         # one groupBox per mode
         groupbox = []
         for j, mode in enumerate(self.data):
@@ -110,15 +107,16 @@ class DatasetTable(QtWidgets.QGroupBox):
             tableGridLayout.addWidget(labelSampleTotal, len(classes) + 1, len(subgroups) + 1)
 
             self.sensitiveHBoxLayout.addWidget(groupbox[j])
+        self.setContentLayout(self.sensitiveHBoxLayout)
 
     def populate_plot(self):
-        # TODO Upgrade groupBox to collapsible section
         # one groupBox per mode
         groupbox = []
         for j, mode in enumerate(self.data):
             groupbox.append(QtWidgets.QGroupBox(mode.capitalize()))
             vBoxLayout = QtWidgets.QVBoxLayout()
             groupbox[j].setLayout(vBoxLayout)
+            groupbox[j].setMinimumHeight(200)
 
             # add fig canvas to groupBox
             fig, ax = plt.subplots(figsize=(5, 3))
@@ -139,6 +137,7 @@ class DatasetTable(QtWidgets.QGroupBox):
             plotCanvas.draw()
 
             self.sensitiveHBoxLayout.addWidget(groupbox[j])
+        self.setContentLayout(self.sensitiveHBoxLayout)
 
 
 class OverviewTable(QtWidgets.QGroupBox):
@@ -274,12 +273,12 @@ class IndividualPerformanceTable(QtWidgets.QGroupBox):
             if len(confusion_matrix) > 0:
                 # groupBox for confusion Matrix
                 individual_cm_groupBox.append(ConfusionMatrixTable(confusion_matrix))
-                individual_cm_groupBox[i].setMinimumHeight(200)
+                # individual_cm_groupBox[i].setMinimumHeight(200)
 
             metrics = performance_results[model][mode]['scores']
             # groupBox for metrics
             individual_metrics_groupBox.append(PerformanceMetricsTable(metrics))
-            individual_metrics_groupBox[i].setMinimumHeight(200)
+            # individual_metrics_groupBox[i].setMinimumHeight(200)
 
             # add to layout
             if len(individual_cm_groupBox) > 0:
@@ -375,10 +374,10 @@ class PerformanceMetricsTable(QtWidgets.QGroupBox):
             tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignCenter)
 
 
-class IndividualFairnessTable(QtWidgets.QGroupBox):
+class IndividualFairnessTable(CollapsibleBox):
     def __init__(self, data, model, fairness_results, sensitive_attribute, pl_type='classification'):
         """
-        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        Generates a collapsible box with the performance and fairness result values, for a specific mode and sensitive attribute, 
         for each model.
 
         Parameters
@@ -399,23 +398,21 @@ class IndividualFairnessTable(QtWidgets.QGroupBox):
             Which type of prediction task is tackled by the pipeline.
         """
 
-        super(IndividualFairnessTable, self).__init__()
+        super(IndividualFairnessTable, self).__init__(sensitive_attribute.capitalize())
 
         HBoxLayout = QtWidgets.QHBoxLayout()
-        self.setLayout(HBoxLayout)
-        self.setTitle(sensitive_attribute.capitalize())
-        self.setStyleSheet("QGroupBox#NoBorderGroupBox {border:0;padding.top: 11;}")
 
         individual_mode_groupBox = []
         individual_ct_groupBox = []
         individual_metrics_groupBox = []
 
-        # TODO Upgrade groupBox to collapsible section
         # groupBox for each mode
         for i, mode in enumerate(data):
             individual_mode_groupBox.append(QtWidgets.QGroupBox(mode.capitalize()))
             vBoxLayout = QtWidgets.QVBoxLayout()
+            individual_mode_groupBox[i].setFlat(True)
             individual_mode_groupBox[i].setLayout(vBoxLayout)
+            individual_mode_groupBox[i].setStyleSheet("QGroupBox#NoBorderGroupBox {border:0; padding.top: 8;}")
             individual_mode_groupBox[i].setObjectName("NoBorderGroupBox")
 
             # correspondence table
@@ -436,6 +433,7 @@ class IndividualFairnessTable(QtWidgets.QGroupBox):
             vBoxLayout.addStretch()
             HBoxLayout.addWidget(individual_mode_groupBox[i])
 
+        self.setContentLayout(HBoxLayout)
 
 class CorrespondenceTable(QtWidgets.QGroupBox):
     def __init__(self, sub_groups):
@@ -463,6 +461,7 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
             # subgroup labels
             labelSubgroup = QtWidgets.QLabel()
             labelSubgroup.setText(str(sub_group).capitalize())
+            labelSubgroup.setStyleSheet("font-weight: bold")
             tableGridLayout.addWidget(labelSubgroup, 0, j + 1, alignment=Qt.AlignCenter)
 
             confusion_matrix = sub_groups[sub_group]['confusion_matrix']
@@ -479,7 +478,6 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
                 # values labels 
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(str(total))
-                labelValue.setStyleSheet("font-weight: bold")
                 tableGridLayout.addWidget(labelValue, k + 1, j + 1, alignment=Qt.AlignCenter)
 
 
