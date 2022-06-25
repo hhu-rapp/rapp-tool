@@ -233,3 +233,144 @@ class OverviewTable(QtWidgets.QGroupBox):
         for labelModel in self.labelModels:
             labelModel.set_click_function(function)
 
+
+class IndividualPerformanceTable(QtWidgets.QGroupBox):
+    def __init__(self, data, model, performance_results):
+        """
+        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        for each model.
+
+        Parameters
+        ----------
+        data: rapp.pipeline.data object
+            Data used in the pipeline object (used to extract the modes)
+
+        model: Scikit-learn estimator
+            Selected individual estimator.
+
+        performance_results: dict
+            Performance results with the form of: rapp.pipeline.performance_results.
+
+        """
+
+        super(IndividualPerformanceTable, self).__init__()
+
+        HBoxLayout = QtWidgets.QHBoxLayout()
+        self.setLayout(HBoxLayout)
+        self.setObjectName("NoBorderGroupBox")
+        self.setStyleSheet("QGroupBox#NoBorderGroupBox {border:0;padding.top: 11;}")
+
+        individual_mode_groupBox = []
+        individual_cm_groupBox = []
+        individual_metrics_groupBox = []
+        for i, mode in enumerate(data):
+            # groupBox for each mode
+            individual_mode_groupBox.append(QtWidgets.QGroupBox(mode.capitalize()))
+            vBoxLayout = QtWidgets.QVBoxLayout()
+            individual_mode_groupBox[i].setLayout(vBoxLayout)
+            individual_mode_groupBox[i].setObjectName("NoBorderGroupBox")
+
+            confusion_matrix = performance_results[model][mode]['confusion_matrix']
+            if len(confusion_matrix) > 0:
+                # groupBox for confusion Matrix
+                individual_cm_groupBox.append(ConfusionMatrixTable(confusion_matrix))
+                individual_cm_groupBox[i].setMinimumHeight(200)
+
+            metrics = performance_results[model][mode]['scores']
+            # groupBox for metrics
+            individual_metrics_groupBox.append(PerformanceMetricsTable(metrics))
+            individual_metrics_groupBox[i].setMinimumHeight(200)
+
+            # add to layout
+            if len(individual_cm_groupBox) > 0:
+                vBoxLayout.addWidget(individual_cm_groupBox[i])
+            vBoxLayout.addWidget(individual_metrics_groupBox[i])
+            vBoxLayout.addStretch()
+            HBoxLayout.addWidget(individual_mode_groupBox[i])
+
+
+class ConfusionMatrixTable(QtWidgets.QGroupBox):
+    def __init__(self, confusion_matrix):
+        """
+        Generates a table with the confusion matrix
+
+        Parameters
+        ----------
+        confusion_matrix: np.array with the shape of (n_classes, n_classes)
+
+        """
+        super(ConfusionMatrixTable, self).__init__()
+
+        tableGridLayout = QtWidgets.QGridLayout()
+        self.setLayout(tableGridLayout)
+
+        # headers labels
+        labelClass = QtWidgets.QLabel()
+        labelClass.setText("Class")
+        labelClass.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelClass, 1, 1, alignment=Qt.AlignCenter)
+
+        labelClass = QtWidgets.QLabel()
+        labelClass.setText("Predicted")
+        labelClass.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelClass, 0, 1 + len(confusion_matrix) / 2, alignment=Qt.AlignCenter)
+
+        labelClass = QtWidgets.QLabel()
+        labelClass.setText("Actual")
+        labelClass.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelClass, 1 + len(confusion_matrix) / 2, 0, alignment=Qt.AlignCenter)
+
+        for j in range(len(confusion_matrix)):
+            for k, value in enumerate(confusion_matrix[j]):
+                # class labels
+                labelClassPred = QtWidgets.QLabel()
+                labelClassPred.setText(str(k))
+                labelClassPred.setStyleSheet("font-weight: bold")
+                tableGridLayout.addWidget(labelClassPred, 1, k + 2, alignment=Qt.AlignCenter)
+
+                labelClassTrue = QtWidgets.QLabel()
+                labelClassTrue.setText(str(k))
+                labelClassTrue.setStyleSheet("font-weight: bold")
+                tableGridLayout.addWidget(labelClassTrue, k + 2, 1, alignment=Qt.AlignCenter)
+                # values
+                labelValue = QtWidgets.QLabel()
+                labelValue.setText(str(value))
+                tableGridLayout.addWidget(labelValue, j + 2, k + 2, alignment=Qt.AlignCenter)
+
+
+class PerformanceMetricsTable(QtWidgets.QGroupBox):
+    def __init__(self, metrics):
+        """
+        Generates a table with the given metrics
+
+        Parameters
+        ----------
+        metrics: dict[metric -> value]
+        """
+        super(PerformanceMetricsTable, self).__init__()
+
+        tableGridLayout = QtWidgets.QGridLayout()
+        self.setLayout(tableGridLayout)
+
+        labelMetric = QtWidgets.QLabel()
+        labelMetric.setText("Metric")
+        labelMetric.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignCenter)
+
+        labelValue = QtWidgets.QLabel()
+        labelValue.setText("Value")
+        labelValue.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignCenter)
+
+        for j, metric in enumerate(metrics):
+            # performance metrics labels
+            labelMetric = QtWidgets.QLabel()
+            labelMetric.setText(str(metric).capitalize())
+            labelMetric.setStyleSheet("font-weight: bold")
+            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignCenter)
+            # performance measures
+            value = metrics[metric]
+            labelValue = QtWidgets.QLabel()
+            labelValue.setText(f"{value:.3f}")
+            tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignCenter)
+
