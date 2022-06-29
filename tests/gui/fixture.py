@@ -55,6 +55,23 @@ class GuiTestApi():
         self.menubar = widget.menubar
         self.load_cf = lambda file: widget.menubar.loadConfigurationFile(file)
 
+        # Fairness Tab
+        self.fairness_tabs = widget.fairness.tabs
+        self.populate_fairness_tabs = lambda pl, data_settings: self._populate_fairness_tabs(widget, pl, data_settings)
+        # Dataset Tab
+        self.dataset_tables = None
+        # Overview Tab
+        self.overview_performance_metrics_selection_box = None
+        self.overview_fairness_metrics_selection_box = None
+        self.overview_modes_selection_box = None
+        self.overview_sensitive_selection_box = None
+        self.overview_table = None
+        # Individual Tab
+        self.individual_model_selection_box = None
+        self.individual_metrics_selection_box = None
+        self.individual_fairness_tables = None
+        self.individual_performance_table = None
+
     def get_df(self):
         return self.widget.databaseLayoutWidget.sql_df
 
@@ -134,3 +151,20 @@ class GuiTestApi():
 
     def show(self):
         self.widget.show()
+
+    def _populate_fairness_tabs(self, widget, pipeline, data_settings):
+        widget.fairness.populate_fairness_tabs(pipeline, data_settings)
+
+        # Dataset Tab
+        self.dataset_tables = widget.fairness.sensitiveDatasetTable
+        # Overview Tab
+        self.overview_performance_metrics_selection_box = widget.fairness.cbPerformance
+        self.overview_fairness_metrics_selection_box = widget.fairness.cbFairness
+        self.overview_modes_selection_box = widget.fairness.cbOverviewModes
+        self.overview_sensitive_selection_box = widget.fairness.cbSenstitiveAttributes
+        self.overview_table = widget.fairness.overview_groupBox
+        # Individual Tab
+        self.individual_model_selection_box = widget.fairness.cbModels
+        self.individual_metrics_selection_box = widget.fairness.individual_cbMetrics
+        self.individual_fairness_tables = widget.fairness.sensitiveIndividualTables
+        self.individual_performance_table = widget.fairness.individualPerformanceTable
