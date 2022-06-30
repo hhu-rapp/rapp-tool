@@ -144,7 +144,7 @@ class OverviewTable(QtWidgets.QGroupBox):
     def __init__(self, mode, models, metrics, pl_type, performance_metrics, performance_results, fairness_notions=None,
                  fairness_results=None, sensitive_attribute=None):
         """
-        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute,
         for each model.
 
         Parameters
@@ -189,26 +189,30 @@ class OverviewTable(QtWidgets.QGroupBox):
         self.setLayout(tableGridLayout)
         self.labelModels = []
 
+        modelCaption = QtWidgets.QLabel()
+        modelCaption.setText("Model")
+        modelCaption.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(modelCaption, 0, 0, Qt.AlignLeft)
+
         # model labels
         for i, model in enumerate(models):
             self.labelModels.append(ClickableLabel(i))
             self.labelModels[i].setText(estimator_name(model))
-            self.labelModels[i].setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(self.labelModels[i], i + 1, 0)
+            tableGridLayout.addWidget(self.labelModels[i], i + 1, 0, Qt.AlignLeft)
 
             # metrics labels
             for j, metric in enumerate(metrics):
                 labelMetric = QtWidgets.QLabel()
                 labelMetric.setText(str(metric))
                 labelMetric.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelMetric, 0, j + 1)
+                tableGridLayout.addWidget(labelMetric, 0, j + 1, Qt.AlignRight)
 
                 if metric in performance_metrics:
                     # performance metrics
                     value = performance_results[model][mode]['scores'][metric]
                     labelValue = QtWidgets.QLabel()
                     labelValue.setText(f"{value:.3f}")
-                    tableGridLayout.addWidget(labelValue, i + 1, j + 1)
+                    tableGridLayout.addWidget(labelValue, i + 1, j + 1, Qt.AlignRight)
 
                 if metric in fairness_notions:
                     # fairness notions
@@ -226,7 +230,7 @@ class OverviewTable(QtWidgets.QGroupBox):
 
                     labelValue = QtWidgets.QLabel()
                     labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, i + 1, j + 1)
+                    tableGridLayout.addWidget(labelValue, i + 1, j + 1, Qt.AlignRight)
 
     def set_model_click_function(self, function):
         for labelModel in self.labelModels:
@@ -236,7 +240,7 @@ class OverviewTable(QtWidgets.QGroupBox):
 class IndividualPerformanceTable(QtWidgets.QGroupBox):
     def __init__(self, data, model, performance_results):
         """
-        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute,
         for each model.
 
         Parameters
@@ -307,17 +311,17 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
         labelClass = QtWidgets.QLabel()
         labelClass.setText("Class")
         labelClass.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelClass, 1, 1, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelClass, 1, 1, alignment=Qt.AlignRight)
 
         labelClass = QtWidgets.QLabel()
-        labelClass.setText("Predicted")
+        labelClass.setText("Predicted as")
         labelClass.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelClass, 0, 1 + len(confusion_matrix) / 2, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelClass, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix), alignment=Qt.AlignCenter)
 
-        labelClass = QtWidgets.QLabel()
-        labelClass.setText("Actual")
-        labelClass.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelClass, 1 + len(confusion_matrix) / 2, 0, alignment=Qt.AlignCenter)
+        # labelClass = QtWidgets.QLabel()
+        # labelClass.setText("Actual")
+        # labelClass.setStyleSheet("font-weight: bold")
+        # tableGridLayout.addWidget(labelClass, 1 + len(confusion_matrix) / 2, 0, alignment=Qt.AlignCenter)
 
         for j in range(len(confusion_matrix)):
             for k, value in enumerate(confusion_matrix[j]):
@@ -325,16 +329,15 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
                 labelClassPred = QtWidgets.QLabel()
                 labelClassPred.setText(str(k))
                 labelClassPred.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelClassPred, 1, k + 2, alignment=Qt.AlignCenter)
+                tableGridLayout.addWidget(labelClassPred, 1, k + 2, alignment=Qt.AlignRight)
 
                 labelClassTrue = QtWidgets.QLabel()
                 labelClassTrue.setText(str(k))
-                labelClassTrue.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelClassTrue, k + 2, 1, alignment=Qt.AlignCenter)
+                tableGridLayout.addWidget(labelClassTrue, k + 2, 1, alignment=Qt.AlignRight)
                 # values
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(str(value))
-                tableGridLayout.addWidget(labelValue, j + 2, k + 2, alignment=Qt.AlignCenter)
+                tableGridLayout.addWidget(labelValue, j + 2, k + 2, alignment=Qt.AlignRight)
 
 
 class PerformanceMetricsTable(QtWidgets.QGroupBox):
@@ -354,30 +357,29 @@ class PerformanceMetricsTable(QtWidgets.QGroupBox):
         labelMetric = QtWidgets.QLabel()
         labelMetric.setText("Metric")
         labelMetric.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignLeft)
 
         labelValue = QtWidgets.QLabel()
         labelValue.setText("Value")
         labelValue.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignRight)
 
         for j, metric in enumerate(metrics):
             # performance metrics labels
             labelMetric = QtWidgets.QLabel()
             labelMetric.setText(str(metric).capitalize())
-            labelMetric.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignCenter)
+            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignLeft)
             # performance measures
             value = metrics[metric]
             labelValue = QtWidgets.QLabel()
             labelValue.setText(f"{value:.3f}")
-            tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignCenter)
+            tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignRight)
 
 
 class IndividualFairnessTable(CollapsibleBox):
     def __init__(self, data, model, fairness_results, sensitive_attribute, pl_type='classification'):
         """
-        Generates a collapsible box with the performance and fairness result values, for a specific mode and sensitive attribute, 
+        Generates a collapsible box with the performance and fairness result values, for a specific mode and sensitive attribute,
         for each model.
 
         Parameters
@@ -455,14 +457,14 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
         labelClass = QtWidgets.QLabel()
         labelClass.setText("Class")
         labelClass.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelClass, 0, 0, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelClass, 0, 0, alignment=Qt.AlignLeft)
 
         for j, sub_group in enumerate(sub_groups):
             # subgroup labels
             labelSubgroup = QtWidgets.QLabel()
             labelSubgroup.setText(str(sub_group).capitalize())
             labelSubgroup.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelSubgroup, 0, j + 1, alignment=Qt.AlignCenter)
+            tableGridLayout.addWidget(labelSubgroup, 0, j + 1, alignment=Qt.AlignRight)
 
             confusion_matrix = sub_groups[sub_group]['confusion_matrix']
             n = int(np.sqrt(len(confusion_matrix)))
@@ -473,12 +475,11 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
                 # classes labels
                 labelClass = QtWidgets.QLabel()
                 labelClass.setText(str(k))
-                labelClass.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelClass, k + 1, 0, alignment=Qt.AlignCenter)
-                # values labels 
+                tableGridLayout.addWidget(labelClass, k + 1, 0, alignment=Qt.AlignLeft)
+                # values labels
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(str(total))
-                tableGridLayout.addWidget(labelValue, k + 1, j + 1, alignment=Qt.AlignCenter)
+                tableGridLayout.addWidget(labelValue, k + 1, j + 1, alignment=Qt.AlignRight)
 
 
 class FairnessMetricsTable(QtWidgets.QGroupBox):
@@ -505,21 +506,20 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
         labelMetric = QtWidgets.QLabel()
         labelMetric.setText("Metric")
         labelMetric.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignLeft)
 
         if pl_type == "regression":
             # 'value' labels
             labelValue = QtWidgets.QLabel()
             labelValue.setText("Value")
             labelValue.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignCenter)
+            tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignRight)
 
         for j, metric in enumerate(metrics):
             # fairness metrics labels
             labelMetric = QtWidgets.QLabel()
             labelMetric.setText(str(metric).capitalize())
-            labelMetric.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignCenter)
+            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignLeft)
 
             values = metrics[metric][mode]
 
@@ -529,14 +529,14 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
                     # subgroup labels
                     labelSubgroup = QtWidgets.QLabel()
                     labelSubgroup.setText(str(value).capitalize())
-                    tableGridLayout.addWidget(labelSubgroup, 0, k + 1, alignment=Qt.AlignCenter)
+                    tableGridLayout.addWidget(labelSubgroup, 0, k + 1, alignment=Qt.AlignRight)
                     # fairness measures
                     labelValue = QtWidgets.QLabel()
                     labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, j + 1, k + 1, alignment=Qt.AlignCenter)
+                    tableGridLayout.addWidget(labelValue, j + 1, k + 1, alignment=Qt.AlignRight)
 
             if pl_type == "regression":
                 # fairness measures
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(f"{values:.3f}")
-                tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignCenter)
+                tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignRight)
