@@ -59,7 +59,8 @@ class FairnessWidget(QtWidgets.QWidget):
         self.overview_tab.setLayout(QtWidgets.QVBoxLayout())
 
         # add to layout
-        self.tabs.addTab(self.overview_tab, 'Model Summary')
+        tab_idx = self.tabs.addTab(self.overview_tab, 'Model Summary')
+        self.overview_tab_idx = tab_idx
 
     def __init_individual_tab(self):
         # create layout
