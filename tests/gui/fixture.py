@@ -24,7 +24,7 @@ class GuiTestApi():
 
         # Setup links to all the window elements for shorter names/convenience.
         self.statusbar = widget.statusbar
-        # self.tabs = widget.tabs
+        self.tabs = widget.tabs
 
         # SQL Field
         self.sql_features_select_box = widget.databaseLayoutWidget.sql_tabs.featuresSelect
