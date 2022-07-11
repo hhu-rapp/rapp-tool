@@ -1,14 +1,13 @@
 from types import SimpleNamespace
 
-from pytest import fixture
-from pytest import mark
+import pytest
 from sklearn.dummy import DummyClassifier
 from rapp.gui.widgets import DatasetTable, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable
 
 from tests.gui.fixture import gui, GuiTestApi
 
 
-@fixture
+@pytest.fixture
 def clf_pipeline():
     est1 = DummyClassifier()
     est2 = DummyClassifier()
@@ -52,14 +51,14 @@ def clf_pipeline():
     return pipeline
 
 
-@fixture
+@pytest.fixture
 def clf_settings():
     return {'studies_id': 'cs',
             'features_id': 'first_term_ects',
             'labels_id': '3_dropout'}
 
 
-@fixture
+@pytest.fixture
 def fairtab_clf(gui, clf_pipeline, clf_settings):
     gui.populate_fairness_tabs(clf_pipeline, clf_settings)
     return gui
@@ -131,7 +130,7 @@ def test_widget_type_of_individual_performance_table(fairtab_clf: GuiTestApi):
         f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
-@mark.skip(reason="Individual_metrics_selection_box is not updating")
+@pytest.mark.skip(reason="Individual_metrics_selection_box is not updating")
 def test_collapsible_num(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
@@ -144,7 +143,7 @@ def test_collapsible_num(fairtab_clf: GuiTestApi):
         f"The Number of collapsible boxes in the individual tab should be {actual}, but is {expected}"
 
 
-@mark.skip(reason="Individual_metrics_selection_box is not updating")
+@pytest.mark.skip(reason="Individual_metrics_selection_box is not updating")
 def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
@@ -157,7 +156,7 @@ def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
         f"The type of widget in the overview tab should be {actual}, but is {expected}"
 
 
-@mark.skip(reason="clicking on the model's label does not seem to work")
+@pytest.mark.skip(reason="clicking on the model's label does not seem to work")
 def test_click_on_model_in_overview(fairtab_clf: GuiTestApi, clf_pipeline):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
 
@@ -172,7 +171,7 @@ def test_click_on_model_in_overview(fairtab_clf: GuiTestApi, clf_pipeline):
         f"The fairness tab index should have changed to {expected}, but is {actual}"
 
 
-@mark.skip(reason="clicking on the model's label does not seem to work")
+@pytest.mark.skip(reason="clicking on the model's label does not seem to work")
 def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi, clf_pipeline):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
 
