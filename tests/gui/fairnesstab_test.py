@@ -59,7 +59,8 @@ def clf_settings():
 
 
 @pytest.fixture
-def fairtab_clf(gui, clf_pipeline, clf_settings):
+def fairtab_clf(gui: GuiTestApi, clf_pipeline, clf_settings):
+    gui.tabs.setTabEnabled(gui.widget.fairness_tab_index, True)
     gui.populate_fairness_tabs(clf_pipeline, clf_settings)
     return gui
 
@@ -115,9 +116,10 @@ def test_widget_type_in_overview(fairtab_clf: GuiTestApi):
         f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
-def test_model_selection_in_individual_tab(fairtab_clf: GuiTestApi):
-    actual = [fairtab_clf.individual_model_selection_box.itemText(
-        i) for i in range(fairtab_clf.individual_model_selection_box.count())]
+def test_listed_models_in_model_inspection(fairtab_clf: GuiTestApi):
+    actual = [fairtab_clf.individual_model_selection_box.itemText(i)
+              for i in range(
+        fairtab_clf.individual_model_selection_box.count())]
     expected = ['DummyClassifier', 'DummyClassifier']
     assert actual == expected, \
         f"The model selection box in the individual tab should be {expected}, but is {actual}"
@@ -130,37 +132,36 @@ def test_widget_type_of_individual_performance_table(fairtab_clf: GuiTestApi):
         f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="Individual_metrics_selection_box is not updating")
-def test_collapsible_num_in_individual_tab(fairtab_clf: GuiTestApi):
+def test_select_individual_fairness_metric(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.individual_tab_idx)
-    fairtab_clf.key_click(
-        fairtab_clf.individual_metrics_selection_box, "Fairness")
-    actual = len(fairtab_clf.individual_fairness_tables)
+
+    fairtab_clf.key_click(fairtab_clf.individual_metrics_selection_box,
+                          'Fairness')
+
+    actual = len(fairtab_clf.get_individual_fairness_tables())
     expected = 2
     assert actual == expected,\
-        f"The Number of collapsible boxes in the individual tab should be {actual}, but is {expected}"
+        f"The Number of collapsible boxes in the individual tab should be {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="Individual_metrics_selection_box is not updating")
 def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.individual_tab_idx)
     fairtab_clf.key_click(
         fairtab_clf.individual_metrics_selection_box, "Fairness")
-    actual = type(fairtab_clf.individual_fairness_tables[0])
+    actual = type(fairtab_clf.get_individual_fairness_tables()[0])
     expected = IndividualFairnessTable
     assert actual == expected,\
-        f"The type of widget in the overview tab should be {actual}, but is {expected}"
+        f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="clicking on the model's label does not seem to work")
-def test_click_on_model_in_overview(fairtab_clf: GuiTestApi, clf_pipeline):
+def test_click_on_model_in_overview(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
 
-    model_idx = 0  # Only test first model.
+    model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.overview_tab_idx)
     fairtab_clf.click(fairtab_clf.overview_table.labelModels[model_idx])
@@ -171,11 +172,10 @@ def test_click_on_model_in_overview(fairtab_clf: GuiTestApi, clf_pipeline):
         f"The fairness tab index should have changed to {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="clicking on the model's label does not seem to work")
-def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi, clf_pipeline):
+def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
 
-    model_idx = 0  # Only test first model.
+    model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.overview_tab_idx)
     fairtab_clf.click(fairtab_clf.overview_table.labelModels[model_idx])
