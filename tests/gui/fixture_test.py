@@ -9,7 +9,7 @@ def test_selection_in_combo_box(gui: GuiTestApi):
 
     gui.key_click(gui.sql_features_select_box, 'cs_first_term_grades')
 
-    expected = 1
+    expected = 2
     actual = gui.sql_features_select_box.currentIndex()
 
     assert expected == actual
