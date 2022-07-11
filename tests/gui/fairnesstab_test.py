@@ -131,7 +131,7 @@ def test_widget_type_of_individual_performance_table(fairtab_clf: GuiTestApi):
 
 
 @pytest.mark.skip(reason="Individual_metrics_selection_box is not updating")
-def test_collapsible_num(fairtab_clf: GuiTestApi):
+def test_collapsible_num_in_individual_tab(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.individual_tab_idx)
