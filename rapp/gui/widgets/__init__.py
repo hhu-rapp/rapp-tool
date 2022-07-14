@@ -388,7 +388,8 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
         labelTitle = QtWidgets.QLabel()
         labelTitle.setText("Predicted as")
         labelTitle.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelTitle, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix), alignment=Qt.AlignCenter)
+        tableGridLayout.addWidget(labelTitle, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix),
+                                  alignment=Qt.AlignCenter)
         self.title = labelTitle
 
         # labelClass = QtWidgets.QLabel()
@@ -416,7 +417,6 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
                 labelValue.setText(str(value))
                 tableGridLayout.addWidget(labelValue, k + 2, j + 2, alignment=Qt.AlignRight)
                 self.labels[labelClassPred].append(labelValue)
-
 
 
 class PerformanceMetricsTable(QtWidgets.QGroupBox):
@@ -458,6 +458,7 @@ class PerformanceMetricsTable(QtWidgets.QGroupBox):
             labelValues.setText(f"{value:.3f}")
             tableGridLayout.addWidget(labelValues, j + 1, 1, alignment=Qt.AlignRight)
             self.labels[labelValue].append(labelValues)
+
 
 class IndividualFairnessTable(CollapsibleBox):
     def __init__(self, data, model, fairness_results, sensitive_attribute, pl_type='classification'):
@@ -520,6 +521,7 @@ class IndividualFairnessTable(CollapsibleBox):
 
         self.setContentLayout(HBoxLayout)
 
+
 class CorrespondenceTable(QtWidgets.QGroupBox):
     def __init__(self, sub_groups):
         """
@@ -570,6 +572,7 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
             labelClasses.setText(str(i))
             tableGridLayout.addWidget(labelClasses, i + 1, 0, alignment=Qt.AlignLeft)
             self.labels[labelClass].append(labelClasses)
+
 
 class FairnessMetricsTable(QtWidgets.QGroupBox):
     def __init__(self, metrics, mode, pl_type):
