@@ -25,8 +25,8 @@ class FairnessWidget(QtWidgets.QWidget):
         # create widgets
         self.tabs = QtWidgets.QTabWidget()
 
-        self.sensitiveIndividualTables = []
         self.sensitiveDatasetTable = {}
+        self.sensitiveIndividualTables = {}
 
         self.cbPerformance = None
         self.cbFairness = None
@@ -241,13 +241,14 @@ class FairnessWidget(QtWidgets.QWidget):
 
             # add to layout
             self.individual_tab.layout().addWidget(self.individualPerformanceTable)
+
         if metric_type == "Fairness":
-            for i, sensitive in enumerate(sensitive_attributes):
-                self.sensitiveIndividualTables.append(IndividualFairnessTable(data, model, fairness_results, sensitive,
-                                                                              pl_type))
+            for sensitive in sensitive_attributes:
+                self.sensitiveIndividualTables[sensitive] = IndividualFairnessTable(data, model, fairness_results, sensitive,
+                                                                              pl_type)
 
                 # add to layout
-                self.individual_tab.layout().addWidget(self.sensitiveIndividualTables[i])
+                self.individual_tab.layout().addWidget(self.sensitiveIndividualTables[sensitive])
             # add removable stretch
             self.stretch_individual = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
                                                             QtWidgets.QSizePolicy.Expanding)
@@ -255,9 +256,9 @@ class FairnessWidget(QtWidgets.QWidget):
 
     def _clear_individual_table(self):
         try:
-            for widget in self.sensitiveIndividualTables:
+            for _, widget in self.sensitiveIndividualTables.items():
                 widget.setParent(None)
-            self.sensitiveIndividualTables = []
+            self.sensitiveIndividualTables = {}
             self.individualPerformanceTable.setParent(None)
             self.individual_tab.layout().removeItem(self.stretch_individual)
         except AttributeError:

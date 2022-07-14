@@ -310,7 +310,7 @@ class IndividualPerformanceTable(QtWidgets.QGroupBox):
     def __init__(self, data, model, performance_results):
         """
         Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute,
-        for each model.
+        for a specific model.
 
         Parameters
         ----------
@@ -332,33 +332,34 @@ class IndividualPerformanceTable(QtWidgets.QGroupBox):
         self.setObjectName("NoBorderGroupBox")
         self.setStyleSheet("QGroupBox#NoBorderGroupBox {border:0;padding.top: 11;}")
 
-        individual_mode_groupBox = []
-        individual_cm_groupBox = []
-        individual_metrics_groupBox = []
-        for i, mode in enumerate(data):
-            # groupBox for each mode
-            individual_mode_groupBox.append(QtWidgets.QGroupBox(mode.capitalize()))
+        self.cm_groupBox = {}
+        self.metrics_groupBox = {}
+        self.main_groupBox = {}
+
+        for mode in data:
+            # main_groupBox for each mode
+            self.main_groupBox[mode] = QtWidgets.QGroupBox(mode.capitalize())
             vBoxLayout = QtWidgets.QVBoxLayout()
-            individual_mode_groupBox[i].setLayout(vBoxLayout)
-            individual_mode_groupBox[i].setObjectName("NoBorderGroupBox")
+            self.main_groupBox[mode].setLayout(vBoxLayout)
+            self.main_groupBox[mode].setObjectName("NoBorderGroupBox")
 
             confusion_matrix = performance_results[model][mode]['confusion_matrix']
             if len(confusion_matrix) > 0:
                 # groupBox for confusion Matrix
-                individual_cm_groupBox.append(ConfusionMatrixTable(confusion_matrix))
+                self.cm_groupBox[mode] = ConfusionMatrixTable(confusion_matrix)
                 # individual_cm_groupBox[i].setMinimumHeight(200)
 
             metrics = performance_results[model][mode]['scores']
             # groupBox for metrics
-            individual_metrics_groupBox.append(PerformanceMetricsTable(metrics))
+            self.metrics_groupBox[mode] = PerformanceMetricsTable(metrics)
             # individual_metrics_groupBox[i].setMinimumHeight(200)
 
             # add to layout
-            if len(individual_cm_groupBox) > 0:
-                vBoxLayout.addWidget(individual_cm_groupBox[i])
-            vBoxLayout.addWidget(individual_metrics_groupBox[i])
+            if len(self.cm_groupBox) > 0:
+                vBoxLayout.addWidget(self.cm_groupBox[mode])
+            vBoxLayout.addWidget(self.metrics_groupBox[mode])
             vBoxLayout.addStretch()
-            HBoxLayout.addWidget(individual_mode_groupBox[i])
+            HBoxLayout.addWidget(self.main_groupBox[mode])
 
 
 class ConfusionMatrixTable(QtWidgets.QGroupBox):
@@ -375,17 +376,20 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
 
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
+        self.labels = {}
 
         # headers labels
         labelClass = QtWidgets.QLabel()
         labelClass.setText("Class")
         labelClass.setStyleSheet("font-weight: bold")
         tableGridLayout.addWidget(labelClass, 1, 1, alignment=Qt.AlignRight)
+        self.labels[labelClass] = []
 
-        labelClass = QtWidgets.QLabel()
-        labelClass.setText("Predicted as")
-        labelClass.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelClass, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix), alignment=Qt.AlignCenter)
+        labelTitle = QtWidgets.QLabel()
+        labelTitle.setText("Predicted as")
+        labelTitle.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelTitle, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix), alignment=Qt.AlignCenter)
+        self.title = labelTitle
 
         # labelClass = QtWidgets.QLabel()
         # labelClass.setText("Actual")
@@ -393,20 +397,26 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
         # tableGridLayout.addWidget(labelClass, 1 + len(confusion_matrix) / 2, 0, alignment=Qt.AlignCenter)
 
         for j in range(len(confusion_matrix)):
-            for k, value in enumerate(confusion_matrix[j]):
-                # class labels
-                labelClassPred = QtWidgets.QLabel()
-                labelClassPred.setText(str(k))
-                labelClassPred.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelClassPred, 1, k + 2, alignment=Qt.AlignRight)
+            # class labels
+            labelClassPred = QtWidgets.QLabel()
+            labelClassPred.setText(str(j))
+            labelClassPred.setStyleSheet("font-weight: bold")
+            tableGridLayout.addWidget(labelClassPred, 1, j + 2, alignment=Qt.AlignRight)
+            self.labels[labelClassPred] = []
 
-                labelClassTrue = QtWidgets.QLabel()
-                labelClassTrue.setText(str(k))
-                tableGridLayout.addWidget(labelClassTrue, k + 2, 1, alignment=Qt.AlignRight)
+            labelClassTrue = QtWidgets.QLabel()
+            labelClassTrue.setText(str(j))
+            tableGridLayout.addWidget(labelClassTrue, j + 2, 1, alignment=Qt.AlignRight)
+            self.labels[labelClass].append(labelClassTrue)
+
+            for k, cm in enumerate(confusion_matrix):
                 # values
+                value = cm[j]
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(str(value))
-                tableGridLayout.addWidget(labelValue, j + 2, k + 2, alignment=Qt.AlignRight)
+                tableGridLayout.addWidget(labelValue, k + 2, j + 2, alignment=Qt.AlignRight)
+                self.labels[labelClassPred].append(labelValue)
+
 
 
 class PerformanceMetricsTable(QtWidgets.QGroupBox):
@@ -422,28 +432,32 @@ class PerformanceMetricsTable(QtWidgets.QGroupBox):
 
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
+        self.labels = {}
 
         labelMetric = QtWidgets.QLabel()
         labelMetric.setText("Metric")
         labelMetric.setStyleSheet("font-weight: bold")
         tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignLeft)
+        self.labels[labelMetric] = []
 
         labelValue = QtWidgets.QLabel()
         labelValue.setText("Value")
         labelValue.setStyleSheet("font-weight: bold")
         tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignRight)
+        self.labels[labelValue] = []
 
         for j, metric in enumerate(metrics):
             # performance metrics labels
-            labelMetric = QtWidgets.QLabel()
-            labelMetric.setText(str(metric).capitalize())
-            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignLeft)
+            labelMetrics = QtWidgets.QLabel()
+            labelMetrics.setText(str(metric).capitalize())
+            tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
+            self.labels[labelMetric].append(labelMetrics)
             # performance measures
             value = metrics[metric]
-            labelValue = QtWidgets.QLabel()
-            labelValue.setText(f"{value:.3f}")
-            tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignRight)
-
+            labelValues = QtWidgets.QLabel()
+            labelValues.setText(f"{value:.3f}")
+            tableGridLayout.addWidget(labelValues, j + 1, 1, alignment=Qt.AlignRight)
+            self.labels[labelValue].append(labelValues)
 
 class IndividualFairnessTable(CollapsibleBox):
     def __init__(self, data, model, fairness_results, sensitive_attribute, pl_type='classification'):
@@ -462,8 +476,8 @@ class IndividualFairnessTable(CollapsibleBox):
         fairness_results: dict
             Performance results with the form of: rapp.pipeline.performance_results.
 
-        sensitive_attribute: list
-            Sensitive attributes used in the pipeline.
+        sensitive_attribute: str (optional)
+            Sensitive attribute to use, only needed if fairness results.
 
         pl_type: {'classification', 'regression}, default : 'classification'
             Which type of prediction task is tackled by the pipeline.
@@ -473,36 +487,36 @@ class IndividualFairnessTable(CollapsibleBox):
 
         HBoxLayout = QtWidgets.QHBoxLayout()
 
-        individual_mode_groupBox = []
-        individual_ct_groupBox = []
-        individual_metrics_groupBox = []
+        self.ct_groupBox = {}
+        self.metrics_groupBox = {}
+        self.main_groupBox = {}
 
         # groupBox for each mode
         for i, mode in enumerate(data):
-            individual_mode_groupBox.append(QtWidgets.QGroupBox(mode.capitalize()))
+            self.main_groupBox[mode] = QtWidgets.QGroupBox(mode.capitalize())
             vBoxLayout = QtWidgets.QVBoxLayout()
-            individual_mode_groupBox[i].setFlat(True)
-            individual_mode_groupBox[i].setLayout(vBoxLayout)
-            individual_mode_groupBox[i].setStyleSheet("QGroupBox#NoBorderGroupBox {border:0; padding.top: 8;}")
-            individual_mode_groupBox[i].setObjectName("NoBorderGroupBox")
+            self.main_groupBox[mode].setFlat(True)
+            self.main_groupBox[mode].setLayout(vBoxLayout)
+            self.main_groupBox[mode].setStyleSheet("QGroupBox#NoBorderGroupBox {border:0; padding.top: 8;}")
+            self.main_groupBox[mode].setObjectName("NoBorderGroupBox")
 
             # correspondence table
             if pl_type == "classification":
                 # Since the confusion matrix is the same for all metrics we are going to access the first cm that appears
                 first_metric = list(fairness_results[model][sensitive_attribute].keys())[0]
                 sub_groups = fairness_results[model][sensitive_attribute][first_metric][mode]
-                individual_ct_groupBox.append(CorrespondenceTable(sub_groups))
+                self.ct_groupBox[mode] = CorrespondenceTable(sub_groups)
 
             # metrics table
             metrics = fairness_results[model][sensitive_attribute]
-            individual_metrics_groupBox.append(FairnessMetricsTable(metrics, mode, pl_type))
+            self.metrics_groupBox[mode] = FairnessMetricsTable(metrics, mode, pl_type)
 
             # add to layout
-            if len(individual_ct_groupBox) > 0:
-                vBoxLayout.addWidget(individual_ct_groupBox[i])
-            vBoxLayout.addWidget(individual_metrics_groupBox[i])
+            if len(self.ct_groupBox) > 0:
+                vBoxLayout.addWidget(self.ct_groupBox[mode])
+            vBoxLayout.addWidget(self.metrics_groupBox[mode])
             vBoxLayout.addStretch()
-            HBoxLayout.addWidget(individual_mode_groupBox[i])
+            HBoxLayout.addWidget(self.main_groupBox[mode])
 
         self.setContentLayout(HBoxLayout)
 
@@ -521,12 +535,14 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
         # groupBox for correspondence table
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
+        self.labels = {}
 
         # 'Class' label
         labelClass = QtWidgets.QLabel()
         labelClass.setText("Class")
         labelClass.setStyleSheet("font-weight: bold")
         tableGridLayout.addWidget(labelClass, 0, 0, alignment=Qt.AlignLeft)
+        self.labels[labelClass] = []
 
         for j, sub_group in enumerate(sub_groups):
             # subgroup labels
@@ -534,6 +550,7 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
             labelSubgroup.setText(str(sub_group).capitalize())
             labelSubgroup.setStyleSheet("font-weight: bold")
             tableGridLayout.addWidget(labelSubgroup, 0, j + 1, alignment=Qt.AlignRight)
+            self.labels[labelSubgroup] = []
 
             confusion_matrix = sub_groups[sub_group]['confusion_matrix']
             n = int(np.sqrt(len(confusion_matrix)))
@@ -541,15 +558,18 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
 
             values = np.sum(cm, axis=0)
             for k, total in enumerate(values):
-                # classes labels
-                labelClass = QtWidgets.QLabel()
-                labelClass.setText(str(k))
-                tableGridLayout.addWidget(labelClass, k + 1, 0, alignment=Qt.AlignLeft)
                 # values labels
                 labelValue = QtWidgets.QLabel()
                 labelValue.setText(str(total))
                 tableGridLayout.addWidget(labelValue, k + 1, j + 1, alignment=Qt.AlignRight)
+                self.labels[labelSubgroup].append(labelValue)
 
+        for i in range(len(cm)):
+            # classes labels
+            labelClasses = QtWidgets.QLabel()
+            labelClasses.setText(str(i))
+            tableGridLayout.addWidget(labelClasses, i + 1, 0, alignment=Qt.AlignLeft)
+            self.labels[labelClass].append(labelClasses)
 
 class FairnessMetricsTable(QtWidgets.QGroupBox):
     def __init__(self, metrics, mode, pl_type):
@@ -570,12 +590,14 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
 
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
+        self.labels = {}
 
         # 'metric' label
         labelMetric = QtWidgets.QLabel()
         labelMetric.setText("Metric")
         labelMetric.setStyleSheet("font-weight: bold")
         tableGridLayout.addWidget(labelMetric, 0, 0, alignment=Qt.AlignLeft)
+        self.labels[labelMetric] = []
 
         if pl_type == "regression":
             # 'value' labels
@@ -583,29 +605,45 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
             labelValue.setText("Value")
             labelValue.setStyleSheet("font-weight: bold")
             tableGridLayout.addWidget(labelValue, 0, 1, alignment=Qt.AlignRight)
+            self.labels[labelValue] = []
 
-        for j, metric in enumerate(metrics):
-            # fairness metrics labels
-            labelMetric = QtWidgets.QLabel()
-            labelMetric.setText(str(metric).capitalize())
-            tableGridLayout.addWidget(labelMetric, j + 1, 0, alignment=Qt.AlignLeft)
+            for j, metric in enumerate(metrics):
+                # fairness metrics labels
+                labelMetrics = QtWidgets.QLabel()
+                labelMetrics.setText(str(metric).capitalize())
+                tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
+                self.labels[labelMetric].append(labelMetrics)
 
-            values = metrics[metric][mode]
-
-            if pl_type == "classification":
-                for k, value in enumerate(values):
-                    measure = values[value]['affected_percent']
-                    # subgroup labels
-                    labelSubgroup = QtWidgets.QLabel()
-                    labelSubgroup.setText(str(value).capitalize())
-                    tableGridLayout.addWidget(labelSubgroup, 0, k + 1, alignment=Qt.AlignRight)
-                    # fairness measures
-                    labelValue = QtWidgets.QLabel()
-                    labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, j + 1, k + 1, alignment=Qt.AlignRight)
-
-            if pl_type == "regression":
+                values = metrics[metric][mode]
                 # fairness measures
-                labelValue = QtWidgets.QLabel()
-                labelValue.setText(f"{values:.3f}")
-                tableGridLayout.addWidget(labelValue, j + 1, 1, alignment=Qt.AlignRight)
+                labelValues = QtWidgets.QLabel()
+                labelValues.setText(f"{values:.3f}")
+                tableGridLayout.addWidget(labelValues, j + 1, 1, alignment=Qt.AlignRight)
+                self.labels[labelValue].append(labelValues)
+
+        if pl_type == "classification":
+            first_metric = list(metrics.keys())[0]
+            for i, subgroup in enumerate(metrics[first_metric][mode]):
+                # subgroup labels
+                labelSubgroup = QtWidgets.QLabel()
+                labelSubgroup.setText(str(subgroup).capitalize())
+                tableGridLayout.addWidget(labelSubgroup, 0, i + 1, alignment=Qt.AlignRight)
+                self.labels[labelSubgroup] = []
+
+                for j, metric in enumerate(metrics):
+
+                    if i == 0:
+                        # fairness metrics labels
+                        labelMetrics = QtWidgets.QLabel()
+                        labelMetrics.setText(str(metric).capitalize())
+                        tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
+                        self.labels[labelMetric].append(labelMetrics)
+
+                    if pl_type == "classification":
+                        values = metrics[metric][mode]
+                        measure = values[subgroup]['affected_percent']
+                        # fairness measures
+                        labelValues = QtWidgets.QLabel()
+                        labelValues.setText(f"{measure:.3f}")
+                        tableGridLayout.addWidget(labelValues, j + 1, i + 1, alignment=Qt.AlignRight)
+                        self.labels[labelSubgroup].append(labelValues)
