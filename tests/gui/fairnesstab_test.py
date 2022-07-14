@@ -158,6 +158,25 @@ def test_widget_type_in_overview(fairtab_clf: GuiTestApi):
         f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
+def test_table_in_overview(fairtab_clf: GuiTestApi):
+    labels = fairtab_clf.overview_table.labels
+
+    values = {}
+    for label in labels:
+        key = label.text()
+        values[key] = []
+        for val in labels[label]:
+            values[key].append(val.text())
+
+    actual = values
+    expected = {'Model': ['DummyClassifier', 'DummyClassifier'],
+                'A': ['0.200', '0.200'],
+                'B': ['0.500', '0.500'],
+                'C': ['0.500', '0.500']}
+    assert actual == expected, \
+        f"The values in the overview table should be {expected}, but are {actual}"
+
+
 def test_listed_models_in_model_inspection(fairtab_clf: GuiTestApi):
     actual = [fairtab_clf.individual_model_selection_box.itemText(i)
               for i in range(
