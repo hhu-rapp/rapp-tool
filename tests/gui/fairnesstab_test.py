@@ -84,9 +84,41 @@ def test_datatab_widget_type(fairtab_clf: GuiTestApi):
     sensitive = 'Protected'  # only test second sensitive attribute
 
     actual = type(fairtab_clf.dataset_tables[sensitive])
+    expected = DatasetTables
+    assert actual == expected, \
+        f"The type of widget in the dataset tab should be {expected}, but is {actual}"
+
+
+def test_clf_datatable_widget_type(fairtab_clf: GuiTestApi):
+    sensitive = 'Protected'  # only test second sensitive attribute
+    mode = 'train'
+
+    actual = type(fairtab_clf.dataset_tables[sensitive].dataset_groupBox[mode])
     expected = DatasetTable
     assert actual == expected, \
         f"The type of widget in the dataset tab should be {expected}, but is {actual}"
+
+
+def test_dataset_table(fairtab_clf: GuiTestApi):
+    sensitive = 'Protected'  # only test second sensitive attribute
+    mode = 'train'
+
+    labels = fairtab_clf.dataset_tables[sensitive].dataset_groupBox[mode].labels
+
+    values = {}
+    for label in labels:
+        key = label.text()
+        values[key] = []
+        for val in labels[label]:
+            values[key].append(val.text())
+
+    actual = values
+    expected = {'Class': ['0', '1', 'Total'],
+                'Bar': ['5', '5', '10'],
+                'Baz': ['6', '4', '10'],
+                'Total': ['11', '9', '20']}
+    assert actual == expected, \
+        f"The values in the dataset table should be {expected}, but are {actual}"
 
 
 def test_performance_metrics_selection(fairtab_clf: GuiTestApi):
