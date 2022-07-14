@@ -9,8 +9,8 @@ from rapp.gui.helper import ClickableLabel, CollapsibleBox
 from rapp.util import estimator_name
 
 
-class DatasetTable(CollapsibleBox):
-    def __init__(self, sensitive_attribute, data, statistics_results, data_settings=None):
+class DatasetTables(CollapsibleBox):
+    def __init__(self, sensitive_attribute, data, statistics_results, pl_type='classification', data_settings=None):
         """
         Generates a collapsible box with the statistics result values, for a specific sensitive attribute, for each mode
 
@@ -25,119 +25,180 @@ class DatasetTable(CollapsibleBox):
         statistics_results: dict
             Statistic results with the form of: rapp.pipeline.statistics_results
 
+        pl_type: {'classification', 'regression}, default : 'classification'
+            Which type of prediction task is tackled by the pipeline.
+
         data_settings: dict (optional), default: None
             It represents the loaded data in the pipeline, it has the form:
                         {'studies_id': studies_id of train data,
                         'features_id': features_id of train data,
                         'labels_id': predicting label_id of the model}
         """
-        super(DatasetTable, self).__init__(sensitive_attribute.capitalize())
+        super(DatasetTables, self).__init__(sensitive_attribute.capitalize())
 
-        self.sensitive = sensitive_attribute
-        self.data = data
         self.statistics_results = statistics_results
-        self.labels_id = data_settings.get("labes_id", None)
+
+        if data_settings is not None:
+            labels_id = data_settings.get("labels_id")
 
         self.sensitiveHBoxLayout = QtWidgets.QHBoxLayout()
+        self.main_groupBox = {}
+        self.dataset_groupBox = {}
 
-    def populate_table(self):
-        # one groupBox per mode
-        groupbox = []
-        for j, mode in enumerate(self.data):
-            groupbox.append(QtWidgets.QGroupBox(mode.capitalize()))
-            tableGridLayout = QtWidgets.QGridLayout()
-            groupbox[j].setLayout(tableGridLayout)
+        for mode in data:
+            self.main_groupBox[mode] = (QtWidgets.QGroupBox(mode.capitalize()))
+            hBoxLayout = QtWidgets.QHBoxLayout()
+            self.main_groupBox[mode].setLayout(hBoxLayout)
 
-            # 'Class' label
-            labelClass = QtWidgets.QLabel()
-            labelClass.setText("Class")
-            labelClass.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelClass, 0, 0)
+            if pl_type == "classification":
+                self.dataset_groupBox[mode] = DatasetTable(statistics_results, mode, sensitive_attribute)
 
+            if pl_type == "regression":
+                self.dataset_groupBox[mode] = DatasetPlot(statistics_results, mode, sensitive_attribute, labels_id)
+
+            hBoxLayout.addWidget(self.dataset_groupBox[mode])
+            self.sensitiveHBoxLayout.addWidget(self.main_groupBox[mode])
+        self.setContentLayout(self.sensitiveHBoxLayout)
+
+
+class DatasetTable(QtWidgets.QGroupBox):
+    def __init__(self, statistics_results, mode, sensitive_attribute):
+        """
+        Generates a table with the given metrics
+
+        Parameters
+        ----------
+        statistics_results: dict
+            Statistic results with the form of: rapp.pipeline.statistics_results
+
+        mode: {'train', 'test'}
+            Which mode should be accessed.
+
+        sensitive_attribute: str (optional)
+            Sensitive attribute to use, only needed if fairness results.
+        """
+        super(DatasetTable, self).__init__()
+
+        self.setFlat(True)
+        self.setStyleSheet("border:0;")
+        tableGridLayout = QtWidgets.QGridLayout()
+        self.setLayout(tableGridLayout)
+        self.labels = {}
+
+        subgroups = list(statistics_results[mode]['groups'][sensitive_attribute].keys())
+        classes = list(statistics_results[mode]['outcomes'].keys())
+
+        # 'Class' label
+        labelClass = QtWidgets.QLabel()
+        labelClass.setText("Class")
+        labelClass.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelClass, 0, 0)
+        self.labels[labelClass] = []
+
+        # 'Total' label
+        labelClassTotal = QtWidgets.QLabel()
+        labelClassTotal.setText("Total")
+        labelClassTotal.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelClassTotal, 0, len(subgroups) + 1)
+        self.labels[labelClassTotal] = []
+
+        for i, subgroup in enumerate(subgroups):
             # subgroups labels
-            subgroups = list(self.statistics_results[mode]['groups'][self.sensitive].keys())
-            for k, subgroup in enumerate(subgroups):
-                labelSubgroup = QtWidgets.QLabel()
-                labelSubgroup.setText(str(subgroup).capitalize())
-                labelSubgroup.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelSubgroup, 0, k + 1)
+            labelSubgroup = QtWidgets.QLabel()
+            labelSubgroup.setText(str(subgroup).capitalize())
+            labelSubgroup.setStyleSheet("font-weight: bold")
+            tableGridLayout.addWidget(labelSubgroup, 0, i + 1)
+            self.labels[labelSubgroup] = []
 
+            for j, class_name in enumerate(classes):
                 # classes labels
-                classes = list(self.statistics_results[mode]['outcomes'].keys())
-                for l, class_name in enumerate(classes):
-                    labelClass = QtWidgets.QLabel()
-                    labelClass.setText(str(class_name).capitalize())
-                    labelClass.setStyleSheet("font-weight: bold")
-                    tableGridLayout.addWidget(labelClass, l + 1, 0)
+                if i == 0:
+                    labelClasses = QtWidgets.QLabel()
+                    labelClasses.setText(str(class_name).capitalize())
+                    labelClasses.setStyleSheet("font-weight: bold")
+                    tableGridLayout.addWidget(labelClasses, j + 1, 0)
+                    self.labels[labelClass].append(labelClasses)
 
-                    # value labels
-                    value = self.statistics_results[mode]['groups'][self.sensitive][subgroup]['outcomes'][
-                        class_name]
-                    labelValue = QtWidgets.QLabel()
-                    labelValue.setText(str(value))
-                    tableGridLayout.addWidget(labelValue, l + 1, k + 1)
+                    # class total value labels
+                    total_class = statistics_results[mode]['outcomes'][class_name]
+                    labelClassTotalValues = QtWidgets.QLabel()
+                    labelClassTotalValues.setText(str(total_class))
+                    tableGridLayout.addWidget(labelClassTotalValues, j + 1, len(subgroups) + 1)
+                    self.labels[labelClassTotal].append(labelClassTotalValues)
 
-                    # class total labels
-                    total_class = self.statistics_results[mode]['outcomes'][class_name]
-                    labelClasstotal = QtWidgets.QLabel()
-                    labelClasstotal.setText(str(total_class))
-                    tableGridLayout.addWidget(labelClasstotal, l + 1, len(subgroups) + 1)
+                # value labels
+                value = statistics_results[mode]['groups'][sensitive_attribute][subgroup]['outcomes'][
+                    class_name]
+                labelValue = QtWidgets.QLabel()
+                labelValue.setText(str(value))
+                tableGridLayout.addWidget(labelValue, j + 1, i + 1)
+                self.labels[labelSubgroup].append(labelValue)
 
-                # subgroups total labels
-                total_subgroup = self.statistics_results[mode]['groups'][self.sensitive][subgroup]['total']
-                labelSubtotal = QtWidgets.QLabel()
-                labelSubtotal.setText(str(total_subgroup))
-                tableGridLayout.addWidget(labelSubtotal, len(classes) + 1, k + 1)
+            # subgroups total value labels
+            total_subgroup = statistics_results[mode]['groups'][sensitive_attribute][subgroup]['total']
+            labelSubgroupTotalValue = QtWidgets.QLabel()
+            labelSubgroupTotalValue.setText(str(total_subgroup))
+            tableGridLayout.addWidget(labelSubgroupTotalValue, len(classes) + 1, i + 1)
+            self.labels[labelSubgroup].append(labelSubgroupTotalValue)
 
-            # total labels
-            labelTotal = QtWidgets.QLabel()
-            labelTotal.setText("Total")
-            labelTotal.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelTotal, 0, len(subgroups) + 1)
+        # total outcomes value label
+        total_samples = statistics_results[mode]['total']
+        labelTotalSamplesValue = QtWidgets.QLabel()
+        labelTotalSamplesValue.setText(str(total_samples))
+        tableGridLayout.addWidget(labelTotalSamplesValue, len(classes) + 1, len(subgroups) + 1)
+        self.labels[labelClassTotal].append(labelTotalSamplesValue)
 
-            labelTotal2 = QtWidgets.QLabel()
-            labelTotal2.setText("Total")
-            labelTotal2.setStyleSheet("font-weight: bold")
-            tableGridLayout.addWidget(labelTotal2, len(classes) + 1, 0)
+        # 'Total' label
+        labelSubgroupTotal = QtWidgets.QLabel()
+        labelSubgroupTotal.setText("Total")
+        labelSubgroupTotal.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelSubgroupTotal, len(classes) + 1, 0)
+        self.labels[labelClass].append(labelSubgroupTotal)
 
-            # total outcomes label
-            total_samples = self.statistics_results[mode]['total']
-            labelSampleTotal = QtWidgets.QLabel()
-            labelSampleTotal.setText(str(total_samples))
-            tableGridLayout.addWidget(labelSampleTotal, len(classes) + 1, len(subgroups) + 1)
 
-            self.sensitiveHBoxLayout.addWidget(groupbox[j])
-        self.setContentLayout(self.sensitiveHBoxLayout)
+class DatasetPlot(QtWidgets.QGroupBox):
+    def __init__(self, statistics_results, mode, sensitive_attribute, labels_id):
+        """
+        Generates a table with the given metrics
 
-    def populate_plot(self):
-        # one groupBox per mode
-        groupbox = []
-        for j, mode in enumerate(self.data):
-            groupbox.append(QtWidgets.QGroupBox(mode.capitalize()))
-            vBoxLayout = QtWidgets.QVBoxLayout()
-            groupbox[j].setLayout(vBoxLayout)
-            groupbox[j].setMinimumHeight(200)
+        Parameters
+        ----------
+        statistics_results: dict
+            Statistic results with the form of: rapp.pipeline.statistics_results
 
-            # add fig canvas to groupBox
-            fig, ax = plt.subplots(figsize=(5, 3))
-            plotCanvas = FigureCanvas(fig)
-            vBoxLayout.addWidget(plotCanvas, alignment=Qt.AlignCenter)
+        mode: {'train', 'test'}
+            Which mode should be accessed.
 
-            # plot subgroups outcomes
-            subgroups = list(self.statistics_results[mode]['groups'][self.sensitive].keys())
-            for k, subgroup in enumerate(subgroups):
-                outcomes = self.statistics_results[mode]['groups'][self.sensitive][subgroup]['outcomes']
-                ax.hist(outcomes, label=str(subgroup), density=True, histtype="step")
+        sensitive_attribute: str (optional)
+            Sensitive attribute to use, only needed if fairness results.
+        """
+        super(DatasetPlot, self).__init__()
 
-                plt.legend()
-                plt.xlabel(self.labels_id)
-                plt.ylabel('Density')
-                fig.tight_layout()
+        self.setFlat(True)
+        self.setStyleSheet("border:0;")
+        vBoxLayout = QtWidgets.QVBoxLayout()
+        self.setLayout(vBoxLayout)
+        self.setMinimumHeight(200)
 
-            plotCanvas.draw()
+        # add fig canvas to groupBox
+        fig, ax = plt.subplots(figsize=(5, 3))
+        plotCanvas = FigureCanvas(fig)
+        vBoxLayout.addWidget(plotCanvas, alignment=Qt.AlignCenter)
 
-            self.sensitiveHBoxLayout.addWidget(groupbox[j])
-        self.setContentLayout(self.sensitiveHBoxLayout)
+        self.figure = fig
+
+        # plot subgroups outcomes
+        subgroups = list(statistics_results[mode]['groups'][sensitive_attribute].keys())
+        for k, subgroup in enumerate(subgroups):
+            outcomes = statistics_results[mode]['groups'][sensitive_attribute][subgroup]['outcomes']
+            ax.hist(outcomes, label=str(subgroup), density=True, histtype="step")
+
+            plt.legend()
+            plt.xlabel(labels_id)
+            plt.ylabel('Density')
+            fig.tight_layout()
+
+        plotCanvas.draw()
 
 
 class OverviewTable(QtWidgets.QGroupBox):

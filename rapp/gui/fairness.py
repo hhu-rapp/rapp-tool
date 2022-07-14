@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGroupBox
 
 from rapp.gui.helper import CheckableComboBox
-from rapp.gui.widgets import DatasetTable, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable
+from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable
 from rapp.util import estimator_name
 
 
@@ -25,8 +25,8 @@ class FairnessWidget(QtWidgets.QWidget):
         # create widgets
         self.tabs = QtWidgets.QTabWidget()
 
-        self.sensitiveDatasetTable = []
         self.sensitiveIndividualTables = []
+        self.sensitiveDatasetTable = {}
 
         self.cbPerformance = None
         self.cbFairness = None
@@ -97,26 +97,22 @@ class FairnessWidget(QtWidgets.QWidget):
 
     def _populate_dataset_tab(self, data, statistics_results, sensitive_attributes, pl_type, data_settings):
         # one collapsible box per sensitive attribute
-        for i, sensitive in enumerate(sensitive_attributes):
-            self.sensitiveDatasetTable.append(
-                DatasetTable(sensitive, data, statistics_results, data_settings))
-
-            if pl_type == "classification":
-                self.sensitiveDatasetTable[i].populate_table()
-            if pl_type == "regression":
-                self.sensitiveDatasetTable[i].populate_plot()
+        for sensitive in sensitive_attributes:
+            self.sensitiveDatasetTable[sensitive] = DatasetTables(sensitive, data,
+                                                                  statistics_results, pl_type,
+                                                                  data_settings)
 
             # add to layout
-            self.dataset_tab.layout().addWidget(self.sensitiveDatasetTable[i])
+            self.dataset_tab.layout().addWidget(self.sensitiveDatasetTable[sensitive])
         # add removable stretch
         self.stretch_dataset = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
                                                      QtWidgets.QSizePolicy.Expanding)
         self.dataset_tab.layout().addItem(self.stretch_dataset)
 
     def _clear_dataset_table(self):
-        for widget in self.sensitiveDatasetTable:
+        for _, widget in self.sensitiveDatasetTable.items():
             widget.setParent(None)
-        self.sensitiveDatasetTable = []
+        self.sensitiveDatasetTable = {}
         self.dataset_tab.layout().removeItem(self.stretch_dataset)
 
     def _populate_overview_tab(self, pipeline):
