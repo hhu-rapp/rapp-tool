@@ -167,5 +167,9 @@ class GuiTestApi():
         self.individual_model_selection_box = widget.fairness.cbModels
         self.individual_metrics_selection_box = widget.fairness.individual_cbMetrics
         self.individual_performance_table = widget.fairness.individualPerformanceTable
+        self.cm_table = widget.fairness.individualPerformanceTable.cm_groupBox
+        self.metrics_table = widget.fairness.individualPerformanceTable.metrics_groupBox
 
         self.get_individual_fairness_tables = lambda: widget.fairness.sensitiveIndividualTables
+        self.get_ct_table = lambda s: widget.fairness.sensitiveIndividualTables[s].ct_groupBox
+        self.get_notions_table = lambda s: widget.fairness.sensitiveIndividualTables[s].metrics_groupBox
