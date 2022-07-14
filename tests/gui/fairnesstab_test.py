@@ -2,7 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 from sklearn.dummy import DummyClassifier
-from rapp.gui.widgets import DatasetTable, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable
+from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
+    DatasetTable
 
 from tests.gui.fixture import gui, GuiTestApi
 
@@ -16,14 +17,19 @@ def clf_pipeline():
     pipeline.estimators = [est1, est2]
     pipeline.data = {'train': None}
     pipeline.statistics_results = {'train': {'groups':
-                                             {'Sensitive': {'foo': {'total': 10,
-                                                                    'outcomes': {0: 6,
-                                                                                 1: 4,
-                                                                                 }}},
-                                              'Protected': {'bar': {'total': 10,
-                                                                    'outcomes': {0: 5,
-                                                                                 1: 5,
-                                                                                 }}}},
+                                                 {'Sensitive': {'foo': {'total': 10,
+                                                                        'outcomes': {0: 6,
+                                                                                     1: 4,
+                                                                                     }}},
+                                                  'Protected': {'bar': {'total': 10,
+                                                                        'outcomes': {0: 5,
+                                                                                     1: 5,
+                                                                                     }},
+                                                                'baz': {'total': 10,
+                                                                        'outcomes': {0: 6,
+                                                                                     1: 4,
+                                                                                     }}
+                                                                }},
                                              'outcomes': {0: 11, 1: 9},
                                              'total': 20}}
     pipeline.sensitive_attributes = ['Sensitive', 'Protected']
@@ -41,11 +47,13 @@ def clf_pipeline():
     pipeline.performance_results[est2] = pipeline.performance_results[est1]
 
     pipeline.fairness_results = {est1: {'Sensitive':
-                                        {'C': {'train': {'foo': {'affected_percent': 0.5,
-                                                                 'confusion_matrix': [0, 2, 4, 7]}}}},
+                                            {'C': {'train': {'foo': {'affected_percent': 0.5,
+                                                                     'confusion_matrix': [0, 2, 4, 7]}}}},
                                         'Protected':
                                             {'C': {'train': {'bar': {'affected_percent': 0.5,
-                                                                     'confusion_matrix': [0, 2, 4, 7]}}}}}}
+                                                                     'confusion_matrix': [0, 2, 4, 7]},
+                                                             'baz': {'affected_percent': 0.5,
+                                                                     'confusion_matrix': [0, 4, 4, 3]}}}}}}
     pipeline.fairness_results[est2] = pipeline.fairness_results[est1]
 
     return pipeline
@@ -73,7 +81,9 @@ def test_collapsible_num(fairtab_clf: GuiTestApi):
 
 
 def test_datatab_widget_type(fairtab_clf: GuiTestApi):
-    actual = type(fairtab_clf.dataset_tables[0])
+    sensitive = 'Protected'  # only test second sensitive attribute
+
+    actual = type(fairtab_clf.dataset_tables[sensitive])
     expected = DatasetTable
     assert actual == expected, \
         f"The type of widget in the dataset tab should be {expected}, but is {actual}"
@@ -119,7 +129,7 @@ def test_widget_type_in_overview(fairtab_clf: GuiTestApi):
 def test_listed_models_in_model_inspection(fairtab_clf: GuiTestApi):
     actual = [fairtab_clf.individual_model_selection_box.itemText(i)
               for i in range(
-        fairtab_clf.individual_model_selection_box.count())]
+            fairtab_clf.individual_model_selection_box.count())]
     expected = ['DummyClassifier', 'DummyClassifier']
     assert actual == expected, \
         f"The model selection box in the individual tab should be {expected}, but is {actual}"
@@ -142,7 +152,7 @@ def test_select_individual_fairness_metric(fairtab_clf: GuiTestApi):
 
     actual = len(fairtab_clf.get_individual_fairness_tables())
     expected = 2
-    assert actual == expected,\
+    assert actual == expected, \
         f"The Number of collapsible boxes in the individual tab should be {expected}, but is {actual}"
 
 
@@ -152,35 +162,39 @@ def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
         fairtab_clf.widget.fairness.individual_tab_idx)
     fairtab_clf.key_click(
         fairtab_clf.individual_metrics_selection_box, "Fairness")
-    actual = type(fairtab_clf.get_individual_fairness_tables()[0])
+    actual = type(fairtab_clf.get_individual_fairness_tables()['Protected'])
     expected = IndividualFairnessTable
-    assert actual == expected,\
+    assert actual == expected, \
         f"The type of widget in the overview tab should be {expected}, but is {actual}"
 
 
 def test_click_on_model_in_overview(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
+    labels = fairtab_clf.overview_table.labels
 
+    key = list(labels.keys())[0]  # Key where models are saved
     model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.overview_tab_idx)
-    fairtab_clf.click(fairtab_clf.overview_table.labelModels[model_idx])
+    fairtab_clf.click(labels[key][model_idx])
 
     actual = fairtab_clf.fairness_tabs.currentIndex()
     expected = fairtab_clf.widget.fairness.individual_tab_idx
-    assert actual == expected,\
+    assert actual == expected, \
         f"The fairness tab index should have changed to {expected}, but is {actual}"
 
 
 def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi):
     fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
+    labels = fairtab_clf.overview_table.labels
 
+    key = list(labels.keys())[0]  # Key where models are saved
     model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
         fairtab_clf.widget.fairness.overview_tab_idx)
-    fairtab_clf.click(fairtab_clf.overview_table.labelModels[model_idx])
+    fairtab_clf.click(labels[key][model_idx])
 
     actual = fairtab_clf.individual_model_selection_box.currentIndex()
     expected = model_idx
-    assert actual == expected,\
+    assert actual == expected, \
         f"The modelComboBo's index should be {expected}, but is {actual}"
