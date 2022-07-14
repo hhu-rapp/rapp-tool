@@ -248,32 +248,38 @@ class OverviewTable(QtWidgets.QGroupBox):
         self.setStyleSheet("border:0;")
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
-        self.labelModels = []
+        self.labels = {}
 
-        modelCaption = QtWidgets.QLabel()
-        modelCaption.setText("Model")
-        modelCaption.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(modelCaption, 0, 0, Qt.AlignLeft)
+        labelModel = QtWidgets.QLabel()
+        labelModel.setText("Model")
+        labelModel.setStyleSheet("font-weight: bold")
+        tableGridLayout.addWidget(labelModel, 0, 0, Qt.AlignLeft)
+        self.labels[labelModel] = []
 
-        # model labels
-        for i, model in enumerate(models):
-            self.labelModels.append(ClickableLabel(i))
-            self.labelModels[i].setText(estimator_name(model))
-            tableGridLayout.addWidget(self.labelModels[i], i + 1, 0, Qt.AlignLeft)
+        # metrics labels
+        for i, metric in enumerate(metrics):
+            labelMetric = QtWidgets.QLabel()
+            labelMetric.setText(str(metric))
+            labelMetric.setStyleSheet("font-weight: bold")
+            tableGridLayout.addWidget(labelMetric, 0, i + 1, Qt.AlignRight)
+            self.labels[labelMetric] = []
 
-            # metrics labels
-            for j, metric in enumerate(metrics):
-                labelMetric = QtWidgets.QLabel()
-                labelMetric.setText(str(metric))
-                labelMetric.setStyleSheet("font-weight: bold")
-                tableGridLayout.addWidget(labelMetric, 0, j + 1, Qt.AlignRight)
+            # model labels
+            for j, model in enumerate(models):
+                if i == 0:
+                    est_name = estimator_name(model)
+                    labelModels = ClickableLabel(j)
+                    labelModels.setText(est_name)
+                    tableGridLayout.addWidget(labelModels, j + 1, 0, Qt.AlignLeft)
+                    self.labels[labelModel].append(labelModels)
 
                 if metric in performance_metrics:
                     # performance metrics
                     value = performance_results[model][mode]['scores'][metric]
                     labelValue = QtWidgets.QLabel()
                     labelValue.setText(f"{value:.3f}")
-                    tableGridLayout.addWidget(labelValue, i + 1, j + 1, Qt.AlignRight)
+                    tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
+                    self.labels[labelMetric].append(labelValue)
 
                 if metric in fairness_notions:
                     # fairness notions
@@ -291,10 +297,12 @@ class OverviewTable(QtWidgets.QGroupBox):
 
                     labelValue = QtWidgets.QLabel()
                     labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, i + 1, j + 1, Qt.AlignRight)
+                    tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
+                    self.labels[labelMetric].append(labelValue)
 
     def set_model_click_function(self, function):
-        for labelModel in self.labelModels:
+        key = list(self.labels.keys())[0]
+        for labelModel in self.labels[key]:
             labelModel.set_click_function(function)
 
 
