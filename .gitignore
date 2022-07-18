@@ -677,3 +677,5 @@ reports/
 
 ## Other logs
 *.log
+notebooks/survey/ErstsemesterEinw_ECTSGrades_Informatik.csv
+notebooks/survey/ErstsemesterEinw_ECTSGrades_Sowi.csv
