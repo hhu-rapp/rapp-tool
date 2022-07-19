@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
 from rapp.gui.helper import ClickableLabel, CollapsibleBox
-from rapp.util import estimator_name
+from rapp.util import estimator_name, pareto_front
 
 
 class DatasetTables(CollapsibleBox):
@@ -642,11 +642,108 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
                         tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
                         self.labels[labelMetric].append(labelMetrics)
 
-                    if pl_type == "classification":
-                        values = metrics[metric][mode]
-                        measure = values[subgroup]['affected_percent']
-                        # fairness measures
-                        labelValues = QtWidgets.QLabel()
-                        labelValues.setText(f"{measure:.3f}")
-                        tableGridLayout.addWidget(labelValues, j + 1, i + 1, alignment=Qt.AlignRight)
-                        self.labels[labelSubgroup].append(labelValues)
+                    measure = metrics[metric][mode][subgroup]['affected_percent']
+                    # fairness measures
+                    labelValues = QtWidgets.QLabel()
+                    labelValues.setText(f"{measure:.3f}")
+                    tableGridLayout.addWidget(labelValues, j + 1, i + 1, alignment=Qt.AlignRight)
+                    self.labels[labelSubgroup].append(labelValues)
+
+
+class ParetoCollapsible(CollapsibleBox):
+    def __init__(self, data, sensitive_attribute, models, costs, x_label, y_label):
+        """
+        Generates a collapsible box with the statistics result values, for a specific sensitive attribute, for each mode
+
+        Parameters
+        ----------
+        data: rapp.pipeline.data object
+            Data used in the pipeline object (used to extract the modes)
+
+        sensitive_attribute: str
+            Sensitive attribute to use.
+
+        models: list
+            List of Scikit-learn estimators.
+
+        costs: dict {mode -> np.array (n_samples, n_costs)}
+            Costs from which to extract the pareto optimal indices.
+        """
+        super(ParetoCollapsible, self).__init__(sensitive_attribute.capitalize())
+
+        self.sensitiveHBoxLayout = QtWidgets.QHBoxLayout()
+        self.main_groupBox = {}
+        self.pareto_groupBox = {}
+
+        model_names = [estimator_name(model) for model in models]
+
+        for mode in data:
+            self.main_groupBox[mode] = (QtWidgets.QGroupBox(mode.capitalize()))
+            hBoxLayout = QtWidgets.QHBoxLayout()
+            self.main_groupBox[mode].setLayout(hBoxLayout)
+
+            self.pareto_groupBox[mode] = ParetoPlot(model_names, costs[mode], x_label=x_label, y_label=y_label)
+
+            hBoxLayout.addWidget(self.pareto_groupBox[mode])
+            self.sensitiveHBoxLayout.addWidget(self.main_groupBox[mode])
+
+        self.setContentLayout(self.sensitiveHBoxLayout)
+
+
+class ParetoPlot(QtWidgets.QGroupBox):
+    def __init__(self, legend, costs, x_label, y_label):
+        """
+        Generates a pareto plot with the given costs.
+
+        Parameters
+        ----------
+        legend: list
+            List of values for the legend.
+
+        costs: np.array (n_samples, n_costs)
+            Costs from which to extract the pareto optimal indices.
+
+        x_label: str
+            Label for the X-axis.
+
+        y_label: str
+            Label for the Y-axis.
+        """
+        super(ParetoPlot, self).__init__()
+
+        self.setFlat(True)
+        self.setStyleSheet("border:0;")
+        vBoxLayout = QtWidgets.QVBoxLayout()
+        self.setLayout(vBoxLayout)
+        self.setMinimumHeight(200)
+        self.setMinimumWidth(200)
+        self.costs = costs
+
+        # add fig canvas to groupBox
+        fig, ax = plt.subplots(figsize=(6, 4))
+        plotCanvas = FigureCanvas(fig)
+        vBoxLayout.addWidget(plotCanvas, alignment=Qt.AlignCenter)
+
+        self.figure = fig
+
+        # we want to minimize the unfairness and maximize performance
+        pareto_costs = self.costs * (-1, 1)
+        front = pareto_front(pareto_costs)
+
+        # plot each model's pareto front
+        for i, model in enumerate(legend):
+            if front[i]:
+                color = 'r'
+            else:
+                color = 'b'
+            ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, c=color)
+
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        fig.tight_layout()
+
+        plotCanvas.draw()
+
+    def close_fig(self):
+        self.fig.close()
