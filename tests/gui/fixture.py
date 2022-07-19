@@ -173,3 +173,7 @@ class GuiTestApi():
         self.get_individual_fairness_tables = lambda: widget.fairness.sensitiveIndividualTables
         self.get_ct_table = lambda s: widget.fairness.sensitiveIndividualTables[s].ct_groupBox
         self.get_notions_table = lambda s: widget.fairness.sensitiveIndividualTables[s].metrics_groupBox
+        # Pareto Front Tab
+        self.pareto_notions_selection_box = widget.fairness.pareto_cbNotions
+        self.pareto_metrics_selection_box = widget.fairness.pareto_cbMetrics
+        self.pareto_collapsibles = widget.fairness.sensitiveParetoTables

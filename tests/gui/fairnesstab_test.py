@@ -1,9 +1,10 @@
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 from sklearn.dummy import DummyClassifier
 from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
-    DatasetTable
+    DatasetTable, ParetoCollapsible, ParetoPlot
 
 from tests.gui.fixture import gui, GuiTestApi
 
@@ -255,7 +256,7 @@ def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
     actual = type(fairtab_clf.get_individual_fairness_tables()['Protected'])
     expected = IndividualFairnessTable
     assert actual == expected, \
-        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+        f"The type of widget in the model inspection tab should be {expected}, but is {actual}"
 
 
 def test_correspondence_table(fairtab_clf: GuiTestApi):
@@ -337,3 +338,53 @@ def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi):
     expected = model_idx
     assert actual == expected, \
         f"The modelComboBo's index should be {expected}, but is {actual}"
+
+
+def test_listed_metrics_in_pareto_tab(fairtab_clf: GuiTestApi):
+    actual = [fairtab_clf.pareto_metrics_selection_box.itemText(i)
+              for i in range(
+            fairtab_clf.pareto_metrics_selection_box.count())]
+    expected = ['A', 'B']
+    assert actual == expected, \
+        f"The metric selection box in the pareto tab should be {expected}, but is {actual}"
+
+def test_listed_notions_in_pareto_tab(fairtab_clf: GuiTestApi):
+    actual = [fairtab_clf.pareto_notions_selection_box.itemText(i)
+              for i in range(
+            fairtab_clf.pareto_notions_selection_box.count())]
+    expected = ['C']
+    assert actual == expected, \
+        f"The notion selection box in the pareto tab should be {expected}, but is {actual}"
+
+
+def test_pareto_collapsible_num(fairtab_clf: GuiTestApi):
+    actual = len(fairtab_clf.pareto_collapsibles)
+    expected = 2
+    assert actual == expected, \
+        f"The number of collapsible boxes in the pareto tab should be {expected}, but is {actual}"
+
+
+def test_widget_type_of_pareto_collapsible(fairtab_clf: GuiTestApi):
+    sensitive = 'Protected'
+    actual = type(fairtab_clf.pareto_collapsibles[sensitive])
+    expected = ParetoCollapsible
+    assert actual == expected, \
+        f"The type of widget in the pareto tab should be {expected}, but is {actual}"
+
+
+def test_widget_type_of_pareto_plot(fairtab_clf: GuiTestApi):
+    sensitive = 'Protected'
+    mode = 'train'
+    actual = type(fairtab_clf.pareto_collapsibles[sensitive].pareto_groupBox[mode])
+    expected = ParetoPlot
+    assert actual == expected, \
+        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+
+
+def test_costs_in_pareto_plot(fairtab_clf: GuiTestApi):
+    sensitive = 'Protected'
+    mode = 'train'
+    actual = fairtab_clf.pareto_collapsibles[sensitive].pareto_groupBox[mode].costs
+    expected = np.array([0, 0.2])
+    assert (actual == expected).all(), \
+        f"The type of widget in the overview tab should be {expected}, but is {actual}"
