@@ -1,11 +1,13 @@
 # PyQt5
+import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtWidgets import QGroupBox, QScrollArea
 
 from rapp.gui.helper import CheckableComboBox
-from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable
-from rapp.util import estimator_name
+from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
+    ParetoPlot, ParetoCollapsible
+from rapp.util import estimator_name, max_difference
 
 
 class FairnessWidget(QtWidgets.QWidget):
@@ -27,6 +29,7 @@ class FairnessWidget(QtWidgets.QWidget):
 
         self.sensitiveDatasetTable = {}
         self.sensitiveIndividualTables = {}
+        self.sensitiveParetoTables = {}
 
         self.cbPerformance = None
         self.cbFairness = None
@@ -41,6 +44,7 @@ class FairnessWidget(QtWidgets.QWidget):
         self.__init_dataset_tab()
         self.__init_overview_tab()
         self.__init_individual_tab()
+        self.__init_pareto_tab()
 
         # add widgets to layout
         layout.addWidget(self.tabs)
@@ -71,6 +75,23 @@ class FairnessWidget(QtWidgets.QWidget):
         tab_idx = self.tabs.addTab(self.individual_tab, 'Model Inspection')
         self.individual_tab_idx = tab_idx
 
+    def __init_pareto_tab(self):
+        # create layout
+        self.pareto_tab = QtWidgets.QWidget()
+        self.pareto_tab.setLayout(QtWidgets.QVBoxLayout())
+        self.pareto_scroll = QScrollArea()
+        self.pareto_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.pareto_scroll.setWidgetResizable(True)
+        self.pareto_scroll.setWidget(self.pareto_tab)
+
+        self.pareto_scroll.setStyleSheet("QScrollBar{background-color: white}"
+                                         "QWidget#WhiteBackground {background-color: white}")
+        self.pareto_tab.setObjectName("WhiteBackground")
+
+        # add to layout
+        tab_idx = self.tabs.addTab(self.pareto_scroll, 'Pareto Front')
+        self.pareto_tab_idx = tab_idx
+
     def populate_fairness_tabs(self, pipeline, data_settings):
         """
         Parameters
@@ -94,6 +115,7 @@ class FairnessWidget(QtWidgets.QWidget):
                                    pipeline.type, data_settings)
         self._populate_overview_tab(pipeline)
         self._populate_individual_tab(pipeline)
+        self._populate_pareto_tab(pipeline)
 
     def _populate_dataset_tab(self, data, statistics_results, sensitive_attributes, pl_type, data_settings):
         # one collapsible box per sensitive attribute
@@ -184,7 +206,6 @@ class FairnessWidget(QtWidgets.QWidget):
 
         models = list(performance_results.keys())
 
-
         # create groupBox
         self.overview_groupBox = OverviewTable(mode, models, metrics, pl_type, performance_metrics,
                                                performance_results, fairness_notions,
@@ -244,8 +265,9 @@ class FairnessWidget(QtWidgets.QWidget):
 
         if metric_type == "Fairness":
             for sensitive in sensitive_attributes:
-                self.sensitiveIndividualTables[sensitive] = IndividualFairnessTable(data, model, fairness_results, sensitive,
-                                                                              pl_type)
+                self.sensitiveIndividualTables[sensitive] = IndividualFairnessTable(data, model, fairness_results,
+                                                                                    sensitive,
+                                                                                    pl_type)
 
                 # add to layout
                 self.individual_tab.layout().addWidget(self.sensitiveIndividualTables[sensitive])
@@ -264,9 +286,100 @@ class FairnessWidget(QtWidgets.QWidget):
         except AttributeError:
             return
 
+    def _populate_pareto_tab(self, pipeline):
+        pl_type = pipeline.type.capitalize()
+        # comboBox for filtering
+        self.pareto_cbNotions = QtWidgets.QComboBox()
+        self.pareto_cbMetrics = QtWidgets.QComboBox()
+
+        # groupBox for the filters
+        self.pareto_metrics_groupBox = QGroupBox("Filters")
+        paretoTopLayout = QtWidgets.QFormLayout()
+        self.pareto_metrics_groupBox.setLayout(paretoTopLayout)
+        self.pareto_metrics_groupBox.setAlignment(Qt.AlignTop)
+
+        # load comboBoxes
+        for metric in pipeline.score_functions:
+            self.pareto_cbMetrics.addItem(str(metric))
+        self.pareto_cbMetrics.setCurrentText('Balanced Accuracy')
+
+        for notion in pipeline.fairness_functions:
+            self.pareto_cbNotions.addItem(str(notion))
+
+        def populate_pareto_table():
+            self._populate_pareto_table(pipeline.data, pipeline.sensitive_attributes,
+                                        pipeline.performance_results, pipeline.fairness_results, pl_type)
+
+        self.pareto_cbMetrics.currentIndexChanged.connect(populate_pareto_table)
+        self.pareto_cbNotions.currentIndexChanged.connect(populate_pareto_table)
+
+        # add to groupBox
+        paretoTopLayout.addRow(f'{pl_type} Metric:', self.pareto_cbMetrics)
+        paretoTopLayout.addRow('Fairness Notion:', self.pareto_cbNotions)
+
+        # add to layout
+        self.pareto_tab.layout().addWidget(self.pareto_metrics_groupBox)
+        populate_pareto_table()
+
+    def _populate_pareto_table(self, data, sensitive_attributes, performance_results, fairness_results, pl_type):
+        self._clear_pareto_table()
+        # get values from filters
+        notion = self.pareto_cbNotions.currentText()
+        metric = self.pareto_cbMetrics.currentText()
+
+        models = list(performance_results.keys())
+        costs_per_mode = {}
+
+        # Pareto collapsible for eac sensitive attribute
+        for sensitive in sensitive_attributes:
+            for mode in data:
+                costs = np.zeros((len(models), 2))
+
+                for i, model in enumerate(models):
+                    notions = fairness_results[model][sensitive][notion]
+
+                    if pl_type == 'Classification':
+                        fairness_subgroups = []
+                        # Get max difference between subgroups
+                        for subgroup in notions[mode]:
+                            fairness_subgroups.append(notions[mode][subgroup]['affected_percent'])
+                        fairness = max_difference(fairness_subgroups)
+                        x_label = f"Max Difference {notion}"
+
+                    if pl_type == 'Regression':
+                        fairness = notions[mode]
+                        x_label = notion
+
+                    performance = performance_results[model][mode]['scores'][metric]
+                    costs[i] = (fairness, performance)
+
+                costs_per_mode[mode] = costs
+
+            self.sensitiveParetoTables[sensitive] = ParetoCollapsible(data, sensitive, models, costs_per_mode, x_label=x_label, y_label=metric)
+
+            # add to layout
+            self.pareto_tab.layout().addWidget(self.sensitiveParetoTables[sensitive])
+
+        # add removable stretch
+        self.stretch_pareto = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                        QtWidgets.QSizePolicy.Expanding)
+        self.pareto_tab.layout().addItem(self.stretch_pareto)
+
+    def _clear_pareto_table(self):
+        try:
+            for _, widget in self.sensitiveParetoTables.items():
+                for _, figure in widget.pareto_groupBox.items():
+                    figure.close()
+                widget.setParent(None)
+            self.sensitiveParetoTables = {}
+            self.pareto_tab.layout().removeItem(self.stretch_pareto)
+        except AttributeError:
+            return
+
     def _refresh_tabs(self):
         try:
             self.individual_metrics_groupBox.setParent(None)
+            self.pareto_metrics_groupBox.setParent(None)
             self.overview_metrics_groupBox.setParent(None)
         except AttributeError:
             return
@@ -274,6 +387,7 @@ class FairnessWidget(QtWidgets.QWidget):
         self._clear_dataset_table()
         self._clear_overview_table()
         self._clear_individual_table()
+        self._clear_pareto_table()
 
     def open_individual_tab(self, model_index):
         self.tabs.setCurrentIndex(self.individual_tab_idx)
