@@ -1,6 +1,7 @@
 import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
+from matplotlib import cm
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -731,12 +732,14 @@ class ParetoPlot(QtWidgets.QGroupBox):
         front = pareto_front(pareto_costs)
 
         # plot each model's pareto front
+        colors_pareto = cm.hot(np.linspace(0.25, 0.75, len(legend)))
+        colors_no_pareto = cm.cool(np.linspace(0.4, 0.6, len(legend)))
+
         for i, model in enumerate(legend):
             if front[i]:
-                color = 'r'
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, c=colors_pareto[i])
             else:
-                color = 'b'
-            ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, c=color)
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, c=colors_no_pareto[i])
 
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.xlabel(x_label)
