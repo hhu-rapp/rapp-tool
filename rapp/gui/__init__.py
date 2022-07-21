@@ -61,11 +61,11 @@ class Window(QMainWindow):
     
     def initUI(self):
         # set the title
-        self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
+        self.setWindowTitle('Responsible Academic Performance Prediction')
         
         # setting the geometry of window
-        self.width = 1280
-        self.height = 800
+        self.width = 1180
+        self.height = 700
         self.setGeometry(100, 60, self.width, self.height)
     
     def initLayout(self):
@@ -106,7 +106,7 @@ class Window(QMainWindow):
         self.fairness = FairnessWidget(self)
         
         # add widgets
-        tab_idx = self.tabs.addTab(self.fairness, 'Fairness')
+        tab_idx = self.tabs.addTab(self.fairness, 'Evaluation')
         self.fairness_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
     
@@ -118,7 +118,7 @@ class Window(QMainWindow):
         self.XAI = XAIWidget(self)
         
         # add widgets
-        tab_idx = self.tabs.addTab(self.XAI, 'XAI')
+        tab_idx = self.tabs.addTab(self.XAI, 'Interpretability')
         self.xai_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
 
