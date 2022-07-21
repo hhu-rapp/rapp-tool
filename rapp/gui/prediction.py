@@ -4,9 +4,12 @@ from os.path import isdir, join, abspath
 
 import joblib
 # PyQt5
+import numpy as np
 from PyQt5 import QtWidgets
 # rapp gui
 from PyQt5.QtCore import Qt
+from scipy import stats
+
 from rapp.gui.helper import LoadModelPushButton, CheckableComboBox
 from rapp.pipeline import preprocess_data
 
@@ -50,10 +53,10 @@ class PredictionWidget(QtWidgets.QWidget):
 
         # add pred button
         self.menubuttonsPrediction.addWidget(predictButton)
-        
+
         # headers
         headers = ['Load', 'Model', 'Target', 'Prediction', 'Mean Student']
-        
+
         # get labels from dir
         abs_path = abspath(getcwd())
         work_dir = join(abs_path, "data", "rapp", "sqltemplates")
@@ -65,11 +68,11 @@ class PredictionWidget(QtWidgets.QWidget):
         self.predLabels = []
         self.loadedModelsCb = []
         self.loadModelButtons = []
-        
+
         # add headers
         self.featuresIdLabel = QtWidgets.QLabel()
         self.featuresIdLabel.setText("")
-        
+
         for i, header in enumerate(headers):
             headerLabel = QtWidgets.QLabel()
             headerLabel.setText(header)
@@ -77,7 +80,7 @@ class PredictionWidget(QtWidgets.QWidget):
             self.gridlayoutPrediction.addWidget(headerLabel, 0, i, alignment=Qt.AlignCenter)
 
         self.featuresLayout.addRow('Features:', self.featuresIdLabel)
-        
+
         # add rows
         for i, target in enumerate(self.label_ids):
             targetLabel = QtWidgets.QLabel()
@@ -99,7 +102,7 @@ class PredictionWidget(QtWidgets.QWidget):
             self.gridlayoutPrediction.addWidget(self.predLabels[i], i+1, 3, alignment=Qt.AlignCenter)
 
         self.gridlayoutPrediction.addWidget(self.clearButton, i+2, 0, 1, 2, alignment=Qt.AlignCenter)
-        
+
         self.setLayout(self.vlayoutPrediction)
 
     def predict(self):
@@ -109,7 +112,7 @@ class PredictionWidget(QtWidgets.QWidget):
         """
         data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
         selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandasTv.table.selectionModel().selectedIndexes()
-        
+
         if data_df is None or data_f_id is None or data_l_id is None:
             log.error(f"No valid data to predict")
             return
@@ -126,19 +129,27 @@ class PredictionWidget(QtWidgets.QWidget):
 
         for i, modelCb in enumerate(self.loadedModelsCb):
             models = modelCb.get_checked_items()
-            
+
             if models is None:
                 log.error(f"No Model Selected")
                 return
             else:
+                y_preds = []
                 for model in models:
                     item_index = modelCb.find_item_index(model)
-                    y_pred = modelCb.itemData(item_index)['model'].predict(X)
-                    # TODO: use majority voting when selecting prediction
-                    # atm it only returns the selected prediction of the last model
-                    self.predLabels[i].setText(str(y_pred[0]))
-    
-                    log.error('Prediction finished.')
+                    y_preds.append(modelCb.itemData(item_index)['model'].predict(X))
+
+                if modelCb.itemData(item_index) is not None:
+                    # Majority voting for classification
+                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] != 'reg':
+                        y_pred = stats.mode(np.array(y_preds))
+                        self.predLabels[i].setText(str(y_pred[0]))
+                    # Mean for regression
+                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] == 'reg':
+                        y_pred = np.mean(np.array(y_preds))
+                        self.predLabels[i].setText(str(y_pred))
+
+                log.error('Prediction finished.')
 
     def load_model(self, filename, index):
         """
@@ -176,7 +187,7 @@ class PredictionWidget(QtWidgets.QWidget):
     def clear_loaded_models(self):
         for modelCb in self.loadedModelsCb:
             modelCb.clear()
-            
+
     def refresh_labels(self):
         self.clear_loaded_models()
 
