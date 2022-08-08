@@ -202,7 +202,7 @@ class DatasetPlot(QtWidgets.QGroupBox):
         plotCanvas.draw()
 
 
-class OverviewTable(QtWidgets.QGroupBox):
+class SummaryTable(QtWidgets.QGroupBox):
     def __init__(self, mode, models, metrics, pl_type, performance_metrics, performance_results, fairness_notions=None,
                  fairness_results=None, sensitive_attribute=None):
         """
@@ -241,9 +241,9 @@ class OverviewTable(QtWidgets.QGroupBox):
         """
 
         if sensitive_attribute is not None:
-            super(OverviewTable, self).__init__(f"{str(mode).capitalize()} - {sensitive_attribute}:")
+            super(SummaryTable, self).__init__(f"{str(mode).capitalize()} - {sensitive_attribute}:")
         if sensitive_attribute is None:
-            super(OverviewTable, self).__init__(f"{str(mode).capitalize()}:")
+            super(SummaryTable, self).__init__(f"{str(mode).capitalize()}:")
 
         self.setFlat(True)
         self.setStyleSheet("border:0;")
@@ -307,7 +307,7 @@ class OverviewTable(QtWidgets.QGroupBox):
             labelModel.set_click_function(function)
 
 
-class IndividualPerformanceTable(QtWidgets.QGroupBox):
+class InspectionPerformanceTable(QtWidgets.QGroupBox):
     def __init__(self, data, model, performance_results):
         """
         Generates a table with the performance and fairness result values, for a specific mode and sensitive attribute,
@@ -326,7 +326,7 @@ class IndividualPerformanceTable(QtWidgets.QGroupBox):
 
         """
 
-        super(IndividualPerformanceTable, self).__init__()
+        super(InspectionPerformanceTable, self).__init__()
 
         HBoxLayout = QtWidgets.QHBoxLayout()
         self.setLayout(HBoxLayout)
@@ -348,12 +348,12 @@ class IndividualPerformanceTable(QtWidgets.QGroupBox):
             if len(confusion_matrix) > 0:
                 # groupBox for confusion Matrix
                 self.cm_groupBox[mode] = ConfusionMatrixTable(confusion_matrix)
-                # individual_cm_groupBox[i].setMinimumHeight(200)
+                # cm_groupBox[mode].setMinimumHeight(200)
 
             metrics = performance_results[model][mode]['scores']
             # groupBox for metrics
             self.metrics_groupBox[mode] = PerformanceMetricsTable(metrics)
-            # individual_metrics_groupBox[i].setMinimumHeight(200)
+            # metrics_groupBox[mode].setMinimumHeight(200)
 
             # add to layout
             if len(self.cm_groupBox) > 0:
@@ -461,7 +461,7 @@ class PerformanceMetricsTable(QtWidgets.QGroupBox):
             self.labels[labelValue].append(labelValues)
 
 
-class IndividualFairnessTable(CollapsibleBox):
+class InspectionFairnessCollapsible(CollapsibleBox):
     def __init__(self, data, model, fairness_results, sensitive_attribute, pl_type='classification'):
         """
         Generates a collapsible box with the performance and fairness result values, for a specific mode and sensitive attribute,
@@ -485,7 +485,7 @@ class IndividualFairnessTable(CollapsibleBox):
             Which type of prediction task is tackled by the pipeline.
         """
 
-        super(IndividualFairnessTable, self).__init__(sensitive_attribute.capitalize())
+        super(InspectionFairnessCollapsible, self).__init__(sensitive_attribute.capitalize())
 
         HBoxLayout = QtWidgets.QHBoxLayout()
 

@@ -1,19 +1,19 @@
 # PyQt5
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGroupBox, QScrollArea
 
 from rapp.gui.helper import CheckableComboBox
-from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
-    ParetoPlot, ParetoCollapsible
+from rapp.gui.widgets import DatasetTables, SummaryTable, InspectionPerformanceTable, InspectionFairnessCollapsible, \
+    ParetoCollapsible
 from rapp.util import estimator_name, max_difference
 
 
-class FairnessWidget(QtWidgets.QWidget):
+class EvaluationWidget(QtWidgets.QWidget):
 
     def __init__(self, qmainwindow):
-        super(FairnessWidget, self).__init__()
+        super(EvaluationWidget, self).__init__()
 
         self.qmainwindow = qmainwindow
         self.initUI()
@@ -28,22 +28,22 @@ class FairnessWidget(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
 
         self.sensitiveDatasetTable = {}
-        self.sensitiveIndividualTables = {}
+        self.sensitiveInspectionTables = {}
         self.sensitiveParetoTables = {}
 
         self.cbPerformance = None
         self.cbFairness = None
-        self.cbOverviewModes = None
-        self.cbSenstitiveAttributes = None
-        self.overview_groupBox = None
+        self.cbSummaryModes = None
+        self.cbSensitiveAttributes = None
+        self.summary_groupBox = None
 
-        self.cbModels = None
-        self.individual_cbMetrics = None
-        self.individualPerformanceTable = None
+        self.inspection_cbModels = None
+        self.inspection_cbMetrics = None
+        self.inspectionPerformanceTable = None
 
         self.__init_dataset_tab()
-        self.__init_overview_tab()
-        self.__init_individual_tab()
+        self.__init_summary_tab()
+        self.__init_inspection_tab()
         self.__init_pareto_tab()
 
         # add widgets to layout
@@ -57,23 +57,23 @@ class FairnessWidget(QtWidgets.QWidget):
         # add to layout
         self.tabs.addTab(self.dataset_tab, 'Dataset')
 
-    def __init_overview_tab(self):
+    def __init_summary_tab(self):
         # create layout
-        self.overview_tab = QtWidgets.QWidget()
-        self.overview_tab.setLayout(QtWidgets.QVBoxLayout())
+        self.summary_tab = QtWidgets.QWidget()
+        self.summary_tab.setLayout(QtWidgets.QVBoxLayout())
 
         # add to layout
-        tab_idx = self.tabs.addTab(self.overview_tab, 'Model Summary')
-        self.overview_tab_idx = tab_idx
+        tab_idx = self.tabs.addTab(self.summary_tab, 'Model Summary')
+        self.summary_tab_idx = tab_idx
 
-    def __init_individual_tab(self):
+    def __init_inspection_tab(self):
         # create layout
-        self.individual_tab = QtWidgets.QWidget()
-        self.individual_tab.setLayout(QtWidgets.QVBoxLayout())
+        self.inspection_tab = QtWidgets.QWidget()
+        self.inspection_tab.setLayout(QtWidgets.QVBoxLayout())
 
         # add to layout
-        tab_idx = self.tabs.addTab(self.individual_tab, 'Model Inspection')
-        self.individual_tab_idx = tab_idx
+        tab_idx = self.tabs.addTab(self.inspection_tab, 'Model Inspection')
+        self.inspection_tab_idx = tab_idx
 
     def __init_pareto_tab(self):
         # create layout
@@ -92,7 +92,7 @@ class FairnessWidget(QtWidgets.QWidget):
         tab_idx = self.tabs.addTab(self.pareto_scroll, 'Pareto Front')
         self.pareto_tab_idx = tab_idx
 
-    def populate_fairness_tabs(self, pipeline, data_settings):
+    def populate_tabs(self, pipeline, data_settings):
         """
         Parameters
         ----------
@@ -113,8 +113,8 @@ class FairnessWidget(QtWidgets.QWidget):
         self._populate_dataset_tab(pipeline.data, pipeline.statistics_results,
                                    pipeline.sensitive_attributes,
                                    pipeline.type, data_settings)
-        self._populate_overview_tab(pipeline)
-        self._populate_individual_tab(pipeline)
+        self._populate_summary_tab(pipeline)
+        self._populate_inspection_tab(pipeline)
         self._populate_pareto_tab(pipeline)
 
     def _populate_dataset_tab(self, data, statistics_results, sensitive_attributes, pl_type, data_settings):
@@ -137,19 +137,19 @@ class FairnessWidget(QtWidgets.QWidget):
         self.sensitiveDatasetTable = {}
         self.dataset_tab.layout().removeItem(self.stretch_dataset)
 
-    def _populate_overview_tab(self, pipeline):
+    def _populate_summary_tab(self, pipeline):
         pl_type = pipeline.type.capitalize()
         # comboBox for filtering
         self.cbPerformance = CheckableComboBox()
         self.cbFairness = CheckableComboBox()
-        self.cbOverviewModes = QtWidgets.QComboBox()
-        self.cbSenstitiveAttributes = QtWidgets.QComboBox()
+        self.cbSummaryModes = QtWidgets.QComboBox()
+        self.cbSensitiveAttributes = QtWidgets.QComboBox()
 
         # groupBox for the filters
-        self.overview_metrics_groupBox = QGroupBox("Filters")
-        self.overview_metrics_groupBox.size()
-        overviewTopLayout = QtWidgets.QFormLayout()
-        self.overview_metrics_groupBox.setLayout(overviewTopLayout)
+        self.summary_metrics_groupBox = QGroupBox("Filters")
+        self.summary_metrics_groupBox.size()
+        topLayout = QtWidgets.QFormLayout()
+        self.summary_metrics_groupBox.setLayout(topLayout)
 
         # load comboBoxes
         performance_metrics = list(pipeline.score_functions.keys())
@@ -164,41 +164,41 @@ class FairnessWidget(QtWidgets.QWidget):
 
         modes = list(pipeline.data.keys())
         for mode in modes:
-            self.cbOverviewModes.addItem(str(mode).capitalize())
+            self.cbSummaryModes.addItem(str(mode).capitalize())
 
         for sensitive in pipeline.sensitive_attributes:
-            self.cbSenstitiveAttributes.addItem(str(sensitive).capitalize())
+            self.cbSensitiveAttributes.addItem(str(sensitive).capitalize())
 
-        def populate_overview_table():
-            self._populate_overview_table(pipeline.performance_results,
-                                          pipeline.fairness_results, pipeline.type)
+        def populate_summary_table():
+            self._populate_summary_table(pipeline.performance_results,
+                                         pipeline.fairness_results, pipeline.type)
 
-        self.cbPerformance.currentIndexChanged.connect(populate_overview_table)
-        self.cbFairness.currentIndexChanged.connect(populate_overview_table)
-        self.cbOverviewModes.currentIndexChanged.connect(populate_overview_table)
-        self.cbSenstitiveAttributes.currentIndexChanged.connect(populate_overview_table)
+        self.cbPerformance.currentIndexChanged.connect(populate_summary_table)
+        self.cbFairness.currentIndexChanged.connect(populate_summary_table)
+        self.cbSummaryModes.currentIndexChanged.connect(populate_summary_table)
+        self.cbSensitiveAttributes.currentIndexChanged.connect(populate_summary_table)
 
         # add to groupBox
-        overviewTopLayout.addRow(f"{pl_type} Metrics:", self.cbPerformance)
-        overviewTopLayout.addRow('Fairness Metrics:', self.cbFairness)
-        overviewTopLayout.addRow('Mode:', self.cbOverviewModes)
-        overviewTopLayout.addRow('Sensitive Attribute:', self.cbSenstitiveAttributes)
+        topLayout.addRow(f"{pl_type} Metrics:", self.cbPerformance)
+        topLayout.addRow('Fairness Metrics:', self.cbFairness)
+        topLayout.addRow('Mode:', self.cbSummaryModes)
+        topLayout.addRow('Sensitive Attribute:', self.cbSensitiveAttributes)
 
         # add to layout
-        self.overview_tab.layout().addWidget(self.overview_metrics_groupBox)
-        self._populate_overview_table(pipeline.performance_results, pipeline.fairness_results, pipeline.type)
+        self.summary_tab.layout().addWidget(self.summary_metrics_groupBox)
+        self._populate_summary_table(pipeline.performance_results, pipeline.fairness_results, pipeline.type)
 
-    def _clear_overview_table(self):
+    def _clear_summary_table(self):
         try:
-            self.overview_groupBox.setParent(None)
+            self.summary_groupBox.setParent(None)
         except AttributeError:
             return
 
-    def _populate_overview_table(self, performance_results, fairness_results, pl_type):
-        self._clear_overview_table()
+    def _populate_summary_table(self, performance_results, fairness_results, pl_type):
+        self._clear_summary_table()
         # get values from filters
-        mode = self.cbOverviewModes.currentText().lower()
-        sensitive = self.cbSenstitiveAttributes.currentText()
+        mode = self.cbSummaryModes.currentText().lower()
+        sensitive = self.cbSensitiveAttributes.currentText()
         performance_metrics = self.cbPerformance.get_checked_items()
         fairness_notions = self.cbFairness.get_checked_items()
         metrics = self.cbPerformance.get_checked_items()
@@ -207,82 +207,82 @@ class FairnessWidget(QtWidgets.QWidget):
         models = list(performance_results.keys())
 
         # create groupBox
-        self.overview_groupBox = OverviewTable(mode, models, metrics, pl_type, performance_metrics,
-                                               performance_results, fairness_notions,
-                                               fairness_results, sensitive)
-        self.overview_groupBox.set_model_click_function(self.open_individual_tab)
+        self.summary_groupBox = SummaryTable(mode, models, metrics, pl_type, performance_metrics,
+                                             performance_results, fairness_notions,
+                                             fairness_results, sensitive)
+        self.summary_groupBox.set_model_click_function(self.open_inspection_tab)
 
         # add to layout
-        self.overview_tab.layout().addWidget(self.overview_groupBox)
+        self.summary_tab.layout().addWidget(self.summary_groupBox)
 
-    def _populate_individual_tab(self, pipeline):
+    def _populate_inspection_tab(self, pipeline):
         # comboBox for filtering
-        self.cbModels = QtWidgets.QComboBox()
-        self.individual_cbMetrics = QtWidgets.QComboBox()
+        self.inspection_cbModels = QtWidgets.QComboBox()
+        self.inspection_cbMetrics = QtWidgets.QComboBox()
 
         # groupBox for the filters
-        self.individual_metrics_groupBox = QGroupBox("Filters")
-        individualTopLayout = QtWidgets.QFormLayout()
-        self.individual_metrics_groupBox.setLayout(individualTopLayout)
-        self.individual_metrics_groupBox.setAlignment(Qt.AlignTop)
+        self.inspection_metrics_groupBox = QGroupBox("Filters")
+        topLayout = QtWidgets.QFormLayout()
+        self.inspection_metrics_groupBox.setLayout(topLayout)
+        self.inspection_metrics_groupBox.setAlignment(Qt.AlignTop)
 
         # load comboBoxes
         for model in pipeline.performance_results:
-            self.cbModels.addItem(estimator_name(model))
-        self.individual_cbMetrics.addItem("Performance")
-        self.individual_cbMetrics.addItem("Fairness")
+            self.inspection_cbModels.addItem(estimator_name(model))
+        self.inspection_cbMetrics.addItem("Performance")
+        self.inspection_cbMetrics.addItem("Fairness")
 
-        def populate_individual_table():
-            self._populate_individual_table(pipeline.data, pipeline.sensitive_attributes, pipeline.performance_results,
+        def populate_inspection_table():
+            self._populate_inspection_table(pipeline.data, pipeline.sensitive_attributes, pipeline.performance_results,
                                             pipeline.fairness_results, pipeline.type)
 
-        self.individual_cbMetrics.currentIndexChanged.connect(populate_individual_table)
-        self.cbModels.currentIndexChanged.connect(populate_individual_table)
+        self.inspection_cbMetrics.currentIndexChanged.connect(populate_inspection_table)
+        self.inspection_cbModels.currentIndexChanged.connect(populate_inspection_table)
 
         # add to groupBox
-        individualTopLayout.addRow('Model:', self.cbModels)
-        individualTopLayout.addRow('Metrics:', self.individual_cbMetrics)
+        topLayout.addRow('Model:', self.inspection_cbModels)
+        topLayout.addRow('Metrics:', self.inspection_cbMetrics)
 
         # add to layout
-        self.individual_tab.layout().addWidget(self.individual_metrics_groupBox)
-        self._populate_individual_table(pipeline.data, pipeline.sensitive_attributes, pipeline.performance_results,
+        self.inspection_tab.layout().addWidget(self.inspection_metrics_groupBox)
+        self._populate_inspection_table(pipeline.data, pipeline.sensitive_attributes, pipeline.performance_results,
                                         pipeline.fairness_results, pipeline.type)
 
-    def _populate_individual_table(self, data, sensitive_attributes, performance_results, fairness_results, pl_type):
-        self._clear_individual_table()
+    def _populate_inspection_table(self, data, sensitive_attributes, performance_results, fairness_results, pl_type):
+        self._clear_inspection_table()
         # get values from filters
-        metric_type = self.individual_cbMetrics.currentText()
+        metric_type = self.inspection_cbMetrics.currentText()
 
-        model_idx = self.cbModels.currentIndex()
+        model_idx = self.inspection_cbModels.currentIndex()
         models = list(performance_results.keys())
         model = models[model_idx]
 
         if metric_type == "Performance":
-            self.individualPerformanceTable = IndividualPerformanceTable(data, model, performance_results)
+            self.inspectionPerformanceTable = InspectionPerformanceTable(data, model, performance_results)
 
             # add to layout
-            self.individual_tab.layout().addWidget(self.individualPerformanceTable)
+            self.inspection_tab.layout().addWidget(self.inspectionPerformanceTable)
 
         if metric_type == "Fairness":
             for sensitive in sensitive_attributes:
-                self.sensitiveIndividualTables[sensitive] = IndividualFairnessTable(data, model, fairness_results,
-                                                                                    sensitive,
-                                                                                    pl_type)
+                self.sensitiveInspectionTables[sensitive] = InspectionFairnessCollapsible(data, model, fairness_results,
+                                                                                          sensitive,
+                                                                                          pl_type)
 
                 # add to layout
-                self.individual_tab.layout().addWidget(self.sensitiveIndividualTables[sensitive])
+                self.inspection_tab.layout().addWidget(self.sensitiveInspectionTables[sensitive])
             # add removable stretch
-            self.stretch_individual = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+            self.stretch_inspection = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
                                                             QtWidgets.QSizePolicy.Expanding)
-            self.individual_tab.layout().addItem(self.stretch_individual)
+            self.inspection_tab.layout().addItem(self.stretch_inspection)
 
-    def _clear_individual_table(self):
+    def _clear_inspection_table(self):
         try:
-            for _, widget in self.sensitiveIndividualTables.items():
+            for _, widget in self.sensitiveInspectionTables.items():
                 widget.setParent(None)
-            self.sensitiveIndividualTables = {}
-            self.individualPerformanceTable.setParent(None)
-            self.individual_tab.layout().removeItem(self.stretch_individual)
+            self.sensitiveInspectionTables = {}
+            self.inspectionPerformanceTable.setParent(None)
+            self.inspection_tab.layout().removeItem(self.stretch_inspection)
         except AttributeError:
             return
 
@@ -378,17 +378,17 @@ class FairnessWidget(QtWidgets.QWidget):
 
     def _refresh_tabs(self):
         try:
-            self.individual_metrics_groupBox.setParent(None)
+            self.inspection_metrics_groupBox.setParent(None)
             self.pareto_metrics_groupBox.setParent(None)
-            self.overview_metrics_groupBox.setParent(None)
+            self.summary_metrics_groupBox.setParent(None)
         except AttributeError:
             return
 
         self._clear_dataset_table()
-        self._clear_overview_table()
-        self._clear_individual_table()
+        self._clear_summary_table()
+        self._clear_inspection_table()
         self._clear_pareto_table()
 
-    def open_individual_tab(self, model_index):
-        self.tabs.setCurrentIndex(self.individual_tab_idx)
-        self.cbModels.setCurrentIndex(model_index)
+    def open_inspection_tab(self, model_index):
+        self.tabs.setCurrentIndex(self.inspection_tab_idx)
+        self.inspection_cbModels.setCurrentIndex(model_index)

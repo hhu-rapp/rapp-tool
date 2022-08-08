@@ -9,7 +9,7 @@ from rapp.gui.dbview import DataView
 
 # import rapp gui widgets
 from rapp.gui.prediction import PredictionWidget
-from rapp.gui.fairness import FairnessWidget
+from rapp.gui.evaluation import EvaluationWidget
 from rapp.gui.XAI import XAIWidget
 from rapp.gui.helper import Color
 from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
@@ -73,7 +73,7 @@ class Window(QMainWindow):
 
         self.__init_pipeline_settings_tab()
         self.__init_prediction_tab()
-        self.__init_fairness_tab()
+        self.__init_evaluation_tab()
         self.__init_XAI_tab()
 
         layout = QtWidgets.QHBoxLayout()
@@ -98,16 +98,19 @@ class Window(QMainWindow):
         
         self.tabs.addTab(self.pipeline_settings, 'Pipeline Settings')
     
-    def __init_fairness_tab(self):
-        self.fairness = QtWidgets.QWidget()
-        self.fairness.setLayout(QtWidgets.QHBoxLayout())
         
+
+    def __init_evaluation_tab(self):
+        self.evaluation = QtWidgets.QWidget()
+        self.evaluation.setLayout(QtWidgets.QHBoxLayout())
+
         # create widgets
-        self.fairness = FairnessWidget(self)
         
+        self.evaluation = EvaluationWidget(self)
+
         # add widgets
-        tab_idx = self.tabs.addTab(self.fairness, 'Evaluation')
-        self.fairness_tab_index = tab_idx
+        tab_idx = self.tabs.addTab(self.evaluation, 'Evaluation')
+        self.evaluation_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
     
     def __init_XAI_tab(self):

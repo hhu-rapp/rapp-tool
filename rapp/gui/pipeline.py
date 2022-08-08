@@ -238,13 +238,13 @@ class Pipeline(QtWidgets.QWidget):
                              "features_id": cf.features_id,
                              "labels_id": cf.labels_id}
 
-            # Enable Fairness tab
-            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, True)
-            self.qmainwindow.tabs.widget(self.qmainwindow.fairness_tab_index).populate_fairness_tabs(pl,
-                                                                                                     data_settings)
+            # Enable Evaluation tab
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, True)
+            self.qmainwindow.tabs.widget(self.qmainwindow.evaluation_tab_index).populate_tabs(pl,
+                                                                                              data_settings)
             self.qmainwindow.settings.refresh_data(pl, data_settings)
         else:
-            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.fairness_tab_index, False)
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, False)
             log.warning("No sensitive attributes selected, fairness overview was skipped.")
 
         # Enable Fairness and XAI Tabs

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 from sklearn.dummy import DummyClassifier
-from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
+from rapp.gui.widgets import DatasetTables, SummaryTable, InspectionPerformanceTable, InspectionFairnessCollapsible, \
     DatasetTable, ParetoCollapsible, ParetoPlot, DatasetPlot
 
 from tests.gui.fixture import gui, GuiTestApi
@@ -69,7 +69,7 @@ def clf_settings():
 
 @pytest.fixture
 def fairtab_clf(gui: GuiTestApi, clf_pipeline, clf_settings):
-    gui.tabs.setTabEnabled(gui.widget.fairness_tab_index, True)
+    gui.tabs.setTabEnabled(gui.widget.evaluation_tab_index, True)
     gui.populate_fairness_tabs(clf_pipeline, clf_settings)
     return gui
 
@@ -123,44 +123,44 @@ def test_dataset_table(fairtab_clf: GuiTestApi):
 
 
 def test_performance_metrics_selection(fairtab_clf: GuiTestApi):
-    actual = fairtab_clf.overview_performance_metrics_selection_box.get_checked_items()
+    actual = fairtab_clf.summary_performance_metrics_selection_box.get_checked_items()
     expected = ['A', 'B']
     assert actual == expected, \
-        f"The performance metrics selection box in the overview tab should be {expected}, but is {actual}"
+        f"The performance metrics selection box in the summary tab should be {expected}, but is {actual}"
 
 
 def test_fairness_metrics_selection(fairtab_clf: GuiTestApi):
-    actual = fairtab_clf.overview_fairness_metrics_selection_box.get_checked_items()
+    actual = fairtab_clf.summary_fairness_metrics_selection_box.get_checked_items()
     expected = ['C']
     assert actual == expected, \
-        f"The fairness metrics selection box in the overview tab should be {expected}, but is {actual}"
+        f"The fairness metrics selection box in the summary tab should be {expected}, but is {actual}"
 
 
 def test_default_mode_selection_value(fairtab_clf: GuiTestApi):
-    actual = [fairtab_clf.overview_modes_selection_box.itemText(
-        i) for i in range(fairtab_clf.overview_modes_selection_box.count())]
+    actual = [fairtab_clf.summary_modes_selection_box.itemText(
+        i) for i in range(fairtab_clf.summary_modes_selection_box.count())]
     expected = ['Train']
     assert actual == expected, \
-        f"The mode selection box in the overview tab should be {expected}, but is {actual}"
+        f"The mode selection box in the summary tab should be {expected}, but is {actual}"
 
 
 def test_protected_attr_default_selection_value(fairtab_clf: GuiTestApi):
-    actual = [fairtab_clf.overview_sensitive_selection_box.itemText(i) for i in
-              range(fairtab_clf.overview_sensitive_selection_box.count())]
+    actual = [fairtab_clf.summary_sensitive_selection_box.itemText(i) for i in
+              range(fairtab_clf.summary_sensitive_selection_box.count())]
     expected = ['Sensitive', 'Protected']
     assert actual == expected, \
-        f"The sensitive selection box in the overview tab should be {expected}, but is {actual}"
+        f"The sensitive selection box in the summary tab should be {expected}, but is {actual}"
 
 
-def test_widget_type_in_overview(fairtab_clf: GuiTestApi):
-    actual = type(fairtab_clf.overview_table)
-    expected = OverviewTable
+def test_widget_type_in_summary(fairtab_clf: GuiTestApi):
+    actual = type(fairtab_clf.summary_table)
+    expected = SummaryTable
     assert actual == expected, \
-        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+        f"The type of widget in the summary tab should be {expected}, but is {actual}"
 
 
-def test_table_in_overview(fairtab_clf: GuiTestApi):
-    labels = fairtab_clf.overview_table.labels
+def test_table_in_summary(fairtab_clf: GuiTestApi):
+    labels = fairtab_clf.summary_table.labels
 
     values = {}
     for label in labels:
@@ -175,23 +175,23 @@ def test_table_in_overview(fairtab_clf: GuiTestApi):
                 'B': ['0.500', '0.500'],
                 'C': ['0.500', '0.500']}
     assert actual == expected, \
-        f"The values in the overview table should be {expected}, but are {actual}"
+        f"The values in the summary table should be {expected}, but are {actual}"
 
 
 def test_listed_models_in_model_inspection(fairtab_clf: GuiTestApi):
-    actual = [fairtab_clf.individual_model_selection_box.itemText(i)
+    actual = [fairtab_clf.model_inspection_selection_box.itemText(i)
               for i in range(
-            fairtab_clf.individual_model_selection_box.count())]
+            fairtab_clf.model_inspection_selection_box.count())]
     expected = ['DummyClassifier', 'DummyClassifier']
     assert actual == expected, \
-        f"The model selection box in the individual tab should be {expected}, but is {actual}"
+        f"The model selection box in the inspection tab should be {expected}, but is {actual}"
 
 
-def test_widget_type_of_individual_performance_table(fairtab_clf: GuiTestApi):
-    actual = type(fairtab_clf.individual_performance_table)
-    expected = IndividualPerformanceTable
+def test_widget_type_of_inspection_performance_table(fairtab_clf: GuiTestApi):
+    actual = type(fairtab_clf.inspection_performance_table)
+    expected = InspectionPerformanceTable
     assert actual == expected, \
-        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+        f"The type of widget in the inspection tab should be {expected}, but is {actual}"
 
 
 def test_cm_table(fairtab_clf: GuiTestApi):
@@ -230,38 +230,38 @@ def test_perfomance_metrics_table(fairtab_clf: GuiTestApi):
                 'Value': ['0.200', '0.500']}
 
     assert actual == expected, \
-        f"The values in the perfomance metrics table should be {expected}, but is {actual}"
+        f"The values in the performance metrics table should be {expected}, but is {actual}"
 
 
-def test_select_individual_fairness_metric(fairtab_clf: GuiTestApi):
-    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
+def test_select_inspection_fairness_metric(fairtab_clf: GuiTestApi):
+    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.evaluation_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
-        fairtab_clf.widget.fairness.individual_tab_idx)
+        fairtab_clf.widget.evaluation.inspection_tab_idx)
 
-    fairtab_clf.key_click(fairtab_clf.individual_metrics_selection_box,
+    fairtab_clf.key_click(fairtab_clf.inspection_metrics_selection_box,
                           'Fairness')
 
-    actual = len(fairtab_clf.get_individual_fairness_tables())
+    actual = len(fairtab_clf.get_inspection_fairness_tables())
     expected = 2
     assert actual == expected, \
-        f"The Number of collapsible boxes in the individual tab should be {expected}, but is {actual}"
+        f"The Number of collapsible boxes in the inspection tab should be {expected}, but is {actual}"
 
 
-def test_individual_fairness_table_type(fairtab_clf: GuiTestApi):
-    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
+def test_inspection_fairness_table_type(fairtab_clf: GuiTestApi):
+    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.evaluation_tab_index)
     fairtab_clf.fairness_tabs.setCurrentIndex(
-        fairtab_clf.widget.fairness.individual_tab_idx)
+        fairtab_clf.widget.evaluation.inspection_tab_idx)
     fairtab_clf.key_click(
-        fairtab_clf.individual_metrics_selection_box, "Fairness")
-    actual = type(fairtab_clf.get_individual_fairness_tables()['Protected'])
-    expected = IndividualFairnessTable
+        fairtab_clf.inspection_metrics_selection_box, "Fairness")
+    actual = type(fairtab_clf.get_inspection_fairness_tables()['Protected'])
+    expected = InspectionFairnessCollapsible
     assert actual == expected, \
         f"The type of widget in the model inspection tab should be {expected}, but is {actual}"
 
 
-def test_correspondence_table(fairtab_clf: GuiTestApi):
+def test_contingency_table(fairtab_clf: GuiTestApi):
     fairtab_clf.key_click(
-        fairtab_clf.individual_metrics_selection_box, "Fairness")
+        fairtab_clf.inspection_metrics_selection_box, "Fairness")
 
     mode = 'train'
     sensitive = 'Protected'
@@ -281,12 +281,12 @@ def test_correspondence_table(fairtab_clf: GuiTestApi):
                 }
 
     assert actual == expected, \
-        f"The values in the perfomance metrics table should be {expected}, but is {actual}"
+        f"The values in the contingency table should be {expected}, but is {actual}"
 
 
 def test_clf_fairness_notions_table(fairtab_clf: GuiTestApi):
     fairtab_clf.key_click(
-        fairtab_clf.individual_metrics_selection_box, "Fairness")
+        fairtab_clf.inspection_metrics_selection_box, "Fairness")
 
     mode = 'train'
     sensitive = 'Protected'
@@ -308,33 +308,33 @@ def test_clf_fairness_notions_table(fairtab_clf: GuiTestApi):
         f"The values in the fairness metrics table should be {expected}, but is {actual}"
 
 
-def test_click_on_model_in_overview(fairtab_clf: GuiTestApi):
-    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
-    labels = fairtab_clf.overview_table.labels
+def test_click_on_model_in_summary(fairtab_clf: GuiTestApi):
+    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.evaluation_tab_index)
+    labels = fairtab_clf.summary_table.labels
 
     key = list(labels.keys())[0]  # Key where models are saved
     model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
-        fairtab_clf.widget.fairness.overview_tab_idx)
+        fairtab_clf.widget.evaluation.summary_tab_idx)
     fairtab_clf.click(labels[key][model_idx])
 
     actual = fairtab_clf.fairness_tabs.currentIndex()
-    expected = fairtab_clf.widget.fairness.individual_tab_idx
+    expected = fairtab_clf.widget.evaluation.inspection_tab_idx
     assert actual == expected, \
         f"The fairness tab index should have changed to {expected}, but is {actual}"
 
 
-def test_click_on_model_in_overview2(fairtab_clf: GuiTestApi):
-    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.fairness_tab_index)
-    labels = fairtab_clf.overview_table.labels
+def test_click_on_model_in_summary2(fairtab_clf: GuiTestApi):
+    fairtab_clf.tabs.setCurrentIndex(fairtab_clf.widget.evaluation_tab_index)
+    labels = fairtab_clf.summary_table.labels
 
     key = list(labels.keys())[0]  # Key where models are saved
     model_idx = 1  # Only test second model.
     fairtab_clf.fairness_tabs.setCurrentIndex(
-        fairtab_clf.widget.fairness.overview_tab_idx)
+        fairtab_clf.widget.evaluation.summary_tab_idx)
     fairtab_clf.click(labels[key][model_idx])
 
-    actual = fairtab_clf.individual_model_selection_box.currentIndex()
+    actual = fairtab_clf.model_inspection_selection_box.currentIndex()
     expected = model_idx
     assert actual == expected, \
         f"The modelComboBo's index should be {expected}, but is {actual}"
@@ -447,7 +447,7 @@ def reg_settings():
 
 @pytest.fixture
 def fairtab_reg(gui: GuiTestApi, reg_pipeline, reg_settings):
-    gui.tabs.setTabEnabled(gui.widget.fairness_tab_index, True)
+    gui.tabs.setTabEnabled(gui.widget.evaluation_tab_index, True)
     gui.populate_fairness_tabs(reg_pipeline, reg_settings)
     return gui
 
@@ -464,7 +464,7 @@ def test_reg_datatable_widget_type(fairtab_reg: GuiTestApi):
 
 def test_reg_fairness_notions_table(fairtab_reg: GuiTestApi):
     fairtab_reg.key_click(
-        fairtab_reg.individual_metrics_selection_box, "Fairness")
+        fairtab_reg.inspection_metrics_selection_box, "Fairness")
 
     mode = 'train'
     sensitive = 'Protected'
