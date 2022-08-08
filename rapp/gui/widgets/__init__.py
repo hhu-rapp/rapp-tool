@@ -507,7 +507,7 @@ class InspectionFairnessCollapsible(CollapsibleBox):
                 # Since the confusion matrix is the same for all metrics we are going to access the first cm that appears
                 first_metric = list(fairness_results[model][sensitive_attribute].keys())[0]
                 sub_groups = fairness_results[model][sensitive_attribute][first_metric][mode]
-                self.ct_groupBox[mode] = CorrespondenceTable(sub_groups)
+                self.ct_groupBox[mode] = ContingencyTable(sub_groups)
 
             # metrics table
             metrics = fairness_results[model][sensitive_attribute]
@@ -523,7 +523,7 @@ class InspectionFairnessCollapsible(CollapsibleBox):
         self.setContentLayout(HBoxLayout)
 
 
-class CorrespondenceTable(QtWidgets.QGroupBox):
+class ContingencyTable(QtWidgets.QGroupBox):
     def __init__(self, sub_groups):
         """
         Generates a table with the confusion matrix
@@ -533,9 +533,9 @@ class CorrespondenceTable(QtWidgets.QGroupBox):
         sub_groups: dict[sub_group -> confusion_matrix]
             Dictionary where 'confusion_matrix' is used as a key to access the sub_group's confusion_matrix
         """
-        super(CorrespondenceTable, self).__init__()
+        super(ContingencyTable, self).__init__()
 
-        # groupBox for correspondence table
+        # groupBox for contingency table
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
         self.labels = {}
