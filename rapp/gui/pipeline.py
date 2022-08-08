@@ -203,7 +203,7 @@ class Pipeline(QtWidgets.QWidget):
         """
 
         cf = self.parse_settings()
-        
+
         if cf is None:
             return
 
