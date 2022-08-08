@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from sklearn.dummy import DummyClassifier
 from rapp.gui.widgets import DatasetTables, OverviewTable, IndividualPerformanceTable, IndividualFairnessTable, \
-    DatasetTable, ParetoCollapsible, ParetoPlot
+    DatasetTable, ParetoCollapsible, ParetoPlot, DatasetPlot
 
 from tests.gui.fixture import gui, GuiTestApi
 
@@ -284,7 +284,7 @@ def test_correspondence_table(fairtab_clf: GuiTestApi):
         f"The values in the perfomance metrics table should be {expected}, but is {actual}"
 
 
-def test_fairness_notions_table(fairtab_clf: GuiTestApi):
+def test_clf_fairness_notions_table(fairtab_clf: GuiTestApi):
     fairtab_clf.key_click(
         fairtab_clf.individual_metrics_selection_box, "Fairness")
 
@@ -305,7 +305,7 @@ def test_fairness_notions_table(fairtab_clf: GuiTestApi):
                 'Baz': ['0.500']}
 
     assert actual == expected, \
-        f"The values in the perfomance metrics table should be {expected}, but is {actual}"
+        f"The values in the fairness metrics table should be {expected}, but is {actual}"
 
 
 def test_click_on_model_in_overview(fairtab_clf: GuiTestApi):
@@ -348,6 +348,7 @@ def test_listed_metrics_in_pareto_tab(fairtab_clf: GuiTestApi):
     assert actual == expected, \
         f"The metric selection box in the pareto tab should be {expected}, but is {actual}"
 
+
 def test_listed_notions_in_pareto_tab(fairtab_clf: GuiTestApi):
     actual = [fairtab_clf.pareto_notions_selection_box.itemText(i)
               for i in range(
@@ -378,7 +379,7 @@ def test_widget_type_of_pareto_plot(fairtab_clf: GuiTestApi):
     actual = type(fairtab_clf.pareto_collapsibles[sensitive].pareto_groupBox[mode])
     expected = ParetoPlot
     assert actual == expected, \
-        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+        f"The type of widget in the pareto collapsible tab should be {expected}, but is {actual}"
 
 
 def test_costs_in_pareto_plot(fairtab_clf: GuiTestApi):
@@ -387,4 +388,98 @@ def test_costs_in_pareto_plot(fairtab_clf: GuiTestApi):
     actual = fairtab_clf.pareto_collapsibles[sensitive].pareto_groupBox[mode].costs
     expected = np.array([0, 0.2])
     assert (actual == expected).all(), \
-        f"The type of widget in the overview tab should be {expected}, but is {actual}"
+        f"The costs for the pareto plot should be {expected}, but is {actual}"
+
+
+@pytest.fixture
+def reg_pipeline():
+    est1 = DummyClassifier()
+    est2 = DummyClassifier()
+
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est1, est2]
+    pipeline.data = {'train': None}
+    pipeline.statistics_results = {'train': {'groups':
+                                                 {'Sensitive': {'foo': {'total': 3,
+                                                                        'outcomes': np.arange(0, 3)
+                                                                        }},
+                                                  'Protected': {'bar': {'total': 3,
+                                                                        'outcomes': np.arange(3, 6)
+                                                                        },
+                                                                'baz': {'total': 3,
+                                                                        'outcomes': np.arange(6, 9)
+                                                                        }
+                                                                }},
+                                             'outcomes': np.arange(0, 9),
+                                             'total': 9}}
+    pipeline.sensitive_attributes = ['Sensitive', 'Protected']
+    pipeline.type = 'regression'
+    pipeline.score_functions = {'A': None,
+                                'B': None}
+    pipeline.fairness_functions = {'C': None}
+
+    pipeline.performance_results = {est1: {
+        'train': {
+            'scores': {
+                'A': 0.2,
+                'B': 0.5},
+            'confusion_matrix': [[0, 8], [0, 2]]}}}
+    pipeline.performance_results[est2] = pipeline.performance_results[est1]
+
+    pipeline.fairness_results = {est1: {'Sensitive':
+                                            {'C': {'train': 0.5,
+                                                   }},
+                                        'Protected':
+                                            {'C': {'train': 0.5,
+                                                   }}}}
+
+    pipeline.fairness_results[est2] = pipeline.fairness_results[est1]
+
+    return pipeline
+
+
+@pytest.fixture
+def reg_settings():
+    return {'studies_id': 'cs',
+            'features_id': 'first_term_ects',
+            'labels_id': 'reg_final_grade'}
+
+
+@pytest.fixture
+def fairtab_reg(gui: GuiTestApi, reg_pipeline, reg_settings):
+    gui.tabs.setTabEnabled(gui.widget.fairness_tab_index, True)
+    gui.populate_fairness_tabs(reg_pipeline, reg_settings)
+    return gui
+
+
+def test_reg_datatable_widget_type(fairtab_reg: GuiTestApi):
+    sensitive = 'Protected'  # only test second sensitive attribute
+    mode = 'train'
+
+    actual = type(fairtab_reg.dataset_tables[sensitive].dataset_groupBox[mode])
+    expected = DatasetPlot
+    assert actual == expected, \
+        f"The type of widget in the dataset tab should be {expected}, but is {actual}"
+
+
+def test_reg_fairness_notions_table(fairtab_reg: GuiTestApi):
+    fairtab_reg.key_click(
+        fairtab_reg.individual_metrics_selection_box, "Fairness")
+
+    mode = 'train'
+    sensitive = 'Protected'
+    labels = fairtab_reg.get_notions_table(sensitive)[mode].labels
+
+    values = {}
+    for label in labels:
+        key = label.text()
+        values[key] = []
+        for val in labels[label]:
+            values[key].append(val.text())
+
+    actual = values
+    expected = {'Metric': ['C'],
+                'Value': ['0.500']}
+
+    assert actual == expected, \
+        f"The values in the fairness metrics table should be {expected}, but is {actual}"
