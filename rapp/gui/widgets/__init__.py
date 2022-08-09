@@ -282,24 +282,25 @@ class SummaryTable(QtWidgets.QGroupBox):
                     tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
                     self.labels[labelMetric].append(labelValue)
 
-                if metric in fairness_notions:
-                    # fairness notions
-                    values = fairness_results[model][sensitive_attribute][metric][mode]
-                    if pl_type == "classification":
-                        # average value across sensitive attribute
-                        measure = np.zeros(len(values))
-                        for k, value in enumerate(values):
-                            measure[k] = values[value]['affected_percent']
+                if fairness_notions is not None:
+                    if metric in fairness_notions:
+                        # fairness notions
+                        values = fairness_results[model][sensitive_attribute][metric][mode]
+                        if pl_type == "classification":
+                            # average value across sensitive attribute
+                            measure = np.zeros(len(values))
+                            for k, value in enumerate(values):
+                                measure[k] = values[value]['affected_percent']
 
-                        measure = np.mean(measure)
+                            measure = np.mean(measure)
 
-                    if pl_type == "regression":
-                        measure = values
+                        if pl_type == "regression":
+                            measure = values
 
-                    labelValue = QtWidgets.QLabel()
-                    labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
-                    self.labels[labelMetric].append(labelValue)
+                        labelValue = QtWidgets.QLabel()
+                        labelValue.setText(f"{measure:.3f}")
+                        tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
+                        self.labels[labelMetric].append(labelValue)
 
     def set_model_click_function(self, function):
         key = list(self.labels.keys())[0]
