@@ -9,10 +9,10 @@ from rapp import gui
 from rapp.gui.pipeline import Pipeline
 
 
-class XAIWidget(QtWidgets.QWidget):
+class InterpretabilityWidget(QtWidgets.QWidget):
 
     def __init__(self, qmainwindow):
-        super(XAIWidget, self).__init__()
+        super(InterpretabilityWidget, self).__init__()
 
         self.qmainwindow = qmainwindow
         self.initUI()

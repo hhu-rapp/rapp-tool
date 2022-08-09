@@ -10,7 +10,7 @@ from rapp.gui.dbview import DataView
 # import rapp gui widgets
 from rapp.gui.prediction import PredictionWidget
 from rapp.gui.evaluation import EvaluationWidget
-from rapp.gui.XAI import XAIWidget
+from rapp.gui.interpretability import InterpretabilityWidget
 from rapp.gui.helper import Color
 from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
 from rapp.gui.menubar import MenuBar
@@ -75,7 +75,7 @@ class Window(QMainWindow):
         self.__init_pipeline_settings_tab()
         self.__init_prediction_tab()
         self.__init_evaluation_tab()
-        self.__init_XAI_tab()
+        self.__init_interpretability_tab()
 
         layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 10, 0, 0)
@@ -111,16 +111,16 @@ class Window(QMainWindow):
         self.evaluation_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
 
-    def __init_XAI_tab(self):
-        self.XAI = QtWidgets.QWidget()
-        self.XAI.setLayout(QtWidgets.QHBoxLayout())
+    def __init_interpretability_tab(self):
+        self.interpretability = QtWidgets.QWidget()
+        self.interpretability.setLayout(QtWidgets.QHBoxLayout())
 
         # create widgets
-        self.XAI = XAIWidget(self)
+        self.interpretability = InterpretabilityWidget(self)
 
         # add widgets
-        tab_idx = self.tabs.addTab(self.XAI, 'Interpretability')
-        self.xai_tab_index = tab_idx
+        tab_idx = self.tabs.addTab(self.interpretability, 'Interpretability')
+        self.interpretability_tab_index = tab_idx
         self.tabs.setTabEnabled(tab_idx, False)
 
     def __init_prediction_tab(self):
