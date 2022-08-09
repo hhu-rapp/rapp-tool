@@ -249,6 +249,7 @@ class Pipeline(QtWidgets.QWidget):
 
         # Enable Interpretability tab
         self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.interpretability_tab_index, True)
+        self.qmainwindow.tabs.widget(self.qmainwindow.interpretability_tab_index).initialize_tab(pl)
 
     def parse_settings(self):
         cf = argparse.Namespace()
