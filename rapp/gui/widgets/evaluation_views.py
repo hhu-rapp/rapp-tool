@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QGroupBox
 
+from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
 from rapp.gui.widgets import SummaryTable
 
@@ -81,3 +82,132 @@ class InitialView(QtWidgets.QWidget):
         except AttributeError:
             return
 
+    def get_mode_idx(self):
+        return self.cbModes.currentIndex()
+
+
+class ModelViewCLF(QtWidgets.QWidget):
+
+    def __init__(self, pipeline, model, row_callback, mode_idx=None):
+        super(ModelViewCLF, self).__init__()
+
+        self.pipeline = pipeline
+        self.row_callback_function = row_callback
+
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.setLayout(self.main_layout)
+
+        self.filters = QtWidgets.QWidget()
+        self.filters.setLayout(QtWidgets.QFormLayout())
+
+        # comboBox for filtering
+        self.cbModes = QtWidgets.QComboBox()
+
+        self.tabs = QtWidgets.QTabWidget()
+
+        # load comoBox
+        modes = list(self.pipeline.data.keys())
+        for mode in modes:
+            self.cbModes.addItem(str(mode).capitalize())
+        if mode_idx is not None:
+            self.cbModes.setCurrentIndex(mode_idx)
+
+        def populate_predictions_tabs():
+            self._populate_predictions_tabs(self.pipeline.data, model)
+
+        self.cbModes.currentIndexChanged.connect(populate_predictions_tabs)
+
+        self.tabs_list = {}
+        self.df = {}
+        self._populate_predictions_tabs(self.pipeline.data, model)
+
+    def _populate_predictions_tabs(self, data_dict, model):
+        self._clear_tabs()
+
+        # get values from filters
+        mode = self.cbModes.currentText().lower()
+
+        data = data_dict[mode]
+
+        target = data['y'].columns[0]
+
+        pred_df = data['X'].copy()
+
+        pred = model.predict_proba(pred_df)
+
+        pred_df['Pred'] = pred.argmax(axis=1)
+        pred_df['Proba'] = pred.max(axis=1).round(2)
+        pred_df['Ground Truth'] = data['y']
+
+        for label in sorted(data['y'][target].unique()):
+            self.df[label] = pred_df.loc[pred_df['Pred'] == label]
+
+            self.tabs_list[label] = QtWidgets.QTableView(self)
+            self.tabs_list[label].setSortingEnabled(True)
+            self.tabs_list[label].resizeColumnsToContents()
+
+            model = PandasModel(self.df[label])
+            self.tabs_list[label].setModel(model)
+
+            self.tabs.addTab(self.tabs_list[label], f'{target}={str(label)}')
+
+        # add to layout
+        self.main_layout.addWidget(self.tabs)
+        self.filters.layout().addRow('Mode:', self.cbModes)
+        self.main_layout.addWidget(self.filters)
+
+    def _clear_tabs(self):
+        for _, widget in self.tabs_list.items():
+            widget.setParent(None)
+        self.filters.layout().removeItem(self.filters.layout().itemAt(0))
+        self.filters.setParent(None)
+
+    def clear_widget(self):
+        try:
+            self.setParent(None)
+        except AttributeError:
+            return
+
+
+class ModelViewREG(ModelViewCLF):
+
+    def __init__(self, pipeline, model, row_callback, mode_idx=None):
+        super(ModelViewREG, self).__init__(pipeline, model, row_callback, mode_idx=None)
+
+    def _populate_predictions_tabs(self, data_dict, model):
+        self._clear_tabs()
+
+        # get values from filters
+        mode = self.cbModes.currentText().lower()
+
+        data = data_dict[mode]
+
+        target = data['y'].columns[0]
+
+        pred_df = data['X'].copy()
+
+        pred_df['Pred'] = model.predict(pred_df).round(2)
+        pred_df['Ground Truth'] = data['y']
+
+        self.df = pred_df
+
+        self.table_view = QtWidgets.QTableView(self)
+        self.table_view.setSortingEnabled(True)
+        self.table_view.resizeColumnsToContents()
+
+        model = PandasModel(self.df)
+        self.table_view.setModel(model)
+
+        # add to layout
+        self.main_layout.addWidget(self.table_view)
+        self.filters.layout().addRow('Mode:', self.cbModes)
+        self.main_layout.addWidget(self.filters)
+
+    def _clear_tabs(self):
+        try:
+            self.table_view.setParent(None)
+        except AttributeError:
+            return
+
+        self.filters.layout().removeItem(self.filters.layout().itemAt(0))
+        self.filters.setParent(None)
