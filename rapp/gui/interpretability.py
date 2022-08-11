@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # rapp gui
 from PyQt5.QtWidgets import QGroupBox
 
-from rapp.gui.widgets.evaluation_views import InitialView, ModelView
+from rapp.gui.widgets.evaluation_views import InitialView, ModelViewCLF, ModelViewREG
 from rapp.util import estimator_name
 
 
@@ -19,6 +19,14 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.qmainwindow = qmainwindow
         self.current_view = None
         self.initUI()
+
+        self.button_header_layout = QtWidgets.QHBoxLayout()
+        self.model_list_button = QtWidgets.QPushButton('Zurück : Model List')
+        self.model_list_button.clicked.connect(self._load_initial_view)
+        self.model_list_button.setStatusTip('Go back to model list')
+        self.model_list_button.resize(50, 50)
+
+        self.selected_model_label = QtWidgets.QLabel()
 
     def initUI(self):
         # create layout
@@ -45,8 +53,37 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.main_layout.addWidget(self.current_view)
 
     def _load_initial_view(self):
-        self.current_view.setParent(None)
+        self.current_view.clear_widget()
+
         self.current_view = self.initial_view
+
+        self.model_list_button.setParent(None)
+        self.selected_model_label.setParent(None)
 
         self.main_layout.addWidget(self.current_view)
 
+    def _load_model_view(self, model_idx):
+        self.current_view.clear_widget()
+
+        models = list(self.pipeline.performance_results.keys())
+
+        self.selected_model_label.setText(f'Model : {estimator_name(models[model_idx])}')
+
+        if self.pipeline.type == 'classification':
+            self.model_view = ModelViewCLF(self.pipeline, models[model_idx], self._load_sample_view,
+                                           self.current_view.get_mode_idx())
+
+        if self.pipeline.type == 'regression':
+            self.model_view = ModelViewREG(self.pipeline, models[model_idx], self._load_sample_view,
+                                           self.current_view.get_mode_idx())
+
+        self.current_view = self.model_view
+
+        # add to layout
+        self.button_header_layout.addWidget(self.model_list_button)
+        self.button_header_layout.addWidget(self.selected_model_label)
+        self.main_layout.addLayout(self.button_header_layout)
+        self.main_layout.addWidget(self.current_view)
+
+    def _load_sample_view(self):
+        pass
