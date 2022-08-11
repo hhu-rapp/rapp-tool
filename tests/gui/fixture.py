@@ -72,6 +72,8 @@ class GuiTestApi():
         self.individual_fairness_tables = None
         self.inspection_performance_table = None
 
+        self.populate_interpretability_tab = lambda pl: self._populate_interpretability_tab(widget, pl)
+
     def get_df(self):
         return self.widget.databaseLayoutWidget.sql_df
 
@@ -177,3 +179,8 @@ class GuiTestApi():
         self.pareto_notions_selection_box = widget.evaluation.pareto_cbNotions
         self.pareto_metrics_selection_box = widget.evaluation.pareto_cbMetrics
         self.pareto_collapsibles = widget.evaluation.sensitiveParetoTables
+
+    def _populate_interpretability_tab(self, widget, pipeline):
+        widget.interpretability.initialize_tab(pipeline)
+
+        self.current_view = lambda: widget.interpretability.current_view
