@@ -62,16 +62,16 @@ class InitialView(QtWidgets.QWidget):
         models = list(performance_results.keys())
 
         # create groupBox
-        self.summary_groupBox = SummaryTable(mode, models, metrics, pl_type, metrics,
+        self.summary_table = SummaryTable(mode, models, metrics, pl_type, metrics,
                                              performance_results)
-        self.summary_groupBox.set_model_click_function(self.model_callback_function)
+        self.summary_table.set_model_click_function(self.model_callback_function)
 
         # add to layout
-        self.main_layout.addWidget(self.summary_groupBox)
+        self.main_layout.addWidget(self.summary_table)
 
     def _clear_table(self):
         try:
-            self.summary_groupBox.setParent(None)
+            self.summary_table.setParent(None)
         except AttributeError:
             return
 
