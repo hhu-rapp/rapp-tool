@@ -184,3 +184,4 @@ class GuiTestApi():
         widget.interpretability.initialize_tab(pipeline)
 
         self.current_view = lambda: widget.interpretability.current_view
+        self.header_layout = widget.interpretability.button_header_layout
