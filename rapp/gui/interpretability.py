@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # rapp gui
 from PyQt5.QtWidgets import QGroupBox
 
-from rapp.gui.widgets.evaluation_views import InitialView, ModelViewCLF, ModelViewREG
+from rapp.gui.widgets.interpretability_views import InitialView, ModelViewCLF, ModelViewREG, SampleView
 from rapp.util import estimator_name
 
 

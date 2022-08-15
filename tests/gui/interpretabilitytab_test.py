@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from sklearn.dummy import DummyClassifier
 from rapp.util import estimator_name
-from rapp.gui.widgets.evaluation_views import InitialView, ModelViewCLF, SampleView
+from rapp.gui.widgets.interpretability_views import InitialView, ModelViewCLF, SampleView
 
 from tests.gui.fixture import gui, GuiTestApi
 
