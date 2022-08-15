@@ -26,6 +26,12 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.model_list_button.setStatusTip('Go back to model list')
         self.model_list_button.resize(50, 50)
 
+        self.button_header_layout = QtWidgets.QHBoxLayout()
+        self.model_insight_button = QtWidgets.QPushButton('Zurück : Model Insights')
+        self.model_insight_button.clicked.connect(self._load_model_view)
+        self.model_insight_button.setStatusTip('Go back to model insights')
+        self.model_insight_button.resize(50, 50)
+
         self.selected_model_label = QtWidgets.QLabel()
 
     def initUI(self):
@@ -54,16 +60,15 @@ class InterpretabilityWidget(QtWidgets.QWidget):
 
     def _load_initial_view(self):
         self.current_view.clear_widget()
+        self._clear_button_header()
 
         self.current_view = self.initial_view
-
-        self.model_list_button.setParent(None)
-        self.selected_model_label.setParent(None)
 
         self.main_layout.addWidget(self.current_view)
 
     def _load_model_view(self, model_idx):
         self.current_view.clear_widget()
+        self._clear_button_header()
 
         models = list(self.pipeline.performance_results.keys())
 
@@ -86,4 +91,19 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.main_layout.addWidget(self.current_view)
 
     def _load_sample_view(self):
-        pass
+        df = self.current_view.get_selected_df()
+        self.current_view.clear_widget()
+        self._clear_button_header()
+
+        self.sample_view = SampleView(self.pipeline, df)
+
+
+        # add to layout
+        self.button_header_layout.addWidget(self.model_list_button)
+        self.button_header_layout.addWidget(self.model_insight_button)
+        self.main_layout.addLayout(self.button_header_layout)
+
+    def _clear_button_header(self):
+        self.model_list_button.setParent(None)
+        self.selected_model_label.setParent(None)
+        self.model_insight_button.setParent(None)
