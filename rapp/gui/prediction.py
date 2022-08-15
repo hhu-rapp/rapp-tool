@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from scipy import stats
 
+from rapp import sqlbuilder
 from rapp.gui.helper import LoadModelPushButton, CheckableComboBox
 from rapp.pipeline import preprocess_data
 
@@ -57,12 +58,8 @@ class PredictionWidget(QtWidgets.QWidget):
         # headers
         headers = ['Load', 'Model', 'Target', 'Prediction', 'Mean Student']
 
-        # get labels from dir
-        abs_path = abspath(getcwd())
-        work_dir = join(abs_path, "data", "rapp", "sqltemplates")
-        labels_path = join(work_dir, "labels")
-
-        self.label_ids = [d for d in listdir(labels_path) if isdir(join(labels_path, d))]
+        # get labels
+        self.label_ids = sqlbuilder.list_available_labels()
         self.label_ids.sort()
         # create lists for widgets
         self.predLabels = []
