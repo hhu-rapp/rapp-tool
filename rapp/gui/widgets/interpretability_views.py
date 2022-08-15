@@ -96,7 +96,7 @@ class InitialView(QtWidgets.QWidget):
 
 
 class ModelViewCLF(QtWidgets.QWidget):
-    def __init__(self, pipeline, estimator, row_callback, mode_idx=None):
+    def __init__(self, pipeline, estimator, row_callback, mode_idx=0):
         """
         Generates a widget that displays all trained models with their corresponding predictive performances.
 
@@ -104,10 +104,13 @@ class ModelViewCLF(QtWidgets.QWidget):
         ----------
         pipeline: rapp.pipeline object
 
-        estimator: Trained classifier with predict_proba method
+        estimator: Trained classifier with predict_proba method.
 
         row_callback: function
             A reference to a function that is to be called when clicking the rows of the table.
+
+        mode_idx: int, default=0
+            Index from the mode of last view, for reference.
         """
         super(ModelViewCLF, self).__init__()
 
@@ -241,7 +244,7 @@ class ModelViewCLF(QtWidgets.QWidget):
 
 
 class ModelViewREG(ModelViewCLF):
-    def __init__(self, pipeline, estimator, row_callback, mode_idx=None):
+    def __init__(self, pipeline, estimator, row_callback, mode_idx=0):
         """
         Generates a widget that displays the prediction information of the selected model.
 
@@ -249,10 +252,13 @@ class ModelViewREG(ModelViewCLF):
         ----------
         pipeline: rapp.pipeline object
 
-        estimator: Trained regressor with predict method
+        estimator: Trained regressor with predict method.
 
         row_callback: function
             A reference to a function that is to be called when clicking the rows of the table.
+
+        mode_idx: int, default=0
+            Index from the mode of last view, for reference.
         """
         super(ModelViewREG, self).__init__(pipeline, estimator, row_callback, mode_idx=mode_idx)
 
@@ -304,7 +310,7 @@ class ModelViewREG(ModelViewCLF):
 
 
 class SampleView(QtWidgets.QWidget):
-    def __init__(self, pipeline, data_sample):
+    def __init__(self, pipeline, data_sample, mode_idx=0):
         """
         Generates a widget that allows closer inspection of predictions for a single element.
 
@@ -314,8 +320,18 @@ class SampleView(QtWidgets.QWidget):
 
         data_sample: dataframe
             Data sample to be analyzed
+
+        mode_idx: int, default=0
+            Index from the mode of last view, for reference.
         """
         super(SampleView, self).__init__()
 
         self.pipeline = pipeline
         self.data_sample = data_sample
+        self.mode_idx = mode_idx
+
+    def clear_widget(self):
+        self.setParent(None)
+
+    def get_mode_idx(self):
+        return self.mode_idx
