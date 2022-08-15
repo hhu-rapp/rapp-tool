@@ -2,7 +2,7 @@
 import chevron
 import numpy as np
 
-import rapp.report.resources as rc
+import rapp.resources as rc
 
 
 def tex_performance_table(estimator, results):
@@ -30,7 +30,7 @@ def tex_performance_table(estimator, results):
         Latex table source code.
     """
     # Metrics table
-    template = rc.get_text("metrics_table.tex")
+    template = rc.get_text("reports/latex/metrics_table.tex")
     metrics = []
     for m in results["train"]["scores"].keys():
         res = {'name': m,
@@ -93,7 +93,7 @@ def tex_cross_validation(estimator, data):
     mustache["test_col_start"] = test_start
     mustache["test_col_end"] = test_start + n_set_cols - 1
 
-    template = rc.get_text("cv_table.tex")
+    template = rc.get_text("reports/latex/cv_table.tex")
     return chevron.render(template, mustache)
 
 
@@ -198,7 +198,7 @@ def tex_fairness(estimator, data):
         fairness["modes"].append(mode_dict)
 
     fairness['label'] = data.get('label', False)
-    tex = rc.get_text("fairness_table.tex")
+    tex = rc.get_text("reports/latex/fairness_table.tex")
     tex = chevron.render(tex, fairness)
     return tex
 
@@ -266,6 +266,6 @@ def tex_regression_fairness(estimator, data):
     fairness['modes'][-1]['is_last'] = True
 
     fairness['label'] = estimator
-    tex = rc.get_text("fairness_regressor_table.tex")
+    tex = rc.get_text("reports/latex/fairness_regressor_table.tex")
     tex = chevron.render(tex, fairness)
     return tex

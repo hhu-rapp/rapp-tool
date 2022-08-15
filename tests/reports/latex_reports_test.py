@@ -3,7 +3,7 @@ import numpy as np
 from rapp.report.latex import tex_dataset_report
 from rapp.report.latex import tex_dataset_plot
 
-from rapp.report.latex.tables import tex_performance_table
+from rapp.report.latex.tables import tex_performance_table, tex_fairness
 from rapp.report.latex.tables import tex_regression_fairness
 from rapp.report.latex.tables import tex_cross_validation
 
@@ -133,6 +133,25 @@ def test_performance_table__two_metrics():
     assert expected == actual
 
 
+def test_fairness_table__two_groups__two_notions__two_notions__one_measure():
+    estimator = "foobar"
+    report = {
+        'foo': {'notion1': {'train': {'a': {'affected_percent': 10.0}},
+                            'test': {'a': {'affected_percent': 4.0}}},
+                'notion2': {'train': {'a': {'affected_percent': 8.0}},
+                            'test': {'a': {'affected_percent': 7.0}}}},
+        'bar': {'notion1': {'train': {'a': {'affected_percent': 6.0}},
+                            'test': {'a': {'affected_percent': 2.0}}},
+                'notion2': {'train': {'a': {'affected_percent': 8.0}},
+                            'test': {'a': {'affected_percent': 10.0}}}}
+    }
+
+    expected = rc.get_text('reports/fairness_table_two_groups_two_notions_one_measure.tex')
+    actual = tex_fairness(estimator, report)
+
+    assert expected == actual
+
+
 def test_fairness_regressor_table__two_groups__two_notions():
     estimator = "foobar"
     report = {
@@ -146,7 +165,7 @@ def test_fairness_regressor_table__two_groups__two_notions():
                             'test': 1}}
     }
 
-    expected = rc.get_text('reports/fairness_regressor_table_two_groups_two_notions.tex').replace('\r', '')
+    expected = rc.get_text('reports/fairness_regressor_table_two_groups_two_notions.tex')
     actual = tex_regression_fairness(estimator, report)
 
     assert expected == actual

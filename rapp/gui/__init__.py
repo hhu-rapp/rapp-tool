@@ -28,7 +28,7 @@ sql_df = None
 
 
 class Window(QMainWindow):
-    def __init__(self, db_filepath="data/rapp/data.db"):
+    def __init__(self, db_filepath="data/rapp.db"):
         super().__init__()
 
         # variables before initializing gui

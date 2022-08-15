@@ -1,0 +1,48 @@
+\begin{table}[ht]
+  \caption{Fairness-Messung für foobar }%
+  \begin{tabular}{llrr}
+    \toprule
+    & & \multicolumn{ 3 }{c}{ foo }& \multicolumn{ 3 }{c}{ bar } \\
+    \cmidrule(lr){ 3-5}\cmidrule(l){ 6-8}
+    Set & Fairness
+    & a  & a   \\
+    \midrule
+      Train\\
+      & notion1
+      % foo
+      & 10.000 % a
+      & - 
+      % bar
+      & 6.000 % a
+      & - 
+      \\
+      & notion2
+      % foo
+      & 8.000 % a
+      & - 
+      % bar
+      & 8.000 % a
+      & - 
+      \\
+      \addlinespace
+      Test\\
+      & notion1
+      % foo
+      & 4.000 % a
+      & - 
+      % bar
+      & 2.000 % a
+      & - 
+      \\
+      & notion2
+      % foo
+      & 7.000 % a
+      & - 
+      % bar
+      & 10.000 % a
+      & - 
+      \\
+      \addlinespace
+    \bottomrule
+  \end{tabular}
+\end{table}

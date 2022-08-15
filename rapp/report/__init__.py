@@ -1,5 +1,5 @@
 from rapp.util import estimator_name
-from rapp.report import resources as rc
+import rapp.resources as rc
 from rapp.report import latex
 from rapp.pipeline import Pipeline
 import joblib
@@ -49,7 +49,7 @@ def save_report(pipeline: Pipeline, path="reports/"):
     # Copy over additionally needed resources for the Latex reports.
     needed_resources = ['hhulogo.pdf', 'hhuarticle.cls']
     for resource in needed_resources:
-        with rc.get_path(resource) as f:
+        with rc.get_path(os.join('reports', 'latex', resource)) as f:
             shutil.copy(f, path)
 
 

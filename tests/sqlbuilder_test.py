@@ -1,7 +1,7 @@
 import pytest
 from pandas import read_sql_query
 
-from rapp.sqlbuilder import load_sql
+from rapp.sqlbuilder import load_sql, list_available_features, list_available_labels
 
 from tests import resources as rc
 from tests import testutil
@@ -95,9 +95,11 @@ def test_cs_ects_features():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=2.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=2.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     sql = load_sql("cs_first_term_ects", "4term_cp")
 
@@ -113,7 +115,7 @@ def test_cs_ects_features():
         "PassedFirstTerm": 2,
         "FailedFirstTerm": 2,
         "PassedExamsRatio": 0.5,
-        "EctsPerExam": 15/4,
+        "EctsPerExam": 15 / 4,
         "FourthTermCP": 0
     }]
 
@@ -131,7 +133,8 @@ def test_cs_ects_features__when_no_passed_exams():
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     # Non-CS student to be ignored.
     s2 = db.add_sw_student(pseudonym=2)
@@ -166,7 +169,8 @@ def test_cs_ects_features__when_no_written_exams():
     s1 = db.add_ifo_student(pseudonym=1)
 
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     # Non-CS student to be ignored.
     s2 = db.add_sw_student(pseudonym=2)
@@ -191,9 +195,11 @@ def test_cs_unspecific_grade_features():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=3.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     # Non-CS student to be ignored.
     s2 = db.add_sw_student(pseudonym=2)
@@ -211,7 +217,7 @@ def test_cs_unspecific_grade_features():
         "KlausurenBestanden": 2,
         "KlausurenNichtBestanden": 2,
         "DurchschnittsnoteBestanden": 2,
-        "DurchschnittsnoteTotal": 14/4,
+        "DurchschnittsnoteTotal": 14 / 4,
         "VarianzNoteBestanden": 1.,
         "VarianzNoteTotal": 2.75,
         "PassedExamsRatio": 0.5,
@@ -234,9 +240,11 @@ def test_combined_ectp_grade_features():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=3.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     # Non-CS student to be ignored.
     s2 = db.add_sw_student(pseudonym=2)
@@ -255,11 +263,11 @@ def test_combined_ectp_grade_features():
         "KlausurenBestanden": 2,
         "KlausurenNichtBestanden": 2,
         "DurchschnittsnoteBestanden": 2,
-        "DurchschnittsnoteTotal": 14/4,
+        "DurchschnittsnoteTotal": 14 / 4,
         "VarianzNoteBestanden": 1.,
         "VarianzNoteTotal": 2.75,
         "PassedExamsRatio": 0.5,
-        "EctpPerExam": 15/4,
+        "EctpPerExam": 15 / 4,
         "FourthTermCP": 0,
     }]
 
@@ -320,9 +328,11 @@ def test_sw_first_term_ects():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=2.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=2.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     sql = load_sql("sw_first_term_ects", "4term_cp")
 
@@ -338,7 +348,7 @@ def test_sw_first_term_ects():
         "PassedFirstTerm": 2,
         "FailedFirstTerm": 2,
         "PassedExamsRatio": 0.5,
-        "EctsPerExam": 15/4,
+        "EctsPerExam": 15 / 4,
         "FourthTermCP": 0
     }]
 
@@ -360,9 +370,11 @@ def test_sw_first_term_grades():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=3.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     sql = load_sql("sw_first_term_grades", "4term_cp")
 
@@ -377,7 +389,7 @@ def test_sw_first_term_grades():
         "KlausurenBestanden": 2,
         "KlausurenNichtBestanden": 2,
         "DurchschnittsnoteBestanden": 2,
-        "DurchschnittsnoteTotal": 14/4,
+        "DurchschnittsnoteTotal": 14 / 4,
         "VarianzNoteBestanden": 1.,
         "VarianzNoteTotal": 2.75,
         "PassedExamsRatio": 0.5,
@@ -402,9 +414,11 @@ def test_sw_first_term_combined_ects_and_grades():
     # "b" passed third try
     db.add_exam(s1, "b", attempt=1, semester=1)
     db.add_exam(s1, "b", attempt=2, semester=1)
-    db.add_exam(s1, "b", attempt=3, semester=1, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "b", attempt=3, semester=1,
+                passed=True, ects=10, grade=3.0)
     # "c" passed in second term
-    db.add_exam(s1, "c", attempt=1, semester=3, passed=True, ects=10, grade=3.0)
+    db.add_exam(s1, "c", attempt=1, semester=3,
+                passed=True, ects=10, grade=3.0)
 
     sql = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
 
@@ -420,13 +434,61 @@ def test_sw_first_term_combined_ects_and_grades():
         "KlausurenBestanden": 2,
         "KlausurenNichtBestanden": 2,
         "DurchschnittsnoteBestanden": 2,
-        "DurchschnittsnoteTotal": 14/4,
+        "DurchschnittsnoteTotal": 14 / 4,
         "VarianzNoteBestanden": 1.,
         "VarianzNoteTotal": 2.75,
         "PassedExamsRatio": 0.5,
-        "EctpPerExam": 15/4,
+        "EctpPerExam": 15 / 4,
         "FourthTermCP": 0,
     }]
+
+    assert expected == actual
+
+
+def test_study_duration_labels_as_classification_problem():
+    """
+    See discussion to commit #925bfe64
+    - https://gitlab.cs.uni-duesseldorf.de/dbs/research/project/rapp/rapp-gui/-/commit/925bfe64dbdea6d3d823bb86746d590d6ee628d1
+    """
+    # Setup database
+    db = testutil.TestDb(empty=True)
+    db.add_modules(("a", 1, 1), ("b", 1, 2) )
+
+    # Students that are identical but have different study duration
+    students = []
+    for i in range(0, 15): # 15 students, pseudonyms 0..14
+        cs_student = db.add_ifo_student(pseudonym=i, bestanden=1)
+        students.append(cs_student)
+
+        # Exam a is passed in first term: everyone has equal first term data
+        db.add_exam(cs_student, 'a', attempt=1, semester=1, passed=True, ects=5, grade=1.0)
+
+        # Exam b is passed in final term, which is different for each student
+        ## semester of last exam is used to determine final study duration
+        ## Skip student #0 which would have exam 'b' in semester 1 as well;
+        ## exam 'a' is sufficient for this test then.
+        if i > 0:
+            db.add_exam(cs_student, 'b', attempt=1, semester=(i+1), passed=True, ects=5, grade=1.0)
+
+    sql = load_sql("cs_first_term_ects", "study_duration")
+
+    df = db.read_sql_query(sql)
+    actual = df.to_dict(orient='records')
+
+    # Study duration class labels to be distributed, in order:
+    labels = [4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10]
+    expected = [{
+        "Geschlecht": "männlich",
+        "Deutsch": 1,
+        "AlterEinschreibung": 21,
+        "EctsFirstTerm": 5,
+        "ExamsFirstTerm": 1,
+        "PassedFirstTerm": 1,
+        "FailedFirstTerm": 0,
+        "PassedExamsRatio": 1.,
+        "EctsPerExam": 5,
+        "StudyDuration": duration
+    } for duration in labels]
 
     assert expected == actual
 
@@ -463,3 +525,35 @@ def test_sw_combined_ectp_and_grade_should_have_same_grades_as_grade_only_featur
     combined = df[["DurchschnittsnoteBestanden", "DurchschnittsnoteTotal"]]
 
     assert grade_only.equals(combined)
+
+
+def test_listing_available_features():
+
+    expected = ['cs_first_term_ects',
+                'cs_first_term_grades',
+                'cs_first_term_grades_and_ectp',
+                'cs_first_term_modules',
+                'sw_first_term_ects',
+                'sw_first_term_grades',
+                'sw_first_term_grades_and_ectp',
+                'sw_second_term_base_modules'
+                ]
+    actual = list_available_features()
+
+    assert expected == actual
+
+
+def test_listing_available_labels():
+
+    expected = ['3_dropout',
+                '4term_ap',
+                '4term_cp',
+                'master_admission',
+                'reg_final_grade',
+                'reg_study_duration',
+                'rsz',
+                'study_duration',
+                ]
+    actual = list_available_labels()
+
+    assert expected == actual

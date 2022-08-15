@@ -17,7 +17,7 @@ log = logging.getLogger('GUI')
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 
-import rapp.report.resources as rc
+import rapp.resources as rc
 from rapp.report.latex.tables import tex_performance_table, tex_fairness
 
 
@@ -140,7 +140,7 @@ def tex_ccp(model_data, feature_names=None, class_names=None):
 
     mustache["pareto_front"] = pareto_mustache
 
-    tex_template = rc.get_text("cost_complexity_pruning.tex")
+    tex_template = rc.get_text("reports/latex/cost_complexity_pruning.tex")
     return chevron.render(tex_template, mustache)
 
 
