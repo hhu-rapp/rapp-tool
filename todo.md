@@ -8,9 +8,9 @@
     - [ ] Vorgefertigte Konfigurationen für Anwender
       - [ ] Nach Studienfächer
       - [ ] Nach Semester
-- [ ] Log Fenster für Fehler/Ergebnisse
-  - [ ] Logging TextBrowser eigenes Objekt und append wird überschrieben
-  - [ ] Prints ins Log Fenster schreiben
+- [x] Log Fenster für Fehler/Ergebnisse
+  - [x] Logging TextBrowser eigenes Objekt und append wird überschrieben
+  - [x] Prints ins Log Fenster schreiben
     - [x] ~~*SQL Exceptions*~~
     - [x] ~~*Datenbank laden [Jose]*~~
     - [x] ~~*SQL Anfragen laden [Jose]*~~
@@ -24,12 +24,12 @@
 - [ ] Title Bar als Menubar verwenden (Menüleiste an der Fensterleiste setzen) [Jose, geringe prio]
 - Backend
   - [ ] Pipeline
-        - [ ] Training implementieren/fixen [Jose, hoehere Prio]
+        - [x] Training implementieren/fixen [Jose, hoehere Prio]
         - [x] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
-        - [ ] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
-        - [ ] Catch Exception bei falschen Eingabewerten für die Pipeline []
+        - [x] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
+        - [x] Catch Exception bei falschen Eingabewerten für die Pipeline
         - [x] Tickbox bei kategorischen Variablen bzw. komplett automatisieren [Jose]
-        - [ ] Kategorischen Variablen lineEdit verbessern [Jose]
+        - [x] Kategorischen Variablen lineEdit verbessern [Jose]
           - [x] Dropdown Menü bei Target Variable
         - [ ] Einbinden von Reports an die GUI
   - [ ] Explainable AI Tab einsetzen (Jannik + Manh Khoi Austausch)
@@ -41,8 +41,8 @@
       - [ ] White-Box Modelle werden durch ihr eigenes Modell erklärt
       - [ ] Diskussion: Darstellung der Erklärungen in der GUI
   - [ ] Fairness-Aware Machine Learning
-    - [ ] Einbinden von Metriken an die Pipeline
-    - [ ] FAML soll mit Ergebnissen/Modellen der Pipeline weiterarbeiten
+    - [x] Einbinden von Metriken an die Pipeline
+    - [x] FAML soll mit Ergebnissen/Modellen der Pipeline weiterarbeiten
   - [x] ~~*GUI Code umorganisieren (eventuell neu implementieren)*~~
     - [x] ~~*Horizontal Layout Oberfläche: Menubar, Inhalt, Statusleiste*~~
     - [x] ~~*Inhalt (Vertikal Layout): Datenbank, Konfigurierbarer Inhalt*~~
@@ -50,7 +50,7 @@
     - [x] ~~*Neue Tab = Neue Python Datei*~~
     - [ ] Diskussion: Globale Variablen im gui.init? Übergabe von QMainWindow als self an andere QWidgets?
 - [ ] SQL Syntax Highlighting
-- [ ] Edit Menü (Copy & Paste) Implementierung
+- [x] Edit Menü (Copy & Paste) Implementierung
 
 ## Predictions
 

@@ -73,7 +73,7 @@ class Pipeline:
         Optionally, the favourable label can be set via fav_label, assuming
         the default 1.
 
-    protected_attributes : list[str]
+    sensitive_attributes : list[str]
         List of protected attribute names. May be empty.
 
     performance_results : dict[estimator -> results]
@@ -251,12 +251,7 @@ def _load_test_split_from_dataframe(df, config, random_state=42):
     z = X[config.sensitive_attributes]
 
     # Adapt to categorical data.
-    cat_columns = [c for c in config.categorical if c != label_col]
-    if len(cat_columns) != 0:
-        categorical = pd.get_dummies(data=X[cat_columns], columns=cat_columns)
-        X = pd.concat([X, categorical], axis=1)
-        # Remove old categorical attributes from input features
-        X = X.drop(cat_columns, axis=1)
+    X = preprocess_data(X, config.categorical, label_col)
 
     # split datasets
     # TODO: What about the random seed? Keep fixed or make RNG part of config?
@@ -268,6 +263,36 @@ def _load_test_split_from_dataframe(df, config, random_state=42):
             "test": {"X": X_test, "y": y_test, "z": z_test}}
 
     return data
+
+
+def preprocess_data(X, categorical, label=None):
+    """
+        Preprocesses X data.
+
+        Parameters
+        ----------
+        X : Dataframe
+
+        categorical : list
+            List of categorical columns in X.
+
+        label : str, default = None
+            Target variable to be predicted on in X.
+
+        Returns
+        -------
+        X : Dataframe
+            Preprocessed X data.
+        """
+    # Adapt to categorical data.
+    cat_columns = [c for c in categorical if c != label]
+    if len(cat_columns) != 0:
+        categorical = pd.get_dummies(data=X[cat_columns], columns=cat_columns)
+        X = pd.concat([X, categorical], axis=1)
+        # Remove old categorical attributes from input features
+        X = X.drop(cat_columns, axis=1)
+
+    return X
 
 
 def train_models(pipeline, cross_validation=False):

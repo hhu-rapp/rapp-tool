@@ -672,6 +672,10 @@ reports/
 !tests/reports/
 !tests/resources/reports/
 
+## ml models
+*.joblib
+
 ## Other logs
 *.log
-*.joblib
+notebooks/survey/ErstsemesterEinw_ECTSGrades_Informatik.csv
+notebooks/survey/ErstsemesterEinw_ECTSGrades_Sowi.csv

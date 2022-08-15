@@ -24,7 +24,7 @@ class GuiTestApi():
 
         # Setup links to all the window elements for shorter names/convenience.
         self.statusbar = widget.statusbar
-        # self.tabs = widget.tabs
+        self.tabs = widget.tabs
 
         # SQL Field
         self.sql_features_select_box = widget.databaseLayoutWidget.sql_tabs.featuresSelect
@@ -40,20 +40,37 @@ class GuiTestApi():
         self.sql_redo_btn = widget.databaseLayoutWidget.sql_tabs.qPushButtonRedoSql
 
         # Pipeline settings
-        self.target_var_box = widget.tabs.MLTab.cbName
-        self.categorical_var_field = widget.tabs.MLTab.leCVariables
-        self.sensitive_attr_box = widget.tabs.MLTab.cbSAttributes
-        self.ml_type_box = widget.tabs.MLTab.cbType
-        self.report_path_field = widget.tabs.MLTab.lePath
-        self.report_path_btn = widget.tabs.MLTab.reportPathButton
-        self.imputation_box = widget.tabs.MLTab.cbImputation
-        self.feature_selection_box = widget.tabs.MLTab.cbFSM
-        self.estimator_select_box = widget.tabs.MLTab.cbEstimator
-        self.train_btn = widget.tabs.MLTab.trainButton
+        self.target_var_box = widget.settings.simple_tab.cbName
+        self.categorical_var_field = widget.settings.simple_tab.leCVariables
+        self.sensitive_attr_box = widget.settings.simple_tab.cbSAttributes
+        self.ml_type_box = widget.settings.simple_tab.cbType
+        self.report_path_field = widget.settings.simple_tab.lePath
+        self.report_path_btn = widget.settings.simple_tab.reportPathButton
+        self.imputation_box = widget.settings.simple_tab.cbImputation
+        self.feature_selection_box = widget.settings.simple_tab.cbFSM
+        self.estimator_select_box = widget.settings.simple_tab.cbEstimator
+        self.train_btn = widget.settings.simple_tab.trainButton
 
         # Menubar
         self.menubar = widget.menubar
         self.load_cf = lambda file: widget.menubar.loadConfigurationFile(file)
+
+        # Fairness Tab
+        self.fairness_tabs = widget.evaluation.tabs
+        self.populate_fairness_tabs = lambda pl, data_settings: self._populate_fairness_tabs(widget, pl, data_settings)
+        # Dataset Tab
+        self.dataset_tables = None
+        # Model Summary Tab
+        self.summary_performance_metrics_selection_box = None
+        self.summary_fairness_metrics_selection_box = None
+        self.summary_modes_selection_box = None
+        self.summary_sensitive_selection_box = None
+        self.summary_table = None
+        # Model Inspection Tab
+        self.model_inspection_selection_box = None
+        self.inspection_metrics_selection_box = None
+        self.individual_fairness_tables = None
+        self.inspection_performance_table = None
 
     def get_df(self):
         return self.widget.databaseLayoutWidget.sql_df
@@ -134,3 +151,29 @@ class GuiTestApi():
 
     def show(self):
         self.widget.show()
+
+    def _populate_fairness_tabs(self, widget, pipeline, data_settings):
+        widget.evaluation.populate_tabs(pipeline, data_settings)
+
+        # Dataset Tab
+        self.dataset_tables = widget.evaluation.sensitiveDatasetTable
+        # Model Summary Tab
+        self.summary_performance_metrics_selection_box = widget.evaluation.cbPerformance
+        self.summary_fairness_metrics_selection_box = widget.evaluation.cbFairness
+        self.summary_modes_selection_box = widget.evaluation.cbSummaryModes
+        self.summary_sensitive_selection_box = widget.evaluation.cbSensitiveAttributes
+        self.summary_table = widget.evaluation.summary_groupBox
+        # Model Inspection Tab
+        self.model_inspection_selection_box = widget.evaluation.inspection_cbModels
+        self.inspection_metrics_selection_box = widget.evaluation.inspection_cbMetrics
+        self.inspection_performance_table = widget.evaluation.inspectionPerformanceTable
+        self.cm_table = widget.evaluation.inspectionPerformanceTable.cm_groupBox
+        self.metrics_table = widget.evaluation.inspectionPerformanceTable.metrics_groupBox
+
+        self.get_inspection_fairness_tables = lambda: widget.evaluation.sensitiveInspectionTables
+        self.get_ct_table = lambda s: widget.evaluation.sensitiveInspectionTables[s].ct_groupBox
+        self.get_notions_table = lambda s: widget.evaluation.sensitiveInspectionTables[s].metrics_groupBox
+        # Pareto Front Tab
+        self.pareto_notions_selection_box = widget.evaluation.pareto_cbNotions
+        self.pareto_metrics_selection_box = widget.evaluation.pareto_cbMetrics
+        self.pareto_collapsibles = widget.evaluation.sensitiveParetoTables

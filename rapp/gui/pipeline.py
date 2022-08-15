@@ -153,6 +153,9 @@ class Pipeline(QtWidgets.QWidget):
             self.cbSAttributes.addItem(feature)
             self.cbSAttributes.setItemChecked(index, checked=False)
 
+            if feature == "Deutsch" or feature == "Geschlecht":
+                self.cbSAttributes.setItemChecked(index, checked=True)
+
     def update_estimators(self):
         classifiers = models.models['classification'].keys()
         regressors = models.models['regression'].keys()
@@ -201,6 +204,9 @@ class Pipeline(QtWidgets.QWidget):
 
         cf = self.parse_settings()
 
+        if cf is None:
+            return
+
         report_path = self.lePath.text()
 
         try:
@@ -225,20 +231,42 @@ class Pipeline(QtWidgets.QWidget):
         except Exception as e:
             log.error(traceback.format_exc())
             traceback.print_exc()
+            return
+
+        if pl.fairness_results[next(iter(pl.fairness_results))]:
+            data_settings = {"studies_id": cf.studies_id,
+                             "features_id": cf.features_id,
+                             "labels_id": cf.labels_id}
+
+            # Enable Evaluation tab
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, True)
+            self.qmainwindow.tabs.widget(self.qmainwindow.evaluation_tab_index).populate_tabs(pl,
+                                                                                              data_settings)
+            self.qmainwindow.settings.refresh_data(pl, data_settings)
+        else:
+            self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, False)
+            log.warning("No sensitive attributes selected, fairness overview was skipped.")
+
+        # Enable Fairness and XAI Tabs
+        # self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
 
     def parse_settings(self):
         cf = argparse.Namespace()
 
         if self.qmainwindow.sql_df is None:
             log.error('No SQL query selected')
-            return
+            return None
 
         if len(self.cbEstimator.get_checked_items()) == 0:
             log.error('No Estimator selected')
-            return
+            return None
 
         cf.filename = None
-        cf.sql_df = self.qmainwindow.sql_df
+        studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
+        cf.studies_id = studies_feat_id[0]
+        cf.features_id = studies_feat_id[1]
+        cf.labels_id = self.qmainwindow.databaseLayoutWidget.labels_id
+        cf.sql_df = self.qmainwindow.databaseLayoutWidget.sql_df
         cf.label_name = self.cbName.currentText()
         cf.categorical = self.leCVariables.text().replace(' ', '').split(',')
         cf.type = self.cbType.currentText().lower()

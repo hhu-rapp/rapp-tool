@@ -8,14 +8,19 @@ from qt_material import apply_stylesheet
 from rapp.gui.dbview import DataView
 
 # import rapp gui widgets
+from rapp.gui.prediction import PredictionWidget
+from rapp.gui.evaluation import EvaluationWidget
+from rapp.gui.XAI import XAIWidget
 from rapp.gui.helper import Color
 from rapp.gui.helper import LoggingTextBrowser, LoggingHandler
 from rapp.gui.menubar import MenuBar
 from rapp.gui.dbview import DatabaseLayoutWidget
-from rapp.gui.tabs import Tabs
+from rapp.gui.settings import SimpleSettings
 
 import logging
+
 log = logging.getLogger("GUI")
+log_pred = logging.getLogger("prediction")
 log_pipeline = logging.getLogger("rapp.pipeline")
 
 sql_temp_path = "sql_temp.sql"
@@ -27,16 +32,21 @@ class Window(QMainWindow):
         super().__init__()
 
         # variables before initializing gui
-        self.__conn = None # Database connection.
+        self.__conn = None  # Database connection.
         self.filepath_db = db_filepath
         self.sql_df = None
 
         # initialize logging handler
         self.loggingTextBrowser = LoggingTextBrowser()
         handler = LoggingHandler(self.loggingTextBrowser)
-        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s',datefmt='%Y-%m-%d %H:%M:%S'))
+        handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         log.addHandler(handler)
         log_pipeline.addHandler(handler)
+
+        self.loggingTextBrowserPred = LoggingTextBrowser()
+        handler_pred = LoggingHandler(self.loggingTextBrowserPred)
+        handler_pred.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        log_pred.addHandler(handler_pred)
 
         # apply_stylesheet(self, theme='dark_blue.xml')
         self.initUI()
@@ -52,26 +62,91 @@ class Window(QMainWindow):
 
     def initUI(self):
         # set the title
-        self.setWindowTitle('Responsible Performance Prediction [Demoversion]')
+        self.setWindowTitle('Responsible Academic Performance Prediction')
 
         # setting the geometry of window
-        self.width = 1280
-        self.height = 800
+        self.width = 1180
+        self.height = 700
         self.setGeometry(100, 60, self.width, self.height)
 
     def initLayout(self):
-        skeletonWidget = QtWidgets.QWidget()
-        skeletonLayout = QtWidgets.QHBoxLayout()
-        skeletonWidget.setLayout(skeletonLayout)
-        self.setCentralWidget(skeletonWidget)
+        self.tabs = QtWidgets.QTabWidget()
+
+        self.__init_pipeline_settings_tab()
+        self.__init_prediction_tab()
+        self.__init_evaluation_tab()
+        self.__init_XAI_tab()
+
+        layout = QtWidgets.QHBoxLayout()
+        layout.setContentsMargins(0, 10, 0, 0)
+        self.setLayout(layout)
+        self.setCentralWidget(self.tabs)
+
+    def __init_pipeline_settings_tab(self):
+        self.pipeline_settings = QtWidgets.QWidget()
+        self.pipeline_settings.setLayout(QtWidgets.QHBoxLayout())
 
         # create widgets
         splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.databaseLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
-        self.tabs = Tabs(self)
+        self.settings = SimpleSettings(self)
 
         # add widgets
         splitter.addWidget(self.databaseLayoutWidget)
-        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.settings)
         splitter.setSizes([800, 480])
-        skeletonLayout.addWidget(splitter)
+        self.pipeline_settings.layout().addWidget(splitter)
+
+        self.tabs.addTab(self.pipeline_settings, 'Pipeline Settings')
+
+    def __init_evaluation_tab(self):
+        self.evaluation = QtWidgets.QWidget()
+        self.evaluation.setLayout(QtWidgets.QHBoxLayout())
+
+        # create widgets
+        self.evaluation = EvaluationWidget(self)
+
+        # add widgets
+        tab_idx = self.tabs.addTab(self.evaluation, 'Evaluation')
+        self.evaluation_tab_index = tab_idx
+        self.tabs.setTabEnabled(tab_idx, False)
+
+    def __init_XAI_tab(self):
+        self.XAI = QtWidgets.QWidget()
+        self.XAI.setLayout(QtWidgets.QHBoxLayout())
+
+        # create widgets
+        self.XAI = XAIWidget(self)
+
+        # add widgets
+        tab_idx = self.tabs.addTab(self.XAI, 'Interpretability')
+        self.xai_tab_index = tab_idx
+        self.tabs.setTabEnabled(tab_idx, False)
+
+    def __init_prediction_tab(self):
+        self.predictionWidget = QtWidgets.QWidget()
+        self.predictionWidget.setLayout(QtWidgets.QHBoxLayout())
+        self.vLayoutWidget = QtWidgets.QWidget()
+
+        vLayout = QtWidgets.QVBoxLayout()
+        vLayout.setContentsMargins(0, 0, 0, 0)
+
+        # create widgets
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self.databasePredictionLayoutWidget = DatabaseLayoutWidget(self, self.filepath_db)
+        self.prediction = PredictionWidget(self)
+
+        # add widgets
+        splitter.addWidget(self.databasePredictionLayoutWidget)
+        splitter.addWidget(self.vLayoutWidget)
+        splitter.setSizes([480, 800])
+        self.predictionWidget.layout().addWidget(splitter)
+
+        vLayout.addWidget(self.prediction, 3)
+        vLayout.addWidget(self.loggingTextBrowserPred, 1)
+
+        self.vLayoutWidget.setLayout(vLayout)
+
+        # add widgets
+        tab_idx = self.tabs.addTab(self.predictionWidget, 'Prediction')
+        self.prediction_tab_index = tab_idx
