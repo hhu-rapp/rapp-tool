@@ -95,7 +95,7 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.current_view.clear_widget()
         self._clear_button_header()
 
-        self.sample_view = SampleView(self.pipeline, df)
+        self.sample_view = SampleView(self.pipeline, df, self.current_view.get_mode_idx())
 
         self.current_view = self.sample_view
 
