@@ -271,3 +271,20 @@ class ModelViewREG(ModelViewCLF):
 
         return model._df.iloc[[selected_row]]
 
+
+class SampleView(QtWidgets.QWidget):
+    def __init__(self, pipeline, data_sample):
+        """
+        Generates a widget that displays all trained models with their corresponding predictive performances.
+
+        Parameters
+        ----------
+        pipeline: rapp.pipeline object
+
+        data: dataframe
+            Data sample to be analyzed
+        """
+        super(SampleView, self).__init__()
+
+        self.pipeline = pipeline
+        self.data_sample = data_sample

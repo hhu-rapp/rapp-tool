@@ -97,11 +97,13 @@ class InterpretabilityWidget(QtWidgets.QWidget):
 
         self.sample_view = SampleView(self.pipeline, df)
 
+        self.current_view = self.sample_view
 
         # add to layout
         self.button_header_layout.addWidget(self.model_list_button)
         self.button_header_layout.addWidget(self.model_insight_button)
         self.main_layout.addLayout(self.button_header_layout)
+        self.main_layout.addWidget(self.current_view)
 
     def _clear_button_header(self):
         self.model_list_button.setParent(None)
