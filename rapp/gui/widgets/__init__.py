@@ -1,11 +1,12 @@
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
 from matplotlib import cm
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
+from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import ClickableLabel, CollapsibleBox
 from rapp.util import estimator_name, pareto_front
 
@@ -751,3 +752,27 @@ class ParetoPlot(QtWidgets.QGroupBox):
 
     def close_fig(self):
         self.fig.close()
+
+
+class PandasModelColor(PandasModel):
+    """
+    TableModel to populate a PyQtTable with a Pandas DataFrame.
+    Allows to change the color of the cells.
+    """
+    def __init__(self, df, parent=None):
+        super(PandasModelColor, self).__init__(df=df, parent=parent)
+
+        self.colors = {}
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == Qt.BackgroundRole:
+            color = self.colors.get((index.row(), index.column()))
+            if color is not None:
+                return color
+        else:
+            return super(PandasModelColor, self).data(index, role)
+
+    def change_color(self, row, column, color):
+        ix = self.index(row, column)
+        self.colors[(row, column)] = color
+        self.dataChanged.emit(ix, ix, (Qt.BackgroundRole,))

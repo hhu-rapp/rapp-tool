@@ -1,13 +1,12 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, Qt, QtGui, QtCore
 from PyQt5.QtWidgets import QGroupBox
 
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
-from rapp.gui.widgets import SummaryTable
+from rapp.gui.widgets import SummaryTable, PandasModelColor
 
 
 class InitialView(QtWidgets.QWidget):
-
     def __init__(self, pipeline, model_callback):
         super(InitialView, self).__init__()
 
@@ -145,16 +144,52 @@ class ModelViewCLF(QtWidgets.QWidget):
             self.tabs_list[label] = QtWidgets.QTableView(self)
             self.tabs_list[label].setSortingEnabled(True)
             self.tabs_list[label].resizeColumnsToContents()
+            model = PandasModelColor(self.df[label])
 
-            model = PandasModel(self.df[label])
             self.tabs_list[label].setModel(model)
 
             self.tabs.addTab(self.tabs_list[label], f'{target}={str(label)}')
+            def highlight_misclassifications():
+                self._highlight_misclassifications(self.tabs.currentIndex())
+
+            self._highlight_misclassifications(self.tabs.indexOf(self.table_views[label]))
+            model.layoutChanged.connect(highlight_misclassifications)
 
         # add to layout
         self.main_layout.addWidget(self.tabs)
         self.filters.layout().addRow('Mode:', self.cbModes)
         self.main_layout.addWidget(self.filters)
+
+    def _highlight_misclassifications(self, tab_idx):
+        # get abstractTableModel of tab
+        tabs = list(self.table_views.keys())
+        label = tabs[tab_idx]
+        model = self.table_views[label].model()
+
+        self._reset_colors(model)
+        row_count = model.rowCount()
+        # FIXME: Hardcoded indices for the columns
+        ground_truth_col = model.columnCount() - 1
+        pred_col = model.columnCount() - 3
+
+        # highlight misclassification in different color
+        for rowNumber in range(row_count):
+            ground_truth_index = model.index(rowNumber, ground_truth_col)
+            ground_truth_data = model.data(ground_truth_index, QtCore.Qt.DisplayRole)
+
+            pred_col_index = model.index(rowNumber, pred_col)
+            pred_col_data = model.data(pred_col_index, QtCore.Qt.DisplayRole)
+
+            if int(ground_truth_data.value()) != int(pred_col_data.value()):
+                for cellColumn in range(model.columnCount()):
+                    model.change_color(rowNumber, cellColumn, QtGui.QBrush(QtGui.QColor(255, 0, 0, 100)))
+
+    def _reset_colors(self, model):
+        # set background color of all rows to white
+        row_count = model.rowCount()
+        for rowNumber in range(row_count):
+            for cellColumn in range(model.columnCount()):
+                model.change_color(rowNumber, cellColumn, QtGui.QBrush(QtGui.QColor(255, 255, 255)))
 
     def _clear_tabs(self):
         for _, widget in self.tabs_list.items():
