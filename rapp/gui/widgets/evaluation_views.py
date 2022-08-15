@@ -8,6 +8,16 @@ from rapp.gui.widgets import SummaryTable, PandasModelColor
 
 class InitialView(QtWidgets.QWidget):
     def __init__(self, pipeline, model_callback):
+        """
+        Generates a widget to display the performance of the models in a table.
+
+        Parameters
+        ----------
+        pipeline: rapp.pipeline object
+
+        model_callback: function
+            A reference to a function that is to be called when clicking the models on the table.
+        """
         super(InitialView, self).__init__()
 
         self.pipeline = pipeline
@@ -63,7 +73,7 @@ class InitialView(QtWidgets.QWidget):
 
         # create groupBox
         self.summary_table = SummaryTable(mode, models, metrics, pl_type, metrics,
-                                             performance_results)
+                                          performance_results)
         self.summary_table.set_model_click_function(self.model_callback_function)
 
         # add to layout
@@ -86,8 +96,19 @@ class InitialView(QtWidgets.QWidget):
 
 
 class ModelViewCLF(QtWidgets.QWidget):
+    def __init__(self, pipeline, estimator, row_callback, mode_idx=None):
+        """
+        Generates a widget that displays all trained models with their corresponding predictive performances.
 
-    def __init__(self, pipeline, model, row_callback, mode_idx=None):
+        Parameters
+        ----------
+        pipeline: rapp.pipeline object
+
+        estimator: Trained classifier with predict_proba method
+
+        row_callback: function
+            A reference to a function that is to be called when clicking the rows of the table.
+        """
         super(ModelViewCLF, self).__init__()
 
         self.pipeline = pipeline
@@ -103,6 +124,8 @@ class ModelViewCLF(QtWidgets.QWidget):
         self.cbModes = QtWidgets.QComboBox()
 
         self.tabs = QtWidgets.QTabWidget()
+        self.table_views = {}
+        self.df = {}
 
         # load comoBox
         modes = list(self.pipeline.data.keys())
@@ -112,13 +135,11 @@ class ModelViewCLF(QtWidgets.QWidget):
             self.cbModes.setCurrentIndex(mode_idx)
 
         def populate_predictions_tabs():
-            self._populate_predictions_tabs(self.pipeline.data, model)
+            self._populate_predictions_tabs(self.pipeline.data, estimator)
 
         self.cbModes.currentIndexChanged.connect(populate_predictions_tabs)
 
-        self.tabs_list = {}
-        self.df = {}
-        self._populate_predictions_tabs(self.pipeline.data, model)
+        self._populate_predictions_tabs(self.pipeline.data, estimator)
 
     def _populate_predictions_tabs(self, data_dict, model):
         self._clear_tabs()
@@ -126,18 +147,19 @@ class ModelViewCLF(QtWidgets.QWidget):
         # get values from filters
         mode = self.cbModes.currentText().lower()
 
+        # get dataframes from data
         data = data_dict[mode]
-
         target = data['y'].columns[0]
-
         pred_df = data['X'].copy()
 
+        # predict and add to dataframe
         pred = model.predict_proba(pred_df)
 
         pred_df['Pred'] = pred.argmax(axis=1)
         pred_df['Proba'] = pred.max(axis=1).round(2)
         pred_df['Ground Truth'] = data['y']
 
+        # create and populate a tableView for each label in a new tab
         for label in sorted(data['y'][target].unique()):
             self.df[label] = pred_df.loc[pred_df['Pred'] == label]
 
@@ -219,9 +241,20 @@ class ModelViewCLF(QtWidgets.QWidget):
 
 
 class ModelViewREG(ModelViewCLF):
+    def __init__(self, pipeline, estimator, row_callback, mode_idx=None):
+        """
+        Generates a widget that displays the prediction information of the selected model.
 
-    def __init__(self, pipeline, model, row_callback, mode_idx=None):
-        super(ModelViewREG, self).__init__(pipeline, model, row_callback, mode_idx=None)
+        Parameters
+        ----------
+        pipeline: rapp.pipeline object
+
+        estimator: Trained regressor with predict method
+
+        row_callback: function
+            A reference to a function that is to be called when clicking the rows of the table.
+        """
+        super(ModelViewREG, self).__init__(pipeline, estimator, row_callback, mode_idx=mode_idx)
 
     def _populate_predictions_tabs(self, data_dict, model):
         self._clear_tabs()
@@ -229,17 +262,18 @@ class ModelViewREG(ModelViewCLF):
         # get values from filters
         mode = self.cbModes.currentText().lower()
 
+        # get dataframes from data
         data = data_dict[mode]
-
         target = data['y'].columns[0]
-
         pred_df = data['X'].copy()
 
+        # predict and add to dataframe
         pred_df['Pred'] = model.predict(pred_df).round(2)
         pred_df['Ground Truth'] = data['y'].round(2)
 
         self.df = pred_df
 
+        # create and populate a tableView with dataframe
         self.table_view = QtWidgets.QTableView(self)
         self.table_view.setSortingEnabled(True)
         self.table_view.resizeColumnsToContents()
@@ -255,11 +289,8 @@ class ModelViewREG(ModelViewCLF):
         self.main_layout.addWidget(self.filters)
 
     def _clear_tabs(self):
-        try:
+        if hasattr(self, 'table_view'):
             self.table_view.setParent(None)
-        except AttributeError:
-            return
-
         self.filters.layout().removeItem(self.filters.layout().itemAt(0))
         self.filters.setParent(None)
 
