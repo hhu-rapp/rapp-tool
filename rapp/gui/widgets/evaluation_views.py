@@ -141,14 +141,17 @@ class ModelViewCLF(QtWidgets.QWidget):
         for label in sorted(data['y'][target].unique()):
             self.df[label] = pred_df.loc[pred_df['Pred'] == label]
 
-            self.tabs_list[label] = QtWidgets.QTableView(self)
-            self.tabs_list[label].setSortingEnabled(True)
-            self.tabs_list[label].resizeColumnsToContents()
+            self.table_views[label] = QtWidgets.QTableView(self)
+            self.table_views[label].setSortingEnabled(True)
+            self.table_views[label].resizeColumnsToContents()
+            self.table_views[label].setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+            self.table_views[label].clicked.connect(self.row_callback_function)
+
             model = PandasModelColor(self.df[label])
+            self.table_views[label].setModel(model)
 
-            self.tabs_list[label].setModel(model)
+            self.tabs.addTab(self.table_views[label], f'{target}={str(label)}')
 
-            self.tabs.addTab(self.tabs_list[label], f'{target}={str(label)}')
             def highlight_misclassifications():
                 self._highlight_misclassifications(self.tabs.currentIndex())
 
@@ -192,16 +195,27 @@ class ModelViewCLF(QtWidgets.QWidget):
                 model.change_color(rowNumber, cellColumn, QtGui.QBrush(QtGui.QColor(255, 255, 255)))
 
     def _clear_tabs(self):
-        for _, widget in self.tabs_list.items():
+        for _, widget in self.table_views.items():
             widget.setParent(None)
         self.filters.layout().removeItem(self.filters.layout().itemAt(0))
         self.filters.setParent(None)
 
     def clear_widget(self):
-        try:
-            self.setParent(None)
-        except AttributeError:
-            return
+        self.setParent(None)
+
+    def get_selected_df(self):
+        # get dataframe from selected row
+        tabs = list(self.table_views.keys())
+        label = tabs[self.tabs.currentIndex()]
+        model = self.table_views[label].model()
+        selected_rows = self.table_views[label].selectionModel().selectedRows()
+
+        selected_row = selected_rows[0].row()
+
+        return model._df.iloc[[selected_row]]
+
+    def get_mode_idx(self):
+        return self.cbModes.currentIndex()
 
 
 class ModelViewREG(ModelViewCLF):
@@ -222,13 +236,15 @@ class ModelViewREG(ModelViewCLF):
         pred_df = data['X'].copy()
 
         pred_df['Pred'] = model.predict(pred_df).round(2)
-        pred_df['Ground Truth'] = data['y']
+        pred_df['Ground Truth'] = data['y'].round(2)
 
         self.df = pred_df
 
         self.table_view = QtWidgets.QTableView(self)
         self.table_view.setSortingEnabled(True)
         self.table_view.resizeColumnsToContents()
+        self.table_view.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.table_view.clicked.connect(self.row_callback_function)
 
         model = PandasModel(self.df)
         self.table_view.setModel(model)
@@ -246,3 +262,12 @@ class ModelViewREG(ModelViewCLF):
 
         self.filters.layout().removeItem(self.filters.layout().itemAt(0))
         self.filters.setParent(None)
+
+    def get_selected_df(self):
+        # get dataframe from selected row
+        model = self.table_view.model()
+        selected_rows = self.table_view.selectionModel().selectedRows()
+        selected_row = selected_rows[0].row()
+
+        return model._df.iloc[[selected_row]]
+
