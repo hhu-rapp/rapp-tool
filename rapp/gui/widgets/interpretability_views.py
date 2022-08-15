@@ -306,13 +306,13 @@ class ModelViewREG(ModelViewCLF):
 class SampleView(QtWidgets.QWidget):
     def __init__(self, pipeline, data_sample):
         """
-        Generates a widget that displays all trained models with their corresponding predictive performances.
+        Generates a widget that allows closer inspection of predictions for a single element.
 
         Parameters
         ----------
         pipeline: rapp.pipeline object
 
-        data: dataframe
+        data_sample: dataframe
             Data sample to be analyzed
         """
         super(SampleView, self).__init__()
