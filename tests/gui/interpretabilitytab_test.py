@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from sklearn.dummy import DummyClassifier
 from rapp.util import estimator_name
-from rapp.gui.widgets.evaluation_views import InitialView, ModelViewCLF
+from rapp.gui.widgets.evaluation_views import InitialView, ModelViewCLF, SampleView
 
 from tests.gui.fixture import gui, GuiTestApi
 
@@ -177,6 +177,49 @@ def test_dataframe_in_model_view_clf(interpretability_clf: GuiTestApi):
     expected = df
 
     pd.testing.assert_frame_equal(actual, expected)
+
+def test_click_back_button_in_sample_view__model_list(interpretability_clf: GuiTestApi):
+    interpretability_clf.tabs.setCurrentIndex(interpretability_clf.widget.interpretability_tab_index)
+    labels = interpretability_clf.current_view().summary_table.labels
+
+    est2 = DummyClassifier()
+
+    key = list(labels.keys())[0]  # Key where models are saved
+    model_idx = 1  # Only test second model.
+    interpretability_clf.click(labels[key][model_idx])
+
+    tableView = interpretability_clf.current_view().table_views[2]
+    interpretability_clf.click(tableView) # Only test first row.
+
+    back_button = interpretability_clf.header_layout.itemAt(0).widget()  # Back to model list
+    interpretability_clf.click(back_button)
+
+    actual = type(interpretability_clf.current_view())
+    expected = InitialView
+    assert actual == expected, \
+        f"The current view widget type should be {expected}, but is {actual}"
+
+
+def test_click_back_button_in_sample_view__model_insights(interpretability_clf: GuiTestApi):
+    interpretability_clf.tabs.setCurrentIndex(interpretability_clf.widget.interpretability_tab_index)
+    labels = interpretability_clf.current_view().summary_table.labels
+
+    est2 = DummyClassifier()
+
+    key = list(labels.keys())[0]  # Key where models are saved
+    model_idx = 1  # Only test second model.
+    interpretability_clf.click(labels[key][model_idx])
+
+    tableView = interpretability_clf.current_view().table_views[2]
+    interpretability_clf.click(tableView)  # Only test first row.
+
+    back_button = interpretability_clf.header_layout.itemAt(1).widget()  # Back to model Insights
+    interpretability_clf.click(back_button)
+
+    actual = type(interpretability_clf.current_view())
+    expected = ModelViewCLF
+    assert actual == expected, \
+        f"The current view widget type should be {expected}, but is {actual}"
 
 
 @pytest.fixture
