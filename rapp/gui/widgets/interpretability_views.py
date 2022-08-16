@@ -9,7 +9,7 @@ from rapp.gui.widgets import SummaryTable, PandasModelColor
 class InitialView(QtWidgets.QWidget):
     def __init__(self, pipeline, model_callback):
         """
-        Generates a widget to display the performance of the models in a table.
+        Generates a widget to display all trained models with their corresponding predictive performances.
 
         Parameters
         ----------
@@ -94,9 +94,12 @@ class InitialView(QtWidgets.QWidget):
     def get_mode_idx(self):
         return self.cbModes.currentIndex()
 
+    def set_mode_idx(self, mode_idx):
+        self.cbModes.setCurrentIndex(mode_idx)
+
 
 class ModelViewCLF(QtWidgets.QWidget):
-    def __init__(self, pipeline, estimator, row_callback, mode_idx=0):
+    def __init__(self, pipeline, estimator, row_callback):
         """
         Generates a widget that displays all trained models with their corresponding predictive performances.
 
@@ -108,9 +111,6 @@ class ModelViewCLF(QtWidgets.QWidget):
 
         row_callback: function
             A reference to a function that is to be called when clicking the rows of the table.
-
-        mode_idx: int, default=0
-            Index from the mode of last view, for reference.
         """
         super(ModelViewCLF, self).__init__()
 
@@ -135,8 +135,6 @@ class ModelViewCLF(QtWidgets.QWidget):
         modes = list(self.pipeline.data.keys())
         for mode in modes:
             self.cbModes.addItem(str(mode).capitalize())
-        if mode_idx is not None:
-            self.cbModes.setCurrentIndex(mode_idx)
 
         def populate_predictions_tabs():
             self._populate_predictions_tabs(self.pipeline.data, self.estimator)
@@ -246,9 +244,18 @@ class ModelViewCLF(QtWidgets.QWidget):
     def get_mode_idx(self):
         return self.cbModes.currentIndex()
 
+    def set_mode_idx(self, mode_idx):
+        self.cbModes.setCurrentIndex(mode_idx)
+
+    def get_tab_idx(self):
+        return self.tabs.currentIndex()
+
+    def set_tab_idx(self, mode_idx):
+        self.tabs.setCurrentIndex(mode_idx)
+
 
 class ModelViewREG(ModelViewCLF):
-    def __init__(self, pipeline, estimator, row_callback, mode_idx=0):
+    def __init__(self, pipeline, estimator, row_callback):
         """
         Generates a widget that displays the prediction information of the selected model.
 
@@ -260,11 +267,8 @@ class ModelViewREG(ModelViewCLF):
 
         row_callback: function
             A reference to a function that is to be called when clicking the rows of the table.
-
-        mode_idx: int, default=0
-            Index from the mode of last view, for reference.
         """
-        super(ModelViewREG, self).__init__(pipeline, estimator, row_callback, mode_idx=mode_idx)
+        super(ModelViewREG, self).__init__(pipeline, estimator, row_callback)
 
     def _populate_predictions_tabs(self, data_dict, model):
         self._clear_tabs()
@@ -327,9 +331,6 @@ class SampleView(QtWidgets.QWidget):
 
         probabilities: array-like of shape (n_samples, n_classes), optional
             Predicted probabilities for the sample.
-
-        mode_idx: int, default=0
-            Index from the mode of last view, for reference.
         """
         super(SampleView, self).__init__()
 
@@ -445,9 +446,6 @@ class SampleView(QtWidgets.QWidget):
 
     def clear_widget(self):
         self.setParent(None)
-
-    def get_mode_idx(self):
-        return self.mode_idx
 
     def _generate_explanation(self):
         pass

@@ -55,17 +55,27 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.initial_view = InitialView(self.pipeline, self._load_model_view)
         self.current_view = self.initial_view
 
+        self.current_mode_idx = 0
+        self.current_tab_idx = 0
+
         self.main_layout.addWidget(self.current_view)
 
     def _load_initial_view(self):
+        if hasattr(self.current_view, 'get_mode_idx'):
+            self.current_mode_idx = self.current_view.get_mode_idx()
         self.current_view.clear_widget()
         self._clear_button_header()
 
+        # load new layout
         self.current_view = self.initial_view
+        self.current_view.set_mode_idx(self.current_mode_idx)
+        self.current_tab_idx = 0
 
         self.main_layout.addWidget(self.current_view)
 
     def _load_model_view(self, model_idx):
+        if hasattr(self.current_view, 'get_mode_idx'):
+            self.current_mode_idx = self.current_view.get_mode_idx()
         self.current_view.clear_widget()
         self._clear_button_header()
 
@@ -74,14 +84,14 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.selected_model_label.setText(f'Model : {estimator_name(models[model_idx])}')
 
         if self.pipeline.type == 'classification':
-            self.model_view = ModelViewCLF(self.pipeline, models[model_idx], self._load_sample_view,
-                                           self.current_view.get_mode_idx())
+            self.model_view = ModelViewCLF(self.pipeline, models[model_idx], self._load_sample_view)
 
         if self.pipeline.type == 'regression':
-            self.model_view = ModelViewREG(self.pipeline, models[model_idx], self._load_sample_view,
-                                           self.current_view.get_mode_idx())
-
+            self.model_view = ModelViewREG(self.pipeline, models[model_idx], self._load_sample_view)
+        # load new layout
         self.current_view = self.model_view
+        self.current_view.set_mode_idx(self.current_mode_idx)
+        self.current_view.set_tab_idx(self.current_tab_idx)
 
         # add to layout
         self.button_header_layout.addWidget(self.model_list_button)
@@ -91,10 +101,12 @@ class InterpretabilityWidget(QtWidgets.QWidget):
 
     def _load_sample_view(self):
         df, proba = self.current_view.get_selected_df()
+        self.current_mode_idx = self.current_view.get_mode_idx()
+        self.current_tab_idx = self.current_view.get_tab_idx()
         self.current_view.clear_widget()
         self._clear_button_header()
 
-        self.sample_view = SampleView(self.pipeline, df, proba, self.current_view.get_mode_idx())
+        self.sample_view = SampleView(df, proba)
 
         self.current_view = self.sample_view
 
