@@ -115,6 +115,7 @@ class ModelViewCLF(QtWidgets.QWidget):
         super(ModelViewCLF, self).__init__()
 
         self.pipeline = pipeline
+        self.estimator = estimator
         self.row_callback_function = row_callback
 
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -138,13 +139,13 @@ class ModelViewCLF(QtWidgets.QWidget):
             self.cbModes.setCurrentIndex(mode_idx)
 
         def populate_predictions_tabs():
-            self._populate_predictions_tabs(self.pipeline.data, estimator)
+            self._populate_predictions_tabs(self.pipeline.data, self.estimator)
 
         self.cbModes.currentIndexChanged.connect(populate_predictions_tabs)
 
-        self._populate_predictions_tabs(self.pipeline.data, estimator)
+        self._populate_predictions_tabs(self.pipeline.data, self.estimator)
 
-    def _populate_predictions_tabs(self, data_dict, model):
+    def _populate_predictions_tabs(self, data_dict, estimator):
         self._clear_tabs()
 
         # get values from filters
@@ -156,7 +157,7 @@ class ModelViewCLF(QtWidgets.QWidget):
         pred_df = data['X'].copy()
 
         # predict and add to dataframe
-        pred = model.predict_proba(pred_df)
+        pred = estimator.predict_proba(pred_df)
 
         pred_df['Pred'] = pred.argmax(axis=1)
         pred_df['Proba'] = pred.max(axis=1).round(2)
@@ -229,7 +230,7 @@ class ModelViewCLF(QtWidgets.QWidget):
         self.setParent(None)
 
     def get_selected_df(self):
-        # get dataframe from selected row
+        # get dataframe and probabilities from selected row
         tabs = list(self.table_views.keys())
         label = tabs[self.tabs.currentIndex()]
         model = self.table_views[label].model()
@@ -237,7 +238,10 @@ class ModelViewCLF(QtWidgets.QWidget):
 
         selected_row = selected_rows[0].row()
 
-        return model._df.iloc[[selected_row]]
+        df = model._df.iloc[[selected_row]]
+        probabilities = self.estimator.predict_proba(df.iloc[:, :-3])
+
+        return df, probabilities
 
     def get_mode_idx(self):
         return self.cbModes.currentIndex()
@@ -306,11 +310,11 @@ class ModelViewREG(ModelViewCLF):
         selected_rows = self.table_view.selectionModel().selectedRows()
         selected_row = selected_rows[0].row()
 
-        return model._df.iloc[[selected_row]]
+        return model._df.iloc[[selected_row]], None
 
 
 class SampleView(QtWidgets.QWidget):
-    def __init__(self, pipeline, data_sample, mode_idx=0):
+    def __init__(self, pipeline, data_sample, probabilities=None, mode_idx=0):
         """
         Generates a widget that allows closer inspection of predictions for a single element.
 
@@ -321,6 +325,9 @@ class SampleView(QtWidgets.QWidget):
         data_sample: dataframe
             Data sample to be analyzed
 
+        probabilities: array-like of shape (n_samples, n_classes), optional
+            Predicted probabilities for the sample.
+
         mode_idx: int, default=0
             Index from the mode of last view, for reference.
         """
@@ -330,8 +337,120 @@ class SampleView(QtWidgets.QWidget):
         self.data_sample = data_sample
         self.mode_idx = mode_idx
 
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.setLayout(self.main_layout)
+        # Layout for the sample entries
+        self.entries_layout = QtWidgets.QVBoxLayout()
+        self.entries_layout.setContentsMargins(10, 10, 50, 10)
+
+        self.right_layout = QtWidgets.QVBoxLayout()
+        self.right_layout.setContentsMargins(50, 10, 100, 150)
+        self.predictions_layout = QtWidgets.QHBoxLayout()
+        # Layout for the probability values table
+        self.proba_layout = QtWidgets.QGridLayout()
+        self.proba_layout.setColumnStretch(0, 2)
+        self.proba_layout.setColumnStretch(1, 1)
+        self.proba_layout.setContentsMargins(10, 10, 50, 10)
+        # Layout for the ground truth and predicted label
+        self.pred_layout = QtWidgets.QVBoxLayout()
+        self.pred_layout.setContentsMargins(10, 10, 50, 10)
+
+        self.button_explanation = QtWidgets.QPushButton('Generiere Erkärung')
+        self.button_explanation.clicked.connect(self._generate_explanation)
+        self.button_explanation.setStatusTip('Generate Explanation')
+        self.button_explanation.setEnabled(False)
+
+        self.button_counterfactuals = QtWidgets.QPushButton('Generiere Counterfactuals')
+        self.button_counterfactuals.clicked.connect(self._generate_counterfactuals)
+        self.button_counterfactuals.setStatusTip('Generate Counterfactuals')
+        self.button_counterfactuals.setEnabled(False)
+
+        # Dicts for the QtLabels
+        self.entries_labels = {}
+        self.proba_labels = {}
+
+        # Classification
+        if probabilities is not None:
+            self._populate_entries_labels(data_sample.iloc[:, :-3])
+            self._populate_pred_tables(data_sample.iloc[:, -3:], probabilities)
+        # Regression
+        if probabilities is None:
+            self._populate_entries_labels(data_sample.iloc[:, :-2])
+            self._populate_pred_tables(data_sample.iloc[:, -2:], probabilities)
+
+        # add to layout
+        self.main_layout.addLayout(self.entries_layout)
+        self.main_layout.addLayout(self.right_layout)
+        self.right_layout.addLayout(self.predictions_layout)
+        self.right_layout.addStretch()
+        self.right_layout.addWidget(self.button_explanation)
+        self.right_layout.addWidget(self.button_counterfactuals)
+        self.predictions_layout.addLayout(self.proba_layout)
+        self.predictions_layout.addLayout(self.pred_layout)
+        self.predictions_layout.addStretch()
+
+    def _populate_entries_labels(self, sample):
+        # Labels are stored in a dict with title label as key
+        entriesLabel = QtWidgets.QLabel()
+        entriesLabel.setText('Eintrag')
+        entriesLabel.setStyleSheet('font-weight: bold;')
+        self.entries_layout.addWidget(entriesLabel)
+
+        # Entry labels stored in a list
+        self.entries_labels[entriesLabel] = []
+        for feature, value in sample.to_dict(orient='records')[0].items():
+            self.entries_labels[feature] = QtWidgets.QLabel()
+            self.entries_labels[feature].setText(f'{feature}: {value}')
+            self.entries_layout.addWidget(self.entries_labels[feature])
+
+    def _populate_pred_tables(self, sample_pred, probabilities=None):
+        self.pred_label = QtWidgets.QLabel()
+        self.pred_label.setText(f'Prediction: {sample_pred["Pred"].iloc[0]}')
+        self.pred_layout.addWidget(self.pred_label)
+
+        self.ground_truth_label = QtWidgets.QLabel()
+        self.ground_truth_label.setText(f'Ground Truth: {sample_pred["Ground Truth"].iloc[0]}')
+        self.pred_layout.addWidget(self.ground_truth_label)
+
+        # Classification
+        if probabilities is not None:
+            # Highlight misclassification
+            if sample_pred["Pred"].iloc[0] != sample_pred["Ground Truth"].iloc[0]:
+                self.pred_label.setStyleSheet('color : red;')
+
+            # QtLabels stored in a dict with title label as key
+            labelLabel = QtWidgets.QLabel()
+            labelLabel.setText('Label')
+            labelLabel.setStyleSheet('font-weight: bold;')
+            self.proba_layout.addWidget(labelLabel, 0, 0, alignment=QtCore.Qt.AlignLeft)
+
+            probaLabel = QtWidgets.QLabel()
+            probaLabel.setText("W'keit")
+            probaLabel.setStyleSheet('font-weight: bold;')
+            self.proba_layout.addWidget(probaLabel, 0, 1, alignment=QtCore.Qt.AlignRight)
+
+            # Pred and Proba values stored in a list
+            self.proba_labels[labelLabel] = []
+            self.proba_labels[probaLabel] = []
+            for label, proba in enumerate(probabilities[0]):
+                labelValue = QtWidgets.QLabel()
+                labelValue.setText(str(label))
+                self.proba_labels[labelLabel].append(labelValue)
+                self.proba_layout.addWidget(labelValue, label + 1, 0, alignment=QtCore.Qt.AlignLeft)
+
+                probaValue = QtWidgets.QLabel()
+                probaValue.setText(str(proba.round(2)))
+                self.proba_labels[probaLabel].append(labelValue)
+                self.proba_layout.addWidget(probaValue, label + 1, 1, alignment=QtCore.Qt.AlignRight)
+
     def clear_widget(self):
         self.setParent(None)
 
     def get_mode_idx(self):
         return self.mode_idx
+
+    def _generate_explanation(self):
+        pass
+
+    def _generate_counterfactuals(self):
+        pass

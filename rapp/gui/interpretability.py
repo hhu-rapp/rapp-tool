@@ -26,7 +26,6 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.model_list_button.setStatusTip('Go back to model list')
         self.model_list_button.resize(50, 50)
 
-        self.button_header_layout = QtWidgets.QHBoxLayout()
         self.model_insight_button = QtWidgets.QPushButton('Zurück : Model Insights')
         self.model_insight_button.clicked.connect(self._load_model_view)
         self.model_insight_button.setStatusTip('Go back to model insights')
@@ -91,11 +90,11 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.main_layout.addWidget(self.current_view)
 
     def _load_sample_view(self):
-        df = self.current_view.get_selected_df()
+        df, proba = self.current_view.get_selected_df()
         self.current_view.clear_widget()
         self._clear_button_header()
 
-        self.sample_view = SampleView(self.pipeline, df, self.current_view.get_mode_idx())
+        self.sample_view = SampleView(self.pipeline, df, proba, self.current_view.get_mode_idx())
 
         self.current_view = self.sample_view
 
