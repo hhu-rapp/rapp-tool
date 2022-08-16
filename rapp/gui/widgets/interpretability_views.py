@@ -318,14 +318,12 @@ class ModelViewREG(ModelViewCLF):
 
 
 class SampleView(QtWidgets.QWidget):
-    def __init__(self, pipeline, data_sample, probabilities=None, mode_idx=0):
+    def __init__(self, data_sample, probabilities=None):
         """
         Generates a widget that allows closer inspection of predictions for a single element.
 
         Parameters
         ----------
-        pipeline: rapp.pipeline object
-
         data_sample: dataframe
             Data sample to be analyzed
 
@@ -334,9 +332,7 @@ class SampleView(QtWidgets.QWidget):
         """
         super(SampleView, self).__init__()
 
-        self.pipeline = pipeline
         self.data_sample = data_sample
-        self.mode_idx = mode_idx
 
         self.main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.main_layout)
