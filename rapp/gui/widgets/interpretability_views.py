@@ -396,9 +396,10 @@ class SampleView(QtWidgets.QWidget):
         # Entry labels stored in a list
         self.entries_labels[entriesLabel] = []
         for feature, value in sample.to_dict(orient='records')[0].items():
-            self.entries_labels[feature] = QtWidgets.QLabel()
-            self.entries_labels[feature].setText(f'{feature}: {value}')
-            self.entries_layout.addWidget(self.entries_labels[feature])
+            featureLabel = QtWidgets.QLabel()
+            featureLabel.setText(f'{feature}: {value}')
+            self.entries_layout.addWidget(featureLabel)
+            self.entries_labels[entriesLabel].append(featureLabel)
 
     def _populate_pred_tables(self, sample_pred, probabilities=None):
         self.pred_label = QtWidgets.QLabel()
