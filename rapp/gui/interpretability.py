@@ -12,8 +12,19 @@ from rapp.util import estimator_name
 
 
 class InterpretabilityWidget(QtWidgets.QWidget):
-
     def __init__(self, qmainwindow):
+        """
+        Generates and controls the three main views of the interpretability tab.
+
+        Initial View:
+            Displays all trained models with their corresponding predictive performances.
+
+        Model View:
+            Displays prediction information of the selected model.
+
+        Sample View:
+            Allows closer inspection of predictions for a single element.
+        """
         super(InterpretabilityWidget, self).__init__()
 
         self.qmainwindow = qmainwindow
