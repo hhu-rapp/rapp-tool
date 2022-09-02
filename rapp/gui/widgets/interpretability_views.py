@@ -314,7 +314,7 @@ class ModelViewREG(ModelViewCLF):
         selected_rows = self.table_view.selectionModel().selectedRows()
         selected_row = selected_rows[0].row()
 
-        return model._df.iloc[[selected_row]], None
+        return model.df.iloc[[selected_row]], None
 
 
 class SampleView(QtWidgets.QWidget):
