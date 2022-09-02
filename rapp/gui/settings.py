@@ -31,7 +31,7 @@ class SimpleSettings(QtWidgets.QWidget):
         self.simple_tab = Pipeline(self.qmainwindow)
 
         # add widgets to tab
-        self.tab.addTab(self.simple_tab, 'Simple Settings')
+        self.tab.addTab(self.simple_tab, 'Settings')
         self.__init_trainedModels_tab()
 
         # add widgets to layout
