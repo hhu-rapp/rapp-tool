@@ -49,9 +49,8 @@ def save_report(pipeline: Pipeline, path="reports/"):
     # Copy over additionally needed resources for the Latex reports.
     needed_resources = ['hhulogo.pdf', 'hhuarticle.cls']
     for resource in needed_resources:
-        with rc.get_path(os.join('reports', 'latex', resource)) as f:
-            shutil.copy(f, path)
-
+        with open(rc.get_path(os.path.join('reports', 'latex', resource)), 'r') as f:
+            shutil.copy(f.name, path)
 
     # Attempt to compile latex report
     try:
