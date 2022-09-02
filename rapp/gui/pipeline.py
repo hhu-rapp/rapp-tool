@@ -247,8 +247,9 @@ class Pipeline(QtWidgets.QWidget):
             self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, False)
             log.warning("No sensitive attributes selected, fairness overview was skipped.")
 
-        # Enable Fairness and XAI Tabs
-        # self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.xai_tab_index, True)
+        # Enable Interpretability tab
+        self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.interpretability_tab_index, True)
+        self.qmainwindow.tabs.widget(self.qmainwindow.interpretability_tab_index).initialize_tab(pl)
 
     def parse_settings(self):
         cf = argparse.Namespace()

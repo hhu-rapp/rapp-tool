@@ -1,11 +1,12 @@
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
 from matplotlib import cm
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
+from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import ClickableLabel, CollapsibleBox
 from rapp.util import estimator_name, pareto_front
 
@@ -282,24 +283,25 @@ class SummaryTable(QtWidgets.QGroupBox):
                     tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
                     self.labels[labelMetric].append(labelValue)
 
-                if metric in fairness_notions:
-                    # fairness notions
-                    values = fairness_results[model][sensitive_attribute][metric][mode]
-                    if pl_type == "classification":
-                        # average value across sensitive attribute
-                        measure = np.zeros(len(values))
-                        for k, value in enumerate(values):
-                            measure[k] = values[value]['affected_percent']
+                if fairness_notions is not None:
+                    if metric in fairness_notions:
+                        # fairness notions
+                        values = fairness_results[model][sensitive_attribute][metric][mode]
+                        if pl_type == "classification":
+                            # average value across sensitive attribute
+                            measure = np.zeros(len(values))
+                            for k, value in enumerate(values):
+                                measure[k] = values[value]['affected_percent']
 
-                        measure = np.mean(measure)
+                            measure = np.mean(measure)
 
-                    if pl_type == "regression":
-                        measure = values
+                        if pl_type == "regression":
+                            measure = values
 
-                    labelValue = QtWidgets.QLabel()
-                    labelValue.setText(f"{measure:.3f}")
-                    tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
-                    self.labels[labelMetric].append(labelValue)
+                        labelValue = QtWidgets.QLabel()
+                        labelValue.setText(f"{measure:.3f}")
+                        tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
+                        self.labels[labelMetric].append(labelValue)
 
     def set_model_click_function(self, function):
         key = list(self.labels.keys())[0]
@@ -750,3 +752,27 @@ class ParetoPlot(QtWidgets.QGroupBox):
 
     def close_fig(self):
         self.fig.close()
+
+
+class PandasModelColor(PandasModel):
+    """
+    TableModel to populate a PyQtTable with a Pandas DataFrame.
+    Allows to change the color of the cells.
+    """
+    def __init__(self, df, parent=None):
+        super(PandasModelColor, self).__init__(df=df, parent=parent)
+
+        self.colors = {}
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == Qt.BackgroundRole:
+            color = self.colors.get((index.row(), index.column()))
+            if color is not None:
+                return color
+        else:
+            return super(PandasModelColor, self).data(index, role)
+
+    def change_color(self, row, column, color):
+        ix = self.index(row, column)
+        self.colors[(row, column)] = color
+        self.dataChanged.emit(ix, ix, (Qt.BackgroundRole,))

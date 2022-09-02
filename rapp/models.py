@@ -31,7 +31,8 @@ models = {
                           'class_weight': 'balanced'}
                },
         'SVM': {'class': SVC,
-                'kwargs': {'random_state': 0}
+                'kwargs': {'random_state': 0,
+                           'probability': True}
                 },
         'NB': {'class': GaussianNB,
                'kwargs': {}
