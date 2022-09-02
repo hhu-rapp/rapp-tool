@@ -236,7 +236,7 @@ class ModelViewCLF(QtWidgets.QWidget):
 
         selected_row = selected_rows[0].row()
 
-        df = model._df.iloc[[selected_row]]
+        df = model.df.iloc[[selected_row]]
         probabilities = self.estimator.predict_proba(df.iloc[:, :-3])
 
         return df, probabilities

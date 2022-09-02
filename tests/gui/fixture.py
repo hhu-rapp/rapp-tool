@@ -31,7 +31,7 @@ class GuiTestApi():
         self.sql_target_select_box = widget.databaseLayoutWidget.sql_tabs.targetSelect
         self.sql_template_load_btn = widget.databaseLayoutWidget.sql_tabs.verifySelect
 
-        self.sql_table_box = widget.databaseLayoutWidget.pandasTv.combo
+        self.sql_table_box = widget.databaseLayoutWidget.pandas_dataview.combo
 
         self.sql_tabs = widget.databaseLayoutWidget.sql_tabs.tabs
         self.sql_text_field = widget.databaseLayoutWidget.sql_tabs.sql_field

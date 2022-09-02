@@ -31,7 +31,7 @@ def test_sql_template_loading(gui: GuiTestApi):
     # Note: Comparing with gui.sql_text_field.toPlainText() fails on weird
     # whitespace issue somehow.
     assert (reference_sql ==
-            gui.widget.databaseLayoutWidget.pandasTv.get_custom_sql())
+            gui.widget.databaseLayoutWidget.pandas_dataview.get_custom_sql())
 
 
 def test_sql_template_loads_df(gui: GuiTestApi):

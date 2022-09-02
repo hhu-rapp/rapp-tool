@@ -24,7 +24,7 @@ class PandasModel(QtCore.QAbstractTableModel):
 
     def __init__(self, df=pd.DataFrame(), parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent=parent)
-        self._df = df
+        self.df = df
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
@@ -32,13 +32,13 @@ class PandasModel(QtCore.QAbstractTableModel):
 
         if orientation == QtCore.Qt.Horizontal:
             try:
-                return self._df.columns.tolist()[section]
+                return self.df.columns.tolist()[section]
             except (IndexError,):
                 return QtCore.QVariant()
         elif orientation == QtCore.Qt.Vertical:
             try:
                 # return self.df.index.tolist()
-                return self._df.index.tolist()[section]
+                return self.df.index.tolist()[section]
             except (IndexError,):
                 return QtCore.QVariant()
 
@@ -49,34 +49,34 @@ class PandasModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
 
-        return QtCore.QVariant(str(self._df.iloc[index.row(), index.column()]))
+        return QtCore.QVariant(str(self.df.iloc[index.row(), index.column()]))
 
     def setData(self, index, value, role):
-        row = self._df.index[index.row()]
-        col = self._df.columns[index.column()]
+        row = self.df.index[index.row()]
+        col = self.df.columns[index.column()]
         if hasattr(value, 'toPyObject'):
             # PyQt4 gets a QVariant
             value = value.toPyObject()
         else:
             # PySide gets an unicode
-            dtype = self._df[col].dtype
+            dtype = self.df[col].dtype
             if dtype != object:
                 value = None if value == '' else dtype.type(value)
-        self._df.set_value(row, col, value)
+        self.df.set_value(row, col, value)
         return True
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self._df.index)
+        return len(self.df.index)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self._df.columns)
+        return len(self.df.columns)
 
     def sort(self, column, order):
-        colname = self._df.columns.tolist()[column]
+        colname = self.df.columns.tolist()[column]
         self.layoutAboutToBeChanged.emit()
-        self._df.sort_values(colname, ascending=order ==
-                                                QtCore.Qt.AscendingOrder, inplace=True)
-        self._df.reset_index(inplace=True, drop=True)
+        self.df.sort_values(colname, ascending=order ==
+                                               QtCore.Qt.AscendingOrder, inplace=True)
+        self.df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
 
@@ -185,11 +185,11 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         # create widgets
         self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql)
-        self.pandasTv = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
+        self.pandas_dataview = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
 
         # add widgets to splitter
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        splitter.addWidget(self.pandasTv)
+        splitter.addWidget(self.pandas_dataview)
         splitter.addWidget(self.sql_tabs)
         splitter.setSizes([400, 400])
 
@@ -220,11 +220,11 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.filepath_db = filepath
         self.__conn = data.connect(self.filepath_db)
-        self.pandasTv.set_connection(self.__conn)
+        self.pandas_dataview.set_connection(self.__conn)
 
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
         try:
-            self.sql_df = self.pandasTv.set_custom_sql(sql_query)
+            self.sql_df = self.pandas_dataview.set_custom_sql(sql_query)
             self.qmainwindow.sql_df = self.sql_df
             self.features_id = f_id
             self.labels_id = l_id
@@ -237,7 +237,9 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             log.error(str(e))
 
     def getDataSettings(self):
-        current_df = self.pandasTv.table.model()._df
+        # TODO: Cannot access current dataframe
+        current_df = self.pandas_dataview.table.model().df
+        print(current_df.head(10))
         return current_df, self.features_id, self.labels_id
 
     def load_sql(self, sql_query):

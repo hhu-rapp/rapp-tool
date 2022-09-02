@@ -108,7 +108,7 @@ class PredictionWidget(QtWidgets.QWidget):
         It assumes that the models loaded are compatible with the data.
         """
         data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
-        selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandasTv.table.selectionModel().selectedIndexes()
+        selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandas_dataview.table.selectionModel().selectedIndexes()
 
         if data_df is None or data_f_id is None or data_l_id is None:
             log.error(f"No valid data to predict")
