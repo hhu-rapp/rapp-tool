@@ -130,7 +130,6 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.db);;All Files (*)", options=options)
         if fileName:
             print(os.path.normpath(fileName))
-
             self.databaseLayoutWidget.connectDatabase(os.path.normpath(fileName))
 
     def openSQLQuery(self):

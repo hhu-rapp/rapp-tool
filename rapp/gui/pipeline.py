@@ -70,11 +70,11 @@ class Pipeline(QtWidgets.QWidget):
         self.labelReportPath = QtWidgets.QLabel()
         self.labelReportPath.setText('Report Path:')
 
-        self.labelImputation = QtWidgets.QLabel()
-        self.labelImputation.setText('Imputation Method:')
-
-        self.labelFSM = QtWidgets.QLabel()
-        self.labelFSM.setText('Feature Selection Method:')
+        # self.labelImputation = QtWidgets.QLabel()
+        # self.labelImputation.setText('Imputation Method:')
+        #
+        # self.labelFSM = QtWidgets.QLabel()
+        # self.labelFSM.setText('Feature Selection Method:')
 
         self.labelEstimator = QtWidgets.QLabel()
         self.labelEstimator.setText('Estimators:')
@@ -91,14 +91,14 @@ class Pipeline(QtWidgets.QWidget):
         self.cbType.addItem('Regression')
         self.lePath = QtWidgets.QLineEdit()
         self.lePath.setText("reports/")
-        self.cbImputation = QtWidgets.QComboBox()
-        self.cbImputation.addItem('Iterative')
-        self.cbImputation.addItem('KNN')
-        self.cbImputation.addItem('Mean')
-        self.cbImputation.addItem('Median')
-        self.cbImputation.addItem('Most_frequent')
-        self.cbFSM = QtWidgets.QComboBox()
-        self.cbFSM.addItem('Variance')
+        # self.cbImputation = QtWidgets.QComboBox()
+        # self.cbImputation.addItem('Iterative')
+        # self.cbImputation.addItem('KNN')
+        # self.cbImputation.addItem('Mean')
+        # self.cbImputation.addItem('Median')
+        # self.cbImputation.addItem('Most_frequent')
+        # self.cbFSM = QtWidgets.QComboBox()
+        # self.cbFSM.addItem('Variance')
 
         # add labels to the grid
         self.gridlayoutMainML.addWidget(self.labelName, 0, 0)
@@ -106,8 +106,8 @@ class Pipeline(QtWidgets.QWidget):
         self.gridlayoutMainML.addWidget(self.labelSAttributes, 2, 0)
         self.gridlayoutMainML.addWidget(self.labelType, 3, 0)
         self.gridlayoutMainML.addWidget(self.labelReportPath, 4, 0)
-        self.gridlayoutMainML.addWidget(self.labelImputation, 5, 0)
-        self.gridlayoutMainML.addWidget(self.labelFSM, 6, 0)
+        # self.gridlayoutMainML.addWidget(self.labelImputation, 5, 0)
+        # self.gridlayoutMainML.addWidget(self.labelFSM, 6, 0)
         self.gridlayoutMainML.addWidget(self.labelEstimator, 7, 0)
 
         # add options to the grid
@@ -116,8 +116,8 @@ class Pipeline(QtWidgets.QWidget):
         self.gridlayoutMainML.addWidget(self.cbSAttributes, 2, 1, 1, -1)
         self.gridlayoutMainML.addWidget(self.cbType, 3, 1, 1, -1)
         self.gridlayoutMainML.addWidget(self.lePath, 4, 1)
-        self.gridlayoutMainML.addWidget(self.cbImputation, 5, 1, 1, -1)
-        self.gridlayoutMainML.addWidget(self.cbFSM, 6, 1, 1, -1)
+        # self.gridlayoutMainML.addWidget(self.cbImputation, 5, 1, 1, -1)
+        # self.gridlayoutMainML.addWidget(self.cbFSM, 6, 1, 1, -1)
         self.gridlayoutMainML.addWidget(self.cbEstimator, 7, 1, 1, -1)
 
         # add more options to grid
@@ -273,7 +273,7 @@ class Pipeline(QtWidgets.QWidget):
         cf.type = self.cbType.currentText().lower()
         cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
         cf.estimators = self.cbEstimator.get_checked_items()
-        cf.imputation = self.cbImputation.currentText().lower()
-        cf.feature_selection = self.cbFSM.currentText().lower()
+        # cf.imputation = self.cbImputation.currentText().lower()
+        # cf.feature_selection = self.cbFSM.currentText().lower()
 
         return cf

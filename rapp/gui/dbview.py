@@ -106,8 +106,8 @@ class DataView(QtWidgets.QWidget):
         if sql_conn != None:
             self.set_connection(sql_conn)
 
-    # TODO Bug: Delete old database to insert new database
     def set_connection(self, sql_connection):
+        # TODO Bug: Delete old database to insert new database
         self.__conn = sql_connection
         self.__sql_query = None
 
@@ -239,7 +239,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
     def getDataSettings(self):
         # TODO: Cannot access current dataframe
         current_df = self.pandas_dataview.table.model().df
-        print(current_df.head(10))
         return current_df, self.features_id, self.labels_id
 
     def load_sql(self, sql_query):
