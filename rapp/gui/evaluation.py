@@ -355,7 +355,8 @@ class EvaluationWidget(QtWidgets.QWidget):
 
                 costs_per_mode[mode] = costs
 
-            self.sensitiveParetoTables[sensitive] = ParetoCollapsible(data, sensitive, models, costs_per_mode, x_label=x_label, y_label=metric)
+            self.sensitiveParetoTables[sensitive] = ParetoCollapsible(data, sensitive, models, costs_per_mode,
+                                                                      x_label=x_label, y_label=metric)
 
             # add to layout
             self.pareto_tab.layout().addWidget(self.sensitiveParetoTables[sensitive])
