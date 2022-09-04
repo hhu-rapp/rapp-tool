@@ -15,15 +15,15 @@
     - [x] ~~*Datenbank laden [Jose]*~~
     - [x] ~~*SQL Anfragen laden [Jose]*~~
     - [x] ~~*SQL Anfragen speichern [Jose]*~~
-    - [ ] Fehlerhafte Angaben bei der Pipeline [Jose, hoehere Prio]
+    - [x] Fehlerhafte Angaben bei der Pipeline [Jose, hoehere Prio]
   - [x] ~~*Log Fenster hinzugefügt*~~
-- [ ] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
-  - [ ] Diskussion: Wo in der GUI? Was soll angezeigt werden? Klassenverteilungen?
-  - [ ] Mean, Std für reelle Datentypen
-  - [ ] Histogramme für nominale, ordinale Datentypen
+- [x] Deskriptive Statistik (Plots usw.) für angefertigte SQL Anfragen
+  - [x] Diskussion: Wo in der GUI? Was soll angezeigt werden? Klassenverteilungen?
+  - [x] Mean, Std für reelle Datentypen
+  - [x] Histogramme für nominale, ordinale Datentypen
 - [ ] Title Bar als Menubar verwenden (Menüleiste an der Fensterleiste setzen) [Jose, geringe prio]
 - Backend
-  - [ ] Pipeline
+  - [x] Pipeline
         - [x] Training implementieren/fixen [Jose, hoehere Prio]
         - [x] ML Pipeline ueberarbeiten, sodass Pandas DF uebergeben werden koennen [Jose]
         - [x] Validate in der Pipeline implementieren für Ergebnisse (Reports: Jannik + Manh Khoi + José)
