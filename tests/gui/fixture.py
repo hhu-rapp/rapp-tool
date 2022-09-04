@@ -46,7 +46,6 @@ class GuiTestApi():
         self.ml_type_box = widget.settings.simple_tab.cbType
         self.report_path_field = widget.settings.simple_tab.lePath
         self.report_path_btn = widget.settings.simple_tab.reportPathButton
-        self.imputation_box = widget.settings.simple_tab.cbImputation
         self.feature_selection_box = widget.settings.simple_tab.cbFSM
         self.estimator_select_box = widget.settings.simple_tab.cbEstimator
         self.train_btn = widget.settings.simple_tab.trainButton
