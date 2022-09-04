@@ -2,7 +2,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 # theme
-from qt_material import apply_stylesheet
+# from qt_material import apply_stylesheet
 
 # dataframe
 from rapp.gui.dbview import DataView
