@@ -48,6 +48,12 @@ A config file `config.ini` is already available and contains the required argume
 python -m rapp --config-file settings/pipeline/config.ini
 ```
 
+To run the GUI, simply execute
+
+```bash
+python -m rapp.gui
+```
+
 ### Explainable AI (Decision Tree)
 
 Example configuration files for the explainability modules are located in `settings/explain/`. To run the prediction and get xAI results, execute
