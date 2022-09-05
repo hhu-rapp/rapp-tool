@@ -15,20 +15,20 @@ _DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 _LOADEDDB = None  # String name of the database.
 
 
-def set_database(db_name):
+def set_database_name(db_name):
     """
     Set the database to use.
     """
     global _LOADEDDB
     _LOADEDDB = db_name
+    print(db_name)
 
 
-def reset_database():
+def reset_database_name():
     """
     Reset the database to None.
     """
-    global _LOADEDDB
-    _LOADEDDB = None
+    set_database_name(None)
 
 
 def load_sql(features_id, labels_id, template_dir=None):
@@ -131,7 +131,8 @@ def __list_available_items(item_type, template_dir=None):
 
     if _LOADEDDB is not None:
         db_dir = path.join(template_dir, _LOADEDDB, item_type)
-        items += __list_subdirs(db_dir)
+        if path.exists(db_dir):
+            items += __list_subdirs(db_dir)
 
     # Transform to set so we can remove duplicates.
     # Items which are both in the _LOADEDDB and in the default directory

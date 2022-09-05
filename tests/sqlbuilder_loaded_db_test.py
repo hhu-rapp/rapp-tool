@@ -8,7 +8,7 @@ from tests import resources as rc
 @pytest.fixture(autouse=True)
 def reset_loaded_db():
     yield  # Execute test.
-    sqlbuilder.reset_database()
+    sqlbuilder.reset_database_name()
 
 @pytest.fixture(autouse=True)
 def set_default_template_path():
@@ -29,7 +29,7 @@ def test_listing_available_features_without_loaded_db():
 
 
 def test_listing_available_features_with_loaded_rapp_db():
-    sqlbuilder.set_database('rapp.db')
+    sqlbuilder.set_database_name('rapp.db')
 
     expected = ['non_specific_1',
                 'non_specific_2',
@@ -43,7 +43,7 @@ def test_listing_available_features_with_loaded_rapp_db():
 
 
 def test_listing_available_features_with_loaded_other_db():
-    sqlbuilder.set_database('other.db')
+    sqlbuilder.set_database_name('other.db')
 
     expected = ['non_specific_1',
                 'non_specific_2',
@@ -64,7 +64,7 @@ def test_listing_available_labels_without_loaded_db():
 
 
 def test_listing_available_labels_with_loaded_rapp_db():
-    sqlbuilder.set_database('rapp.db')
+    sqlbuilder.set_database_name('rapp.db')
 
     expected = ['general_label_1',
                 'rapp_label_1',
@@ -77,7 +77,7 @@ def test_listing_available_labels_with_loaded_rapp_db():
 
 
 def test_listing_available_labels_with_loaded_other_db():
-    sqlbuilder.set_database('other.db')
+    sqlbuilder.set_database_name('other.db')
 
     expected = ['general_label_1',
                 'other_label_1',
@@ -90,7 +90,7 @@ def test_listing_available_labels_with_loaded_other_db():
 
 
 def test_loading_db_specific_sql():
-    sqlbuilder.set_database('rapp.db')
+    sqlbuilder.set_database_name('rapp.db')
 
     # 'cs_first_term_modules' and '3_dropout' correspond to
     # rapp.de/features/rapp_specific_1 and general_label_1 respectively.
@@ -101,11 +101,22 @@ def test_loading_db_specific_sql():
 
 
 def test_shadowing_general_snippet_by_db_specific_one():
-    sqlbuilder.set_database('other.db')
+    sqlbuilder.set_database_name('other.db')
 
     # 'cs_first_term_modules' and '3_dropout' correspond to
     # rapp.de/features/rapp_specific_1 and general_label_1 respectively.
     expected = rc.get_text("sql/cs_first_term_modules_dropout.sql")
     actual = load_sql("non_specific_1", "shadow_label")
+
+    assert expected == actual
+
+
+def test_listing_available_features_with_loaded_db_that_has_no_entries():
+    sqlbuilder.set_database_name('sdlsdkfjsldkfjlskjflsdf.db')
+
+    expected = ['non_specific_1',
+                'non_specific_2',
+                ]
+    actual = list_available_features()
 
     assert expected == actual
