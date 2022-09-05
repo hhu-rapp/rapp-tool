@@ -12,6 +12,8 @@ import chevron
 
 _DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 
+_LOADEDDB = None  # String name of the database.
+
 def load_sql(features_id, labels_id, template_dir=None):
     if template_dir is None:
         template_dir = _DEFAULTTEMPLATEDIR
@@ -57,6 +59,12 @@ def __load_components(type, id, template_dir=None):
         template_dir = _DEFAULTTEMPLATEDIR
     template_path = path.join(template_dir, type, id)
 
+    # We need to check whether the selected item is specific to the loaded db.
+    if _LOADEDDB is not None:
+        db_template_path = path.join(template_dir, _LOADEDDB, type, id)
+        if path.exists(db_template_path):
+            template_path = db_template_path
+
     sel_sql = path.join(template_path, "select.sql")
     sel_sql = __load_text(sel_sql)
     join_sql = path.join(template_path, "join.sql")
@@ -84,22 +92,34 @@ def list_available_features(template_dir=None):
     """
     List all available features.
     """
-    if template_dir is None:
-        template_dir = _DEFAULTTEMPLATEDIR
-
-    dir = path.join(template_dir, 'features')
-    return sorted(__list_subdirs(dir))
+    return __list_available_items('features', template_dir=template_dir)
 
 
 def list_available_labels(template_dir=None):
     """
     List all available labels.
     """
+    return __list_available_items('labels', template_dir=template_dir)
+
+
+def __list_available_items(item_type, template_dir=None):
+    """
+    List all available items of any type.
+    """
     if template_dir is None:
         template_dir = _DEFAULTTEMPLATEDIR
 
-    dir = path.join(template_dir, 'labels')
-    return sorted(__list_subdirs(dir))
+    dir = path.join(template_dir, item_type)
+    items = __list_subdirs(dir)
+
+    if _LOADEDDB is not None:
+        db_dir = path.join(template_dir, _LOADEDDB, item_type)
+        items += __list_subdirs(db_dir)
+
+    # Transform to set so we can remove duplicates.
+    # Items which are both in the _LOADEDDB and in the default directory
+    # will only ever refer to the _LOADEDDB version.
+    return sorted(set(items))
 
 
 def __list_subdirs(directory: str):
