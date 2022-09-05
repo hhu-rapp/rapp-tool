@@ -10,14 +10,16 @@ from os import path
 
 import chevron
 
-__TEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
+__DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 
 
-def load_sql(features_id, labels_id):
-    f_select, f_join, f_where = __load_components("features", features_id)
-    l_select, l_join, l_where = __load_components("labels", labels_id)
+def load_sql(features_id, labels_id, template_dir=__DEFAULTTEMPLATEDIR):
+    f_select, f_join, f_where = __load_components(
+        "features", features_id, template_dir=template_dir)
+    l_select, l_join, l_where = __load_components(
+        "labels", labels_id, template_dir=template_dir)
 
-    templates_path = path.join(__TEMPLATEDIR, 'basetemplate.sql')
+    templates_path = path.join(template_dir, 'basetemplate.sql')
     template = __load_text(templates_path)
     mustache = {
         "feature_select": f_select,
@@ -32,7 +34,7 @@ def load_sql(features_id, labels_id):
     return query
 
 
-def __load_components(type, id):
+def __load_components(type, id, template_dir=__DEFAULTTEMPLATEDIR):
     """
     For the given type and identifier,
     load the contents of the SELECT, the JOIN, and the WHERE statements.
@@ -49,7 +51,7 @@ def __load_components(type, id):
     where: str
         Contents for the WHERE statement.
     """
-    template_path = path.join(__TEMPLATEDIR, type, id)
+    template_path = path.join(template_dir, type, id)
 
     sel_sql = path.join(template_path, "select.sql")
     sel_sql = __load_text(sel_sql)
@@ -74,19 +76,19 @@ def __load_text(file_path):
         return f.read()
 
 
-def list_available_features():
+def list_available_features(template_dir=__DEFAULTTEMPLATEDIR):
     """
     List all available features.
     """
-    dir = path.join(__TEMPLATEDIR, 'features')
+    dir = path.join(template_dir, 'features')
     return sorted(__list_subdirs(dir))
 
 
-def list_available_labels():
+def list_available_labels(template_dir=__DEFAULTTEMPLATEDIR):
     """
     List all available labels.
     """
-    dir = path.join(__TEMPLATEDIR, 'labels')
+    dir = path.join(template_dir, 'labels')
     return sorted(__list_subdirs(dir))
 
 
