@@ -14,6 +14,23 @@ _DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 
 _LOADEDDB = None  # String name of the database.
 
+
+def set_database(db_name):
+    """
+    Set the database to use.
+    """
+    global _LOADEDDB
+    _LOADEDDB = db_name
+
+
+def reset_database():
+    """
+    Reset the database to None.
+    """
+    global _LOADEDDB
+    _LOADEDDB = None
+
+
 def load_sql(features_id, labels_id, template_dir=None):
     if template_dir is None:
         template_dir = _DEFAULTTEMPLATEDIR

@@ -8,7 +8,7 @@ from tests import resources as rc
 @pytest.fixture(autouse=True)
 def reset_loaded_db():
     yield  # Execute test.
-    sqlbuilder._LOADEDDB = None
+    sqlbuilder.reset_database()
 
 @pytest.fixture(autouse=True)
 def set_default_template_path():
@@ -29,7 +29,7 @@ def test_listing_available_features_without_loaded_db():
 
 
 def test_listing_available_features_with_loaded_rapp_db():
-    sqlbuilder._LOADEDDB = 'rapp.db'
+    sqlbuilder.set_database('rapp.db')
 
     expected = ['non_specific_1',
                 'non_specific_2',
@@ -39,12 +39,11 @@ def test_listing_available_features_with_loaded_rapp_db():
                 ]
     actual = list_available_features()
 
-    sqlbuilder._LOADEDDB = None
     assert expected == actual
 
 
 def test_listing_available_features_with_loaded_other_db():
-    sqlbuilder._LOADEDDB = 'other.db'
+    sqlbuilder.set_database('other.db')
 
     expected = ['non_specific_1',
                 'non_specific_2',
@@ -52,7 +51,6 @@ def test_listing_available_features_with_loaded_other_db():
                 ]
     actual = list_available_features()
 
-    sqlbuilder._LOADEDDB = None
     assert expected == actual
 
 
@@ -66,7 +64,7 @@ def test_listing_available_labels_without_loaded_db():
 
 
 def test_listing_available_labels_with_loaded_rapp_db():
-    sqlbuilder._LOADEDDB = 'rapp.db'
+    sqlbuilder.set_database('rapp.db')
 
     expected = ['general_label_1',
                 'rapp_label_1',
@@ -79,7 +77,7 @@ def test_listing_available_labels_with_loaded_rapp_db():
 
 
 def test_listing_available_labels_with_loaded_other_db():
-    sqlbuilder._LOADEDDB = 'other.db'
+    sqlbuilder.set_database('other.db')
 
     expected = ['general_label_1',
                 'other_label_1',
@@ -92,7 +90,7 @@ def test_listing_available_labels_with_loaded_other_db():
 
 
 def test_loading_db_specific_sql():
-    sqlbuilder._LOADEDDB = 'rapp.db'
+    sqlbuilder.set_database('rapp.db')
 
     # 'cs_first_term_modules' and '3_dropout' correspond to
     # rapp.de/features/rapp_specific_1 and general_label_1 respectively.
@@ -103,7 +101,7 @@ def test_loading_db_specific_sql():
 
 
 def test_shadowing_general_snippet_by_db_specific_one():
-    sqlbuilder._LOADEDDB = 'other.db'
+    sqlbuilder.set_database('other.db')
 
     # 'cs_first_term_modules' and '3_dropout' correspond to
     # rapp.de/features/rapp_specific_1 and general_label_1 respectively.
