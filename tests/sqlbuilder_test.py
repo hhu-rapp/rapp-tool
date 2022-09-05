@@ -1,13 +1,22 @@
 import pytest
 from pandas import read_sql_query
 
+from rapp import sqlbuilder
 from rapp.sqlbuilder import load_sql, list_available_features, list_available_labels
 
 from tests import resources as rc
 from tests import testutil
 
 
-DIR=rc.get_path("sql/templates")
+DIR=rc.get_path("sql/templatesous")
+
+@pytest.fixture(autouse=True)
+def set_default_template_path():
+    old_default = sqlbuilder._DEFAULTTEMPLATEDIR
+    sqlbuilder._DEFAULTTEMPLATEDIR = rc.get_path('sql/templates')
+    yield  # Execute test.
+    sqlbuilder._DEFAULTTEMPLATEDIR = old_default
+
 
 
 def test_construct_when_all_parts_are_given():
@@ -16,7 +25,7 @@ def test_construct_when_all_parts_are_given():
     that is given in the templates.
     """
     expected = rc.get_text("sql/cs_first_term_modules_dropout.sql")
-    actual = load_sql("cs_first_term_modules", "3_dropout", template_dir=DIR)
+    actual = load_sql("cs_first_term_modules", "3_dropout")
 
     assert expected == actual
 
@@ -26,7 +35,7 @@ def test_construct_when_join_and_where_is_missing():
     The label 4_term_ap has no JOIN or WHERE information.
     """
     expected = rc.get_text("sql/cs_first_term_modules_4term_ap.sql")
-    actual = load_sql("cs_first_term_modules", "4term_ap", template_dir=DIR)
+    actual = load_sql("cs_first_term_modules", "4term_ap")
 
     print(actual)
     assert expected == actual
@@ -38,7 +47,7 @@ def regression_test_setup(feature, label, reference):
     creates semantically equivalent SQL queries to those we had before.
     """
     old_sql = rc.get_text("sql/regression/" + reference)
-    new_sql = load_sql(feature, label, template_dir=DIR)
+    new_sql = load_sql(feature, label)
 
     db_conn = testutil.get_db_connection()
 
@@ -104,7 +113,7 @@ def test_cs_ects_features():
     db.add_exam(s1, "c", attempt=1, semester=3,
                 passed=True, ects=10, grade=3.0)
 
-    sql = load_sql("cs_first_term_ects", "4term_cp", template_dir=DIR)
+    sql = load_sql("cs_first_term_ects", "4term_cp")
 
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
@@ -143,7 +152,7 @@ def test_cs_ects_features__when_no_passed_exams():
     s2 = db.add_sw_student(pseudonym=2)
     db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
 
-    sql = load_sql("cs_first_term_ects", "4term_cp", template_dir=DIR)
+    sql = load_sql("cs_first_term_ects", "4term_cp")
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
 
@@ -179,7 +188,7 @@ def test_cs_ects_features__when_no_written_exams():
     s2 = db.add_sw_student(pseudonym=2)
     db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
 
-    sql = load_sql("cs_first_term_ects", "4term_cp", template_dir=DIR)
+    sql = load_sql("cs_first_term_ects", "4term_cp")
     df = db.read_sql_query(sql)
 
     assert len(df) == 0
@@ -208,7 +217,7 @@ def test_cs_unspecific_grade_features():
     s2 = db.add_sw_student(pseudonym=2)
     db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
 
-    sql = load_sql("cs_first_term_grades", "4term_cp", template_dir=DIR)
+    sql = load_sql("cs_first_term_grades", "4term_cp")
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
 
@@ -253,7 +262,7 @@ def test_combined_ectp_grade_features():
     s2 = db.add_sw_student(pseudonym=2)
     db.add_exam(s2, "a", attempt=1, semester=1, passed=True, ects=5, grade=1.0)
 
-    sql = load_sql("cs_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
+    sql = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
 
@@ -278,8 +287,8 @@ def test_combined_ectp_grade_features():
 
 
 def test_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
-    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
-    sql_ectp = load_sql("cs_first_term_ects", "4term_cp", template_dir=DIR)
+    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
+    sql_ectp = load_sql("cs_first_term_ects", "4term_cp")
 
     db = testutil.get_db_connection()
 
@@ -295,8 +304,8 @@ def test_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
 
 
 def test_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features():
-    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
-    sql_grades = load_sql("cs_first_term_grades", "4term_cp", template_dir=DIR)
+    sql_combined = load_sql("cs_first_term_grades_and_ectp", "4term_cp")
+    sql_grades = load_sql("cs_first_term_grades", "4term_cp")
 
     db = testutil.get_db_connection()
 
@@ -337,7 +346,7 @@ def test_sw_first_term_ects():
     db.add_exam(s1, "c", attempt=1, semester=3,
                 passed=True, ects=10, grade=3.0)
 
-    sql = load_sql("sw_first_term_ects", "4term_cp", template_dir=DIR)
+    sql = load_sql("sw_first_term_ects", "4term_cp")
 
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
@@ -379,7 +388,7 @@ def test_sw_first_term_grades():
     db.add_exam(s1, "c", attempt=1, semester=3,
                 passed=True, ects=10, grade=3.0)
 
-    sql = load_sql("sw_first_term_grades", "4term_cp", template_dir=DIR)
+    sql = load_sql("sw_first_term_grades", "4term_cp")
 
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')  # Only compare first entry here.
@@ -423,7 +432,7 @@ def test_sw_first_term_combined_ects_and_grades():
     db.add_exam(s1, "c", attempt=1, semester=3,
                 passed=True, ects=10, grade=3.0)
 
-    sql = load_sql("sw_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
+    sql = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
 
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')  # Only compare first entry here.
@@ -473,7 +482,7 @@ def test_study_duration_labels_as_classification_problem():
         if i > 0:
             db.add_exam(cs_student, 'b', attempt=1, semester=(i+1), passed=True, ects=5, grade=1.0)
 
-    sql = load_sql("cs_first_term_ects", "study_duration", template_dir=DIR)
+    sql = load_sql("cs_first_term_ects", "study_duration")
 
     df = db.read_sql_query(sql)
     actual = df.to_dict(orient='records')
@@ -498,8 +507,8 @@ def test_study_duration_labels_as_classification_problem():
 
 @pytest.mark.skip(reason="We do not have any SW students in the test DB as of now.")
 def test_sw_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features():
-    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
-    sql_ectp = load_sql("sw_first_term_ects", "4term_cp", template_dir=DIR)
+    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
+    sql_ectp = load_sql("sw_first_term_ects", "4term_cp")
 
     db = testutil.get_db_connection()
 
@@ -516,8 +525,8 @@ def test_sw_combined_ectp_and_grade_should_have_same_ectp_as_ectp_only_features(
 
 @pytest.mark.skip(reason="We do not have any SW students in the test DB as of now.")
 def test_sw_combined_ectp_and_grade_should_have_same_grades_as_grade_only_features():
-    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp", template_dir=DIR)
-    sql_grades = load_sql("sw_first_term_grades", "4term_cp", template_dir=DIR)
+    sql_combined = load_sql("sw_first_term_grades_and_ectp", "4term_cp")
+    sql_grades = load_sql("sw_first_term_grades", "4term_cp")
 
     db = testutil.get_db_connection()
 
@@ -541,7 +550,7 @@ def test_listing_available_features():
                 'sw_first_term_grades_and_ectp',
                 'sw_second_term_base_modules'
                 ]
-    actual = list_available_features(template_dir=DIR)
+    actual = list_available_features()
 
     assert expected == actual
 
@@ -557,6 +566,6 @@ def test_listing_available_labels():
                 'rsz',
                 'study_duration',
                 ]
-    actual = list_available_labels(template_dir=DIR)
+    actual = list_available_labels()
 
     assert expected == actual

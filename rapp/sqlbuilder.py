@@ -10,10 +10,12 @@ from os import path
 
 import chevron
 
-__DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
+_DEFAULTTEMPLATEDIR = path.join(os.getcwd(), 'sqltemplates')
 
+def load_sql(features_id, labels_id, template_dir=None):
+    if template_dir is None:
+        template_dir = _DEFAULTTEMPLATEDIR
 
-def load_sql(features_id, labels_id, template_dir=__DEFAULTTEMPLATEDIR):
     f_select, f_join, f_where = __load_components(
         "features", features_id, template_dir=template_dir)
     l_select, l_join, l_where = __load_components(
@@ -34,7 +36,7 @@ def load_sql(features_id, labels_id, template_dir=__DEFAULTTEMPLATEDIR):
     return query
 
 
-def __load_components(type, id, template_dir=__DEFAULTTEMPLATEDIR):
+def __load_components(type, id, template_dir=None):
     """
     For the given type and identifier,
     load the contents of the SELECT, the JOIN, and the WHERE statements.
@@ -51,6 +53,8 @@ def __load_components(type, id, template_dir=__DEFAULTTEMPLATEDIR):
     where: str
         Contents for the WHERE statement.
     """
+    if template_dir is None:
+        template_dir = _DEFAULTTEMPLATEDIR
     template_path = path.join(template_dir, type, id)
 
     sel_sql = path.join(template_path, "select.sql")
@@ -76,18 +80,24 @@ def __load_text(file_path):
         return f.read()
 
 
-def list_available_features(template_dir=__DEFAULTTEMPLATEDIR):
+def list_available_features(template_dir=None):
     """
     List all available features.
     """
+    if template_dir is None:
+        template_dir = _DEFAULTTEMPLATEDIR
+
     dir = path.join(template_dir, 'features')
     return sorted(__list_subdirs(dir))
 
 
-def list_available_labels(template_dir=__DEFAULTTEMPLATEDIR):
+def list_available_labels(template_dir=None):
     """
     List all available labels.
     """
+    if template_dir is None:
+        template_dir = _DEFAULTTEMPLATEDIR
+
     dir = path.join(template_dir, 'labels')
     return sorted(__list_subdirs(dir))
 
