@@ -415,7 +415,7 @@ class EvaluationWidget(QtWidgets.QWidget):
                 plot.figure.suptitle(f'Pareto Plot {sensitive} - {mode.capitalize()}set')
                 plot.figure.set_size_inches(8.5, 5.8)
                 plot.figure.tight_layout()
-                plot.figure.savefig(file_path)
+                plot.figure.savefig(file_path, bbox_inches="tight")
 
     def open_inspection_tab(self, model_index):
         self.tabs.setCurrentIndex(self.inspection_tab_idx)
