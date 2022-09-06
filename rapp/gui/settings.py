@@ -78,6 +78,7 @@ class SimpleSettings(QtWidgets.QWidget):
 
         tab_idx = self.tab.addTab(self.individual_tab, 'Save Models')
         self.individual_tab_idx = tab_idx
+        self.tab.setTabEnabled(tab_idx, False)
 
     def refresh_data(self, pipeline, data_settings):
         self.data_settings = data_settings

@@ -233,6 +233,9 @@ class Pipeline(QtWidgets.QWidget):
             traceback.print_exc()
             return
 
+        # Enable Tab to save models
+        self.qmainwindow.settings.tab.setTabEnabled(self.qmainwindow.settings.individual_tab_idx, True)
+
         if pl.fairness_results[next(iter(pl.fairness_results))]:
             data_settings = {"studies_id": cf.studies_id,
                              "features_id": cf.features_id,
