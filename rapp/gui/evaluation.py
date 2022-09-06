@@ -409,12 +409,14 @@ class EvaluationWidget(QtWidgets.QWidget):
     def _export_pareto_plots(self, dirName):
         for sensitive, collapsible in self.sensitiveParetoTables.items():
             for mode, plot in collapsible.pareto_groupBox.items():
+                if mode == "train":
+                    mode = "training"
+
                 file_name = f"pareto_plot_{mode.lower()}_{sensitive.lower()}.pdf"
                 file_path = os.path.join(dirName, file_name)
 
-                plot.figure.suptitle(f'Pareto Plot {sensitive} - {mode.capitalize()}set')
-                plot.figure.set_size_inches(8.5, 5.8)
-                plot.figure.tight_layout()
+                plot.figure.suptitle(f'{sensitive} - {mode.capitalize()} Set', y=1)
+                plot.figure.set_size_inches(5, 3.5)
                 plot.figure.savefig(file_path, bbox_inches="tight")
 
     def open_inspection_tab(self, model_index):
