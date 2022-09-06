@@ -66,7 +66,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab.layout().addRow('Target Variable:', self.targetSelect)
         self.simple_tab.layout().addRow(self.verifySelect)
 
-        self.tabs.addTab(self.simple_tab, 'Simple')
+        self.tabs.addTab(self.simple_tab, 'Templates')
 
     def __init_advanced_tab(self):
         self.sql_field = QtWidgets.QPlainTextEdit()
@@ -79,7 +79,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.advanced_tab.layout().addWidget(self.sql_field)
         self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
 
-        tab_idx = self.tabs.addTab(self.advanced_tab, 'Advanced')
+        tab_idx = self.tabs.addTab(self.advanced_tab, 'SQL Query')
         self.advanced_tab_index = tab_idx
 
     def __init_buttons(self):

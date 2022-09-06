@@ -76,7 +76,7 @@ class SimpleSettings(QtWidgets.QWidget):
         self.individual_tab.layout().addLayout(self.gridLayout)
         self.individual_tab.layout().setAlignment(QtCore.Qt.AlignTop)
 
-        tab_idx = self.tab.addTab(self.individual_tab, 'Trained Models')
+        tab_idx = self.tab.addTab(self.individual_tab, 'Save Models')
         self.individual_tab_idx = tab_idx
 
     def refresh_data(self, pipeline, data_settings):
