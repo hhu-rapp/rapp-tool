@@ -1,4 +1,6 @@
 # PyQt5
+import os.path
+
 import numpy as np
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
@@ -306,6 +308,11 @@ class EvaluationWidget(QtWidgets.QWidget):
         for notion in pipeline.fairness_functions:
             self.pareto_cbNotions.addItem(str(notion))
 
+        # export button
+        self.plot_export_button = QtWidgets.QPushButton('Export Plots')
+        self.plot_export_button.clicked.connect(self._showExportPlotsDialog)
+        self.plot_export_button.setStatusTip('Export pareto plots as PDF file')
+
         def populate_pareto_table():
             self._populate_pareto_table(pipeline.data, pipeline.sensitive_attributes,
                                         pipeline.performance_results, pipeline.fairness_results, pl_type)
@@ -316,6 +323,7 @@ class EvaluationWidget(QtWidgets.QWidget):
         # add to groupBox
         paretoTopLayout.addRow(f'{pl_type} Metric:', self.pareto_cbMetrics)
         paretoTopLayout.addRow('Fairness Notion:', self.pareto_cbNotions)
+        paretoTopLayout.addRow('', self.plot_export_button)
 
         # add to layout
         self.pareto_tab.layout().addWidget(self.pareto_metrics_groupBox)
@@ -389,6 +397,25 @@ class EvaluationWidget(QtWidgets.QWidget):
         self._clear_summary_table()
         self._clear_inspection_table()
         self._clear_pareto_table()
+
+    def _showExportPlotsDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        dirName = QtWidgets.QFileDialog.getExistingDirectory(self, "Export to folder", "",
+                                                             QtWidgets.QFileDialog.ShowDirsOnly)
+        if dirName:
+            self._export_pareto_plots(dirName)
+
+    def _export_pareto_plots(self, dirName):
+        for sensitive, collapsible in self.sensitiveParetoTables.items():
+            for mode, plot in collapsible.pareto_groupBox.items():
+                file_name = f"pareto_plot_{mode.lower()}_{sensitive.lower()}.pdf"
+                file_path = os.path.join(dirName, file_name)
+
+                plot.figure.suptitle(f'Pareto Plot {sensitive} - {mode.capitalize()}set')
+                plot.figure.set_size_inches(8.5, 5.8)
+                plot.figure.tight_layout()
+                plot.figure.savefig(file_path)
 
     def open_inspection_tab(self, model_index):
         self.tabs.setCurrentIndex(self.inspection_tab_idx)
