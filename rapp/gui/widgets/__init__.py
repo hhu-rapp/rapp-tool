@@ -734,18 +734,22 @@ class ParetoPlot(QtWidgets.QGroupBox):
         front = pareto_front(pareto_costs)
 
         # plot each model's pareto front
-        colors_pareto = cm.hot(np.linspace(0.25, 0.75, len(legend)))
+        colors_pareto = cm.hot(np.linspace(0.25, 0.75, sum(front)))
         colors_no_pareto = cm.cool(np.linspace(0.4, 0.6, len(legend)))
 
+        j = 0
         for i, model in enumerate(legend):
             if front[i]:
-                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color=colors_pareto[i])
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color=colors_pareto[j])
+                j += 1
             else:
                 ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color=colors_no_pareto[i])
 
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.legend(loc='lower right')
         plt.xlabel(x_label)
         plt.ylabel(y_label)
+        plt.xlim([0, .5])
+        plt.ylim([0, 1])
         fig.tight_layout()
 
         plotCanvas.draw()
