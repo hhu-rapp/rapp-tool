@@ -376,7 +376,7 @@ def test_proba_table_data_in_sample_view(interpretability_clf: GuiTestApi):
 
     actual = values
     expected = {'Label': ['0', '1', '2'],
-                "W'keit": ['0', '1', '2']}
+                "Probability": ['0', '1', '2']}
     assert actual == expected, \
         f"The values in proba table should be {expected}, but is {actual}"
 
