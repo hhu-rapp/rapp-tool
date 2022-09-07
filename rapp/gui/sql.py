@@ -1,5 +1,5 @@
 import logging
-log = logging.getLogger('GUI')
+from os.path import basename
 
 import pandas as pd
 from pandas.io.sql import DatabaseError
@@ -9,6 +9,8 @@ from PyQt5 import QtWidgets
 
 from rapp.sqlbuilder import load_sql
 from rapp import sqlbuilder
+
+log = logging.getLogger('GUI')
 
 
 class SQLWidget(QtWidgets.QWidget):
@@ -23,6 +25,8 @@ class SQLWidget(QtWidgets.QWidget):
         super(SQLWidget, self).__init__()
 
         self.displaySql = sql_query_callback
+
+        self.db_filepath = None
 
         self.tabs = QtWidgets.QTabWidget()
         self.__init_simple_tab()
@@ -41,22 +45,11 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab = QtWidgets.QWidget()
         self.simple_tab.setLayout(QtWidgets.QFormLayout())
 
-        # setup path
-        dirs_feats = sqlbuilder.list_available_features()
-        dirs_labels = sqlbuilder.list_available_labels()
 
         # Setup SQL templating
         self.featuresSelect = QtWidgets.QComboBox()
-        self.featuresSelect.addItem("")
-        for feat_id in dirs_feats:
-            log.debug(f"Adding feature '{feat_id}' to SQL templates")
-            self.featuresSelect.addItem(feat_id)
-
         self.targetSelect = QtWidgets.QComboBox()
-        self.targetSelect.addItem("")
-        for label_id in dirs_labels:
-            log.debug(f"Adding label '{label_id}' to SQL templates")
-            self.targetSelect.addItem(label_id)
+        self.__populate_template_options()
 
         self.verifySelect = QtWidgets.QPushButton("Load")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
@@ -67,6 +60,26 @@ class SQLWidget(QtWidgets.QWidget):
         self.simple_tab.layout().addRow(self.verifySelect)
 
         self.tabs.addTab(self.simple_tab, 'Templates')
+
+    def __populate_template_options(self):
+        """
+        Populates the template options in the simple tab.
+        """
+        self.featuresSelect.clear()
+        self.targetSelect.clear()
+        # setup path
+        dirs_feats = sqlbuilder.list_available_features()
+        dirs_labels = sqlbuilder.list_available_labels()
+
+        self.featuresSelect.addItem("")
+        for feat_id in dirs_feats:
+            log.debug(f"Adding feature '{feat_id}' to SQL templates")
+            self.featuresSelect.addItem(feat_id)
+
+        self.targetSelect.addItem("")
+        for label_id in dirs_labels:
+            log.debug(f"Adding label '{label_id}' to SQL templates")
+            self.targetSelect.addItem(label_id)
 
     def __init_advanced_tab(self):
         self.sql_field = QtWidgets.QPlainTextEdit()
@@ -164,3 +177,13 @@ class SQLWidget(QtWidgets.QWidget):
 
         # Change to advanced tab.
         self.tabs.setCurrentIndex(self.advanced_tab_index)
+
+    def set_db_filepath(self, path):
+        """
+        Sets the database filepath to the given path.
+        """
+        log.debug("Setting database filepath by external call to %s", path)
+        self.db_filepath = path
+
+        sqlbuilder.set_database_name(basename(self.db_filepath))
+        self.__populate_template_options()

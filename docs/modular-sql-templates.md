@@ -7,22 +7,52 @@ feature and each label once, then combine everything arbitrarily.
 
 ## Adding a new template
 
-New templates are stored in
-[`rapp.resources.sqltemplates`](../rapp/resources/sqltemplates).
-Features and labels are stored in the subdirectories `features` and `labels`,
+New templates are by default stored in
+the directory [`sqltemplates/`](../sqltemplates/) but this can be altered
+by using the `template_dir` parameter for the SQL-template loading functions.
+It is assumed that
+features and labels are stored in the subdirectories `features` and `labels`,
 respectively.
 
 A new template is stored as a subdirectory to either `features` or `labels`
 and contains up to three files:
 
 1. `select.sql` (mandatory)
-1. `join.sql` (optional)
-1. `where.sql` (optional)
+2. `join.sql` (optional)
+3. `where.sql` (optional)
+
+### Using multiple databases
+
+If working with multiple database files which need different templates,
+adding a directory called after the database file's base name will allow
+smart loading of templates if the respective database is loaded.
+
+See the following directory layout
+
+```directory
+templates/
++- features/
++- labels/
++- rapp.db/
+|  +- features/
+|  +- labels/
++- other.db/
+   +- features/
+   +- labels/
+```
+
+Features and labels defined under `templates/features` and `templates/labels`,
+respectively, are available at all times while the features and labels
+within `templates/rapp.db/` or `other.db` are only available if either database
+is loaded as well.
+
+Note: If a database specific feature or label shares the name with one from the
+general features or labels, it will shadow the general one.
 
 ## Semantics of the template files
 
 The template files for SELECT, JOIN, and WHERE
-are put into a [mustache template](../rapp/resources/sqltemplates/skeleton.sql)
+are put into a [mustache template](../sqltemplates/basetemplate.sql)
 which has the following form
 
 ```sql
@@ -78,7 +108,4 @@ constructed_sql_query = load_sql(features_id=feature_template_id,
 ```
 
 The respective template IDs are the names of the template
-subdirectories in either
-`rapp.resources.sqltemplates.features`
-or
-`rapp.resources.sqltemplates.labels`.
+subdirectories.

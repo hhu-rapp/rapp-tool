@@ -219,6 +219,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         log.info('Connecting to database %s', filepath)
 
         self.filepath_db = filepath
+        self.sql_tabs.set_db_filepath(filepath)
         self.__conn = data.connect(self.filepath_db)
         self.pandas_dataview.set_connection(self.__conn)
 

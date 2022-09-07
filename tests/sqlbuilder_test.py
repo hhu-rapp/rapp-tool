@@ -1,10 +1,22 @@
 import pytest
 from pandas import read_sql_query
 
+from rapp import sqlbuilder
 from rapp.sqlbuilder import load_sql, list_available_features, list_available_labels
 
 from tests import resources as rc
 from tests import testutil
+
+
+DIR=rc.get_path("sql/templatesous")
+
+@pytest.fixture(autouse=True)
+def set_default_template_path():
+    old_default = sqlbuilder._DEFAULTTEMPLATEDIR
+    sqlbuilder._DEFAULTTEMPLATEDIR = rc.get_path('sql/templates')
+    yield  # Execute test.
+    sqlbuilder._DEFAULTTEMPLATEDIR = old_default
+
 
 
 def test_construct_when_all_parts_are_given():
