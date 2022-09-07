@@ -423,7 +423,7 @@ class SampleView(QtWidgets.QWidget):
             self.proba_layout.addWidget(labelLabel, 0, 0, alignment=QtCore.Qt.AlignLeft)
 
             probaLabel = QtWidgets.QLabel()
-            probaLabel.setText("W'keit")
+            probaLabel.setText("Probability")
             probaLabel.setStyleSheet('font-weight: bold;')
             self.proba_layout.addWidget(probaLabel, 0, 1, alignment=QtCore.Qt.AlignRight)
 
