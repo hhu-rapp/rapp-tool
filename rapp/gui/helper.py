@@ -1,5 +1,10 @@
+import re
 import time
 import logging
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor
+
 log = logging.getLogger('GUI')
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -164,6 +169,7 @@ class CollapsibleBox(QtWidgets.QWidget):
     Code from:
     https://stackoverflow.com/questions/52615115/how-to-create-collapsible-box-in-pyqt
     """
+
     def __init__(self, title="", parent=None):
         super(CollapsibleBox, self).__init__(parent)
 
@@ -218,17 +224,72 @@ class CollapsibleBox(QtWidgets.QWidget):
     def setContentLayout(self, layout):
         self.content_area.setLayout(layout)
         collapsed_height = (
-            self.sizeHint().height() - self.content_area.maximumHeight()
+                self.sizeHint().height() - self.content_area.maximumHeight()
         )
         content_height = layout.sizeHint().height()
-        for i in range(self.toggle_animation.animationCount()-1):
+        for i in range(self.toggle_animation.animationCount() - 1):
             animation = self.toggle_animation.animationAt(i)
             animation.setDuration(100)
             animation.setStartValue(collapsed_height)
             animation.setEndValue(collapsed_height + content_height)
 
         content_animation = self.toggle_animation.animationAt(
-                self.toggle_animation.animationCount()-1)
+            self.toggle_animation.animationCount() - 1)
         content_animation.setDuration(100)
         content_animation.setStartValue(0)
         content_animation.setEndValue(content_height)
+
+
+class Highlighter(QSyntaxHighlighter):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._mapping = {}
+
+    def add_mapping(self, pattern, pattern_format):
+        self._mapping[pattern] = pattern_format
+
+    def highlightBlock(self, text_block):
+        for pattern, fmt in self._mapping.items():
+            for match in re.finditer(pattern, text_block):
+                start, end = match.span()
+                self.setFormat(start, end - start, fmt)
+
+
+def init_sql_highlighter(highlighter, sql_field):
+
+    # SQL operations
+    sql_format = QTextCharFormat()
+    sql_format.setForeground(QColor("#2088b5"))
+    pattern = r'SELECT|FROM|WHERE|JOIN|INNER|OUTER|LEFT|RIGHT|CASE WHEN|THEN|END|AS|GROUP BY|ON|IF|ELSE'
+    highlighter.add_mapping(pattern, sql_format)
+    pattern = r'select|from |where |join |inner |outer |left |right |case when |then | end| as |group by | on | if | else'
+    highlighter.add_mapping(pattern, sql_format)
+
+    # Numbers
+    number_format = QTextCharFormat()
+    number_format.setForeground(QColor("#9a0357"))
+    pattern = r'[0-9]| null| NULL|[0-9]\.[0-9]'
+    highlighter.add_mapping(pattern, number_format)
+
+    # Math operations
+    math_format = QTextCharFormat()
+    math_format.setForeground(QColor("#a67f5a"))
+    pattern = r' and | in | is |AND | IN | IS | not | NOT |>|<|=|\+|\*|\/'
+    highlighter.add_mapping(pattern, math_format)
+
+    # Strings
+    string_format = QTextCharFormat()
+    string_format.setForeground(QColor("#81ab2d"))
+    pattern = r'"(.*?)"'
+    highlighter.add_mapping(pattern, string_format)
+    pattern = r"'(.*?)'"
+    highlighter.add_mapping(pattern, string_format)
+
+    # Comments
+    comment_format = QTextCharFormat()
+    comment_format.setForeground(QColor("#73777B"))
+    comment_format.setFontItalic(True)
+    pattern = r'--.*$'
+    highlighter.add_mapping(pattern, comment_format)
+
+    highlighter.setDocument(sql_field.document())
