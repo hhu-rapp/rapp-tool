@@ -2,11 +2,13 @@ import logging
 from os.path import basename
 
 import pandas as pd
+from PyQt5.QtGui import QTextCharFormat
 from pandas.io.sql import DatabaseError
 
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 
+from rapp.gui.helper import Highlighter, init_sql_highlighter
 from rapp.sqlbuilder import load_sql
 from rapp import sqlbuilder
 
@@ -87,6 +89,9 @@ class SQLWidget(QtWidgets.QWidget):
 
         self.advanced_tab = QtWidgets.QWidget()
         self.advanced_tab.setLayout(QtWidgets.QVBoxLayout())
+
+        self.highlighter = Highlighter()
+        init_sql_highlighter(self.highlighter, self.sql_field)
 
         self.__init_buttons()
         self.advanced_tab.layout().addWidget(self.sql_field)
