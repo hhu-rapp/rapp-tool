@@ -1,6 +1,6 @@
-# RAPP Prediction Package
+# RAPP GUI Package
 
-Responsible Academic Performance Prediction (RAPP)
+The **responsible academic performance prediction** (RAPP) GUI is a tool to train, save, load and evaluate Machine Learning models.
 
 ## How it internally works
 
