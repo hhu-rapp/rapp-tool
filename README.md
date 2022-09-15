@@ -28,7 +28,7 @@ system.
 
 ### Required Files
 
-The `superx` database is to be positioned in the `data` directory:
+The `superx` SQLite database is to be positioned in the `data` directory:
 
 ```tree
 data/rapp.db
