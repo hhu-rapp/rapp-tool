@@ -280,22 +280,21 @@ def init_sql_highlighter(highlighter, sql_field):
     highlighter.add_mapping(pattern, logic_format)
 
     # Aggregate functions
-    logic_format = QTextCharFormat()
-    logic_format.setForeground(QColor("#a67f5a"))
-    pattern = r'and |or |in |is |AND |OR |IN |IS |not |NOT ||> |<| |= |\+|\*|\/' \
-              r'|exists |EXISTS |like |LIKE |glob |GLOB | is null| IS NULL| unique| UNIQUE'
-    highlighter.add_mapping(pattern, logic_format)
+    aggregate_format = QTextCharFormat()
+    aggregate_format.setForeground(QColor("#845ec2"))
+    pattern = r'avg()|AVG()|count()|COUNT()|min()|MIN()|max()|MAX()|sum()|SUM()|total()|TOTAL()'
+    highlighter.add_mapping(pattern, aggregate_format)
 
     # Comparison
-    math_format = QTextCharFormat()
-    math_format.setForeground(QColor("#a67f5a"))
+    compare_format = QTextCharFormat()
+    compare_format.setForeground(QColor("#a67f5a"))
     pattern = r'==|!=|<>|>|<|>=|<=|!<|!>'
-    highlighter.add_mapping(pattern, math_format)
+    highlighter.add_mapping(pattern, compare_format)
 
     # Strings
     string_format = QTextCharFormat()
     string_format.setForeground(QColor("#81ab2d"))
-    pattern = r'"(.*?)"'
+    pattern = r'"(.*?)"|strftime()'
     highlighter.add_mapping(pattern, string_format)
 
     # Comments
