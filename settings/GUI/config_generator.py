@@ -20,7 +20,7 @@ filename = ['data/rapp.db']
 studies_id = ['cs', 'sw']
 features_id = ['first_term_modules', 'first_term_grades', 'first_term_ects', 'first_term_grades_and_ectp']
 labels_id = ['3_dropout', '4term_ap', '4term_cp', 'master_admission', 'rsz']
-type = ['Classification', 'Regression']
+type = ['classification', 'regression']
 sensitive_attributes = ["[Geschlecht, Deutsch]"]
 fairness = [True, False]
 
