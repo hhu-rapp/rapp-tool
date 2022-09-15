@@ -40,9 +40,9 @@ for database in filename:
                 mustache['labels_id'] = labels
 
                 if labels in regression_id:
-                    mustache['type'] = 'Regression'
+                    mustache['type'] = 'regression'
                 else:
-                    mustache['type'] = 'Classification'
+                    mustache['type'] = 'classification'
 
                 for fairness_option in fairness:
                     mustache['fairness'] = fairness_option
