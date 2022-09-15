@@ -1,6 +1,8 @@
 # RAPP GUI Package
 
-The **responsible academic performance prediction** (RAPP) GUI is a tool to train, save, load and evaluate Machine Learning models.
+The **responsible academic performance prediction** (RAPP) GUI is a tool to **train, save, load** and **evaluate** Machine Learning models on **any SQLite database**. Users can load a database, query custom SQL queries and use the resulting database as training/test data for the Machine Learning pipeline.
+
+For the specific use case of predicting students data from the Heinrich Heine University, this package provides SQL templates that leverages the complexity of feature engineering away from the user.
 
 ## How it internally works
 
