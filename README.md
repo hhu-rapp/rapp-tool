@@ -4,9 +4,9 @@ Responsible Academic Performance Prediction (RAPP)
 
 ## How it internally works
 
-1. Loads `superx` database.
+1. Loads `superx` SQLite database.
 2. SQL query on `superx` database to obtain a new database.
-3. One column of the new database is the target label. The rest are training data.
+3. One column of the new database is the target label. The rest are training data. The last column is by default the target.
 4. With a given list of categorical columns, those are then one-hot encoded.
 5. With the predefined type of the supervised learning task, respective supervised learning algorithms are used. The data is ran through a Machine Learning Pipeline.
 
@@ -28,31 +28,34 @@ system.
 
 ### Required Files
 
-The `superx` SQLite database is to be positioned in the `data` directory:
+The `superx` SQLite database is to be positioned in the `data/` directory:
 
 ```tree
 data/rapp.db
 ```
 
-The SQL files are to be positioned in the `sql` directory:
+SQL Templates are already available that are compatible with the `superx` database. The templates are located in the `sqltemplates/` directory:
 
 ```tree
-sql/CSFirstSemester.sql
+sqltemplates/
 ```
 
 ### First start
 
-A config file `config.ini` is already available and contains the required arguments to run the prediction. To run the prediction, simply execute
-
-```bash
-python -m rapp --config-file settings/pipeline/config.ini
-```
-
-To run the GUI, simply execute
+The GUI can be started by executing
 
 ```bash
 python -m rapp.gui
 ```
+
+For a headless run, settings are provided. To run an example evaluation, simply execute
+
+```bash
+python -m rapp --config-file settings/GUI/cs/first_term_ects/cs_first_term_ects_3_dropout.ini
+```
+
+The reports are saved under `reports/`
+
 
 ### Explainable AI (Decision Tree)
 
