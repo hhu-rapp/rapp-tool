@@ -260,29 +260,42 @@ def init_sql_highlighter(highlighter, sql_field):
     # SQL operations
     sql_format = QTextCharFormat()
     sql_format.setForeground(QColor("#2088b5"))
-    pattern = r'SELECT|FROM|WHERE|JOIN|INNER|OUTER|LEFT|RIGHT|CASE WHEN|THEN|END|AS|GROUP BY|ON|IF|ELSE'
+    pattern = r'SELECT|FROM|WHERE|JOIN|INNER |OUTER |LEFT |RIGHT |CASE WHEN |THEN | END| AS |GROUP BY | ON |IF |ELSE '
     highlighter.add_mapping(pattern, sql_format)
-    pattern = r'select|from |where |join |inner |outer |left |right |case when |then | end| as |group by | on | if | else'
+    pattern = r'select | from | where | join | inner | outer | left | right | case when | then | end | as | group by ' \
+              r'| on | if | else'
     highlighter.add_mapping(pattern, sql_format)
 
     # Numbers
     number_format = QTextCharFormat()
     number_format.setForeground(QColor("#9a0357"))
-    pattern = r'[0-9]| null| NULL|[0-9]\.[0-9]'
+    pattern = r'[0-9]| null | NULL | [0-9]\.[0-9]'
     highlighter.add_mapping(pattern, number_format)
 
-    # Math operations
+    # Logic operations
+    logic_format = QTextCharFormat()
+    logic_format.setForeground(QColor("#a67f5a"))
+    pattern = r'and |or |in |is |AND |OR |IN |IS |not |NOT ||> |<| |= |\+|\*|\/' \
+              r'|exists |EXISTS |like |LIKE |glob |GLOB | is null| IS NULL| unique| UNIQUE'
+    highlighter.add_mapping(pattern, logic_format)
+
+    # Aggregate functions
+    logic_format = QTextCharFormat()
+    logic_format.setForeground(QColor("#a67f5a"))
+    pattern = r'and |or |in |is |AND |OR |IN |IS |not |NOT ||> |<| |= |\+|\*|\/' \
+              r'|exists |EXISTS |like |LIKE |glob |GLOB | is null| IS NULL| unique| UNIQUE'
+    highlighter.add_mapping(pattern, logic_format)
+
+    # Comparison
     math_format = QTextCharFormat()
     math_format.setForeground(QColor("#a67f5a"))
-    pattern = r' and | in | is |AND | IN | IS | not | NOT |>|<|=|\+|\*|\/'
+    pattern = r'==|!=|<>|>|<|>=|<=|!<|!>'
     highlighter.add_mapping(pattern, math_format)
 
     # Strings
     string_format = QTextCharFormat()
     string_format.setForeground(QColor("#81ab2d"))
     pattern = r'"(.*?)"'
-    highlighter.add_mapping(pattern, string_format)
-    pattern = r"'(.*?)'"
     highlighter.add_mapping(pattern, string_format)
 
     # Comments
