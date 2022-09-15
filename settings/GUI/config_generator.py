@@ -21,6 +21,7 @@ studies_id = ['cs', 'sw']
 features_id = ['first_term_modules', 'first_term_grades', 'first_term_ects', 'first_term_grades_and_ectp']
 labels_id = ['3_dropout', '4term_ap', '4term_cp', 'master_admission', 'rsz']
 type = ['classification', 'regression']
+categorical_attributes = ["[Geschlecht]"]
 sensitive_attributes = ["[Geschlecht, Deutsch]"]
 fairness = [True, False]
 
@@ -43,6 +44,9 @@ for database in filename:
                     mustache['type'] = 'regression'
                 else:
                     mustache['type'] = 'classification'
+
+                for categorical_attribute in categorical_attributes:
+                    mustache['categorical'] = categorical_attribute
 
                 for fairness_option in fairness:
                     mustache['fairness'] = fairness_option
