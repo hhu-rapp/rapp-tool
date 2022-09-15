@@ -70,6 +70,8 @@ def save_report(pipeline: Pipeline, path="reports/"):
     for est, data in pipeline.performance_results.items():
         write_estimator_report(est, data, path)
 
+    print('Report saved to {0}'.format(path))
+
 
 def write_estimator_report(est, performance_data, path):
     """
