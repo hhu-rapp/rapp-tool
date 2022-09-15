@@ -4,8 +4,8 @@ Responsible Academic Performance Prediction (RAPP)
 
 ## How it internally works
 
-1. Loads `superx` SQLite database.
-2. SQL query on `superx` database to obtain a new database.
+1. Loads SQLite database.
+2. SQL query on database to obtain a new database.
 3. One column of the new database is the target label. The rest are training data. The last column is by default the target.
 4. With a given list of categorical columns, those are then one-hot encoded.
 5. With the predefined type of the supervised learning task, respective supervised learning algorithms are used. The data is ran through a Machine Learning Pipeline.
@@ -28,13 +28,15 @@ system.
 
 ### Required Files
 
-The `superx` SQLite database is to be positioned in the `data/` directory:
+We provide a dummy database `data/rapp_dummy.db` that is compatible with the tool.
+The dummy database consists of artificial data that do not represent any real student.
+The SQLite database is to be positioned in the `data/` directory:
 
 ```tree
 data/rapp.db
 ```
 
-SQL Templates are already available that are compatible with the `superx` database. The templates are located in the `sqltemplates/` directory:
+SQL Templates already available are compatible with the database. The templates are located in the `sqltemplates/` directory:
 
 ```tree
 sqltemplates/
