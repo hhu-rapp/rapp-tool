@@ -105,18 +105,6 @@ class RappConfigParser(object):
                             help='List of columns to ignore.',
                             required=False, default=[])
 
-        parser.add_argument('--feature_selection', type=str, default='variance',
-                            choices=['variance'],
-                            help='Feature selection method to reduce the amount of features. Available: variance',
-                            required=False)
-
-        parser.add_argument('--imputation', type=str, default='iterative',
-                            choices=['knn', 'iterative', 'mean',
-                                     'median', 'most_frequent'],
-                            help='Imputation method for non-categorical data. Available: knn, iterative, mean, '
-                            'median, most_frequent',
-                            required=False)
-
         parser.add_argument('--sensitive_attributes', nargs='+',
                             help='List of sensitive attributes',
                             required=False, default=[])
