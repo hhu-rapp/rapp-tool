@@ -65,8 +65,8 @@ class Window(QMainWindow):
         self.setWindowTitle('Responsible Academic Performance Prediction')
 
         # setting the geometry of window
-        self.width = 1180
-        self.height = 700
+        self.width = 1200
+        self.height = 800
         self.setGeometry(100, 60, self.width, self.height)
 
     def initLayout(self):
