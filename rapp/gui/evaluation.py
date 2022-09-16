@@ -416,8 +416,10 @@ class EvaluationWidget(QtWidgets.QWidget):
                 file_path = os.path.join(dirName, file_name)
 
                 plot.figure.suptitle(f'{sensitive} - {mode.capitalize()} Set', y=1)
+                size = plot.figure.get_size_inches() #* plot.figure.dpi
                 plot.figure.set_size_inches(5, 3.5)
                 plot.figure.savefig(file_path, bbox_inches="tight")
+                plot.figure.set_size_inches(size) # return back to original size after exporting plot
 
     def open_inspection_tab(self, model_index):
         self.tabs.setCurrentIndex(self.inspection_tab_idx)
