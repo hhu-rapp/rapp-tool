@@ -140,7 +140,7 @@ class PredictionWidget(QtWidgets.QWidget):
                     # Majority voting for classification
                     if modelCb.itemData(item_index)['labels_id'].split('_')[0] != 'reg':
                         y_pred = stats.mode(np.array(y_preds))
-                        self.predLabels[i].setText(str(y_pred[0]))
+                        self.predLabels[i].setText(str(y_pred[0][0][0]))
                     # Mean for regression
                     if modelCb.itemData(item_index)['labels_id'].split('_')[0] == 'reg':
                         y_pred = np.mean(np.array(y_preds))
