@@ -309,9 +309,9 @@ class EvaluationWidget(QtWidgets.QWidget):
             self.pareto_cbNotions.addItem(str(notion))
 
         # export button
-        self.plot_export_button = QtWidgets.QPushButton('Export Plots')
+        self.plot_export_button = QtWidgets.QPushButton('Save Plots')
         self.plot_export_button.clicked.connect(self._showExportPlotsDialog)
-        self.plot_export_button.setStatusTip('Export pareto plots as PDF file')
+        self.plot_export_button.setStatusTip('Save pareto plots as PDF file')
 
         def populate_pareto_table():
             self._populate_pareto_table(pipeline.data, pipeline.sensitive_attributes,
