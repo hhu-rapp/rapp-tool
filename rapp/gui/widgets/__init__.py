@@ -294,7 +294,7 @@ class SummaryTable(QtWidgets.QGroupBox):
                             group_values = [values[k]["affected_percent"] for k in keys]
                             if len(values) == 2:
                                 measure = abs(group_values[0] - group_values[1])
-                            else:
+                            elif len(values) > 2:
                                 # We have multiple groups, so we assume the
                                 # maximum difference across groups as the final
                                 # measure
@@ -302,13 +302,19 @@ class SummaryTable(QtWidgets.QGroupBox):
                                 measure = max([len(group_values[i] - group_values[j])
                                                for i in range(len(group_values))
                                                for j in range(i+1, len(group_values))])
+                            else:
+                                logging.error("No groups detected, cannot compute fairness measure.")
+                                measure = None
 
                         if pl_type == "regression":
                             logging.error("Fairness measures for regression tasks are not yet implemented.")
                             measure = values
 
                         labelValue = QtWidgets.QLabel()
-                        labelValue.setText(f"{measure:.3f}")
+                        if measure is not None:
+                            labelValue.setText(f"{measure:.3f}")
+                        else:
+                            labelValue.setText(f"NaN")
                         tableGridLayout.addWidget(labelValue, j + 1, i + 1, Qt.AlignRight)
                         self.labels[labelMetric].append(labelValue)
 

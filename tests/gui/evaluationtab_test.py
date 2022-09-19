@@ -48,14 +48,25 @@ def clf_pipeline():
     pipeline.performance_results[est2] = pipeline.performance_results[est1]
 
     pipeline.fairness_results = {est1: {'Sensitive':
-                                            {'C': {'train': {'foo': {'affected_percent': 0.5,
-                                                                     'confusion_matrix': [0, 2, 4, 7]}}}},
+                                            {'C': {'train': {'bar': {'affected_percent': 0.55,
+                                                                     'confusion_matrix': [0, 2, 4, 7]},
+                                                             'baz': {'affected_percent': 0.65,
+                                                                     'confusion_matrix': [0, 4, 4, 3]}}}},
                                         'Protected':
-                                            {'C': {'train': {'bar': {'affected_percent': 0.5,
+                                            {'C': {'train': {'bar': {'affected_percent': 0.1,
                                                                      'confusion_matrix': [0, 2, 4, 7]},
                                                              'baz': {'affected_percent': 0.5,
                                                                      'confusion_matrix': [0, 4, 4, 3]}}}}}}
-    pipeline.fairness_results[est2] = pipeline.fairness_results[est1]
+    pipeline.fairness_results[est2] = {'Sensitive':
+                                            {'C': {'train': {'bar': {'affected_percent': 0.1,
+                                                                     'confusion_matrix': [0, 2, 4, 7]},
+                                                             'baz': {'affected_percent': 0.3,
+                                                                     'confusion_matrix': [0, 4, 4, 3]}}}},
+                                        'Protected':
+                                            {'C': {'train': {'bar': {'affected_percent': 0.1,
+                                                                     'confusion_matrix': [0, 2, 4, 7]},
+                                                             'baz': {'affected_percent': 0.5,
+                                                                     'confusion_matrix': [0, 4, 4, 3]}}}}}
 
     return pipeline
 
@@ -173,7 +184,7 @@ def test_table_in_summary(fairtab_clf: GuiTestApi):
     expected = {'Model': ['DummyClassifier', 'DummyClassifier'],
                 'A': ['0.200', '0.200'],
                 'B': ['0.500', '0.500'],
-                'C': ['0.500', '0.500']}
+                'C': ['0.100', '0.200']}
     assert actual == expected, \
         f"The values in the summary table should be {expected}, but are {actual}"
 
@@ -301,7 +312,7 @@ def test_clf_fairness_notions_table(fairtab_clf: GuiTestApi):
 
     actual = values
     expected = {'Metric': ['C'],
-                'Bar': ['0.500'],
+                'Bar': ['0.100'],
                 'Baz': ['0.500']}
 
     assert actual == expected, \
@@ -386,7 +397,7 @@ def test_costs_in_pareto_plot(fairtab_clf: GuiTestApi):
     sensitive = 'Protected'
     mode = 'train'
     actual = fairtab_clf.pareto_collapsibles[sensitive].pareto_groupBox[mode].costs
-    expected = np.array([0, 0.2])
+    expected = np.array([[0.4, 0.2], [0.4, 0.2]])
     assert (actual == expected).all(), \
         f"The costs for the pareto plot should be {expected}, but is {actual}"
 
