@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
 from matplotlib import cm
@@ -288,14 +289,22 @@ class SummaryTable(QtWidgets.QGroupBox):
                         # fairness notions
                         values = fairness_results[model][sensitive_attribute][metric][mode]
                         if pl_type == "classification":
-                            # average value across sensitive attribute
-                            measure = np.zeros(len(values))
-                            for k, value in enumerate(values):
-                                measure[k] = values[value]['affected_percent']
-
-                            measure = np.mean(measure)
+                            # Difference across sensitive attribute
+                            keys = list(values.keys())
+                            group_values = [values[k]["affected_percent"] for k in keys]
+                            if len(values) == 2:
+                                measure = abs(group_values[0] - group_values[1])
+                            else:
+                                # We have multiple groups, so we assume the
+                                # maximum difference across groups as the final
+                                # measure
+                                logging.info("Multiple groups detected, using the maximum difference across groups as fairness measure.")
+                                measure = max([len(group_values[i] - group_values[j])
+                                               for i in range(len(group_values))
+                                               for j in range(i+1, len(group_values))])
 
                         if pl_type == "regression":
+                            logging.error("Fairness measures for regression tasks are not yet implemented.")
                             measure = values
 
                         labelValue = QtWidgets.QLabel()
