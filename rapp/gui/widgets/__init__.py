@@ -764,9 +764,9 @@ class ParetoPlot(QtWidgets.QGroupBox):
         plt.xlabel(x_label)
         plt.ylabel(y_label)
         # limit axes if needed (for regression and classification)
-        if all(self.costs[:,0] <= 1):
+        if np.all((self.costs[:,0] >= 0) & (self.costs[:,0] <= 1)):
             plt.xlim([0, .5])
-        if all(self.costs[:,1] <= 1):
+        if np.all((self.costs[:,1] >= 0) & (self.costs[:,1] <= 1)):
             plt.ylim([0, 1])
         fig.tight_layout()
 

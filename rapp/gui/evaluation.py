@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import QGroupBox, QScrollArea
 from rapp.gui.helper import CheckableComboBox
 from rapp.gui.widgets import DatasetTables, SummaryTable, InspectionPerformanceTable, InspectionFairnessCollapsible, \
     ParetoCollapsible
-from rapp.util import estimator_name, max_difference
+from rapp.util import estimator_name
+from rapp.fair.metanotion import max_difference
 
 
 class EvaluationWidget(QtWidgets.QWidget):
@@ -352,19 +353,21 @@ class EvaluationWidget(QtWidgets.QWidget):
                         for subgroup in notions[mode]:
                             fairness_subgroups.append(notions[mode][subgroup]['affected_percent'])
                         fairness = max_difference(fairness_subgroups)
+                        performance = performance_results[model][mode]['scores'][metric]
                         x_label = f"Max Difference {notion}"
-
+                        y_label = metric
                     if pl_type == 'Regression':
                         fairness = notions[mode]
+                        performance = -performance_results[model][mode]['scores'][metric]
                         x_label = notion
+                        y_label = f"- {metric}"
 
-                    performance = performance_results[model][mode]['scores'][metric]
                     costs[i] = (fairness, performance)
 
                 costs_per_mode[mode] = costs
 
             self.sensitiveParetoTables[sensitive] = ParetoCollapsible(data, sensitive, models, costs_per_mode,
-                                                                      x_label=x_label, y_label=metric)
+                                                                      x_label=x_label, y_label=y_label)
 
             # add to layout
             self.pareto_tab.layout().addWidget(self.sensitiveParetoTables[sensitive])
