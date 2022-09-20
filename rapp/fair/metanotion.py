@@ -11,14 +11,14 @@ def max_difference(values):
     ------
     Maximal pairwise difference.
     """
-    max_difference = -1
+    max_diff = -1
 
     n = len(values)
     for i in range(n):
         for j in range(i+1, n):
             diff = np.abs(values[i] - values[j])
 
-            if diff > max_difference:
-                max_difference = diff
+            if diff > max_diff:
+                max_diff = diff
 
-    return max_difference
+    return max_diff

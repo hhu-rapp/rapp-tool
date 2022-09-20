@@ -7,6 +7,7 @@ from matplotlib import cm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
+from rapp.fair.metanotion import max_difference
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import ClickableLabel, CollapsibleBox
 from rapp.util import estimator_name, pareto_front
@@ -298,10 +299,9 @@ class SummaryTable(QtWidgets.QGroupBox):
                                 # We have multiple groups, so we assume the
                                 # maximum difference across groups as the final
                                 # measure
-                                logging.info("Multiple groups detected, using the maximum difference across groups as fairness measure.")
-                                measure = max([len(group_values[i] - group_values[j])
-                                               for i in range(len(group_values))
-                                               for j in range(i+1, len(group_values))])
+                                logging.info("Multiple groups detected,"
+                                             "using the maximum difference across groups as fairness measure.")
+                                measure = max_difference(group_values)
                             else:
                                 logging.error("No groups detected, cannot compute fairness measure.")
                                 measure = None
