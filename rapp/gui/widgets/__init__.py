@@ -755,9 +755,9 @@ class ParetoPlot(QtWidgets.QGroupBox):
         markers = ['o', 'v', 's', 'p', 'P', '*', 'X', 'D']
         for i, model in enumerate(legend):
             if front[i]:
-                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='red', marker=markers[i])
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='xkcd:red', marker=markers[i])
             else:
-                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='blue', marker=markers[i])
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='xkcd:lightblue', marker=markers[i])
 
         plt.legend(loc='lower right')
         plt.xlabel(x_label)
