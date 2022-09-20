@@ -752,12 +752,12 @@ class ParetoPlot(QtWidgets.QGroupBox):
         #colors_pareto = cm.hot(np.linspace(0.25, 0.75, sum(front)))
         #colors_no_pareto = cm.cool(np.linspace(0.4, 0.6, len(legend)))
 
-        markers = ['']
+        markers = ['o', 'v', 's', 'p', 'P', '*', 'X', 'D']
         for i, model in enumerate(legend):
             if front[i]:
-                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='red', marker=i)
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='red', marker=markers[i])
             else:
-                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='blue', marker=i)
+                ax.scatter(self.costs[i, 0], self.costs[i, 1], label=model, color='blue', marker=markers[i])
 
         plt.legend(loc='lower right')
         plt.xlabel(x_label)
