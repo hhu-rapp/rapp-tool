@@ -223,7 +223,7 @@ class SummaryTable(QtWidgets.QGroupBox):
         metrics: list
             List of metrics to be added to the table.
 
-        pl_type: {'classification', 'regression}
+        pl_type: {'classification', 'regression'}
             Which type of prediction task is tackled by the pipeline.
 
         performance_metrics: list
@@ -307,7 +307,8 @@ class SummaryTable(QtWidgets.QGroupBox):
                                 measure = None
 
                         if pl_type == "regression":
-                            logging.error("Fairness measures for regression tasks are not yet implemented.")
+                            logging.warning("Fairness measures for regression tasks might not be suitable for "
+                                            "non-binary groups.")
                             measure = values
 
                         labelValue = QtWidgets.QLabel()
