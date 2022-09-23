@@ -269,7 +269,7 @@ def init_sql_highlighter(highlighter, sql_field):
     # Numbers
     number_format = QTextCharFormat()
     number_format.setForeground(QColor("#9a0357"))
-    pattern = r'[0-9]| null | NULL | [0-9]\.[0-9]'
+    pattern = r'[0-9]| null| NULL| [0-9]\.[0-9]'
     highlighter.add_mapping(pattern, number_format)
 
     # Logic operations
