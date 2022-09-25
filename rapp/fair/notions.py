@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix
+import warnings
 
 
 def regression_individual_fairness(X, y, z, pred, fav_label=1):
@@ -85,7 +86,7 @@ def cross_group_fairness_weights(yi, yj):
     -------
 
     """
-    return np.exp(-(yi - yj)**2)
+    return np.exp(-(yi - yj) ** 2)
 
 
 def clf_fairness(clf, fairness, X, y, Z, pred=None, fav_label=1):
@@ -197,3 +198,27 @@ def equality_of_opportunity(X, y, z, pred, fav_label=1):
         }
 
     return fair
+
+
+def average_odds_error(X, y, z, pred, fav_label=1):
+    """
+    Returns
+    -------
+    returns a single score
+    """
+    fair_predictive_equality = predictive_equality(X, y, z, pred, fav_label)
+    fair_equality_opportunity = equality_of_opportunity(X, y, z, pred, fav_label)
+
+    keys = list(fair_predictive_equality.keys())
+    group_values_pe = [fair_predictive_equality[k]["affected_percent"] for k in keys]
+    group_values_eo = [fair_equality_opportunity[k]["affected_percent"] for k in keys]
+
+    if len(keys) == 2:
+        return (np.abs(group_values_pe[0] - group_values_pe[1]) + np.abs(group_values_eo[0] - group_values_eo[1])) / 2
+    elif len(keys) > 2:
+        max_error = np.max(
+            [np.abs(group_values_pe[i] - group_values_pe[j]) + np.abs(group_values_eo[i] - group_values_eo[j])
+             for i in range(len(keys)) for j in range(i + 1, len(keys))]) / 2
+        return max_error
+    else:
+        warnings.warn("No groups detected.")
