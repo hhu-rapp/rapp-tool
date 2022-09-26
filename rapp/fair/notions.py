@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix
-import warnings
+import logging
+
+log = logging.getLogger('rapp.pipeline')
 
 
 def regression_individual_fairness(X, y, z, pred, fav_label=1):
@@ -221,4 +223,4 @@ def average_odds_error(X, y, z, pred, fav_label=1):
              for i in range(len(keys)) for j in range(i + 1, len(keys))]) / 2
         return max_error
     else:
-        warnings.warn("No groups detected.")
+        log.error("No groups detected.")
