@@ -1,0 +1,21 @@
+\begin{table}[ht]
+  \caption{ {{type}} Overview}
+  {{#modes}}
+  \begin{subtable}{\linewidth}
+    \centering
+    \subcaption{ {{mode}}set}
+    \footnotesize
+    \begin{tabular}{r{{#metrics}}r{{/metrics}}}
+      \toprule
+      Models
+        {{#metrics}}& {{metric}}{{/metrics}}  \\
+      \midrule
+      {{#models}}
+      {{model_name}}{{#measures}}& {{value}} {{/measures}}  \\
+      {{/models}}
+      \bottomrule
+    \end{tabular}
+  \end{subtable}
+  \par\bigskip
+  {{/modes}}
+\end{table}
