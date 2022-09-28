@@ -1,6 +1,9 @@
-import numpy as np
+from types import SimpleNamespace
 
-from rapp.report.latex import tex_dataset_report
+import numpy as np
+from sklearn.dummy import DummyClassifier
+
+from rapp.report.latex import tex_dataset_report, tex_performance_overview, tex_fairness_overview
 from rapp.report.latex import tex_dataset_plot
 
 from rapp.report.latex.tables import tex_performance_table, tex_fairness
@@ -180,5 +183,68 @@ def test_cv_table__three_fold():
 
     expected = rc.get_text('reports/cv_table.tex')
     actual = tex_cross_validation(estimator, report)
+
+    assert expected == actual
+
+
+def test_performance_overview_table__two_models__two_metrics():
+    est1 = DummyClassifier()
+    est2 = DummyClassifier()
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est1, est2]
+
+    pipeline.performance_results = {est1: {
+        'train': {
+            'scores': {
+                'A': 0.2222,
+                'B': 0.5555},
+            'confusion_matrix': [[0, 8], [0, 2]]},
+        'test': {
+            'scores': {
+                'A': 0.3333,
+                'B': 0.4444},
+            'confusion_matrix': [[0, 8], [0, 2]]}}}
+
+    pipeline.performance_results[est2] = pipeline.performance_results[est1]
+
+    expected = rc.get_text('reports/performance_overview_two_models_two_metrics.tex')
+    actual = tex_performance_overview(pipeline.performance_results)
+
+    assert expected == actual
+
+
+def test_fairness_overview_table__two_models__two_notions():
+    est1 = DummyClassifier()
+    est2 = DummyClassifier()
+    pipeline = SimpleNamespace()
+    pipeline.estimators = [est1, est2]
+
+    pipeline.fairness_results = {est1: {'Sensitive':
+                                            {'C': {'train': {'bar': {'affected_percent': 0.5555,
+                                                                     },
+                                                             'baz': {'affected_percent': 0.6666,
+                                                                     }},
+                                                   'test': {'bar': {'affected_percent': 0.6666,
+                                                                    },
+                                                            'baz': {'affected_percent': 0.9999,
+                                                                    }}},
+                                             'D': {'train': np.float64(1.1111),
+                                                   'test': np.float64(1.2222)}},
+                                        'Protected':
+                                            {'C': {'train': {'bar': {'affected_percent': 0.1111,
+                                                                     },
+                                                             'baz': {'affected_percent': 0.3333,
+                                                                     }},
+                                                   'test': {'bar': {'affected_percent': 0.3333,
+                                                                    },
+                                                            'baz': {'affected_percent': 0.5555,
+                                                                    }}},
+                                             'D': {'train': np.float64(2.1111),
+                                                   'test': np.float64(2.2222)}}}}
+
+    pipeline.fairness_results[est2] = pipeline.fairness_results[est1]
+
+    expected = rc.get_text('reports/fairness_overview_two_models_two_notions.tex')
+    actual = tex_fairness_overview(pipeline.fairness_results)
 
     assert expected == actual
