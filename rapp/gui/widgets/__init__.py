@@ -290,21 +290,27 @@ class SummaryTable(QtWidgets.QGroupBox):
                         # fairness notions
                         values = fairness_results[model][sensitive_attribute][metric][mode]
                         if pl_type == "classification":
-                            # Difference across sensitive attribute
-                            keys = list(values.keys())
-                            group_values = [values[k]["affected_percent"] for k in keys]
-                            if len(values) == 2:
-                                measure = abs(group_values[0] - group_values[1])
-                            elif len(values) > 2:
-                                # We have multiple groups, so we assume the
-                                # maximum difference across groups as the final
-                                # measure
-                                logging.info("Multiple groups detected,"
-                                             "using the maximum difference across groups as fairness measure.")
-                                measure = max_difference(group_values)
-                            else:
-                                logging.error("No groups detected, cannot compute fairness measure.")
-                                measure = None
+                            # The fairness metric returns a dictionary
+                            if type(values) == dict:
+                                # Difference across sensitive attribute
+                                keys = list(values.keys())
+                                group_values = [values[k]["affected_percent"] for k in keys]
+                                if len(values) == 2:
+                                    measure = abs(group_values[0] - group_values[1])
+                                elif len(values) > 2:
+                                    # We have multiple groups, so we assume the
+                                    # maximum difference across groups as the final
+                                    # measure
+                                    logging.info("Multiple groups detected,"
+                                                 "using the maximum difference across groups as fairness measure.")
+                                    measure = max_difference(group_values)
+                                else:
+                                    logging.error("No groups detected, cannot compute fairness measure.")
+                                    measure = None
+
+                            # The fairness metric returns a single value
+                            if type(values) == np.float64:
+                                measure = values
 
                         if pl_type == "regression":
                             logging.warning("Fairness measures for regression tasks might not be suitable for "
@@ -661,7 +667,13 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
                         tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
                         self.labels[labelMetric].append(labelMetrics)
 
-                    measure = metrics[metric][mode][subgroup]['affected_percent']
+                    # The fairness metric returns a dictionary
+                    if type(metrics[metric][mode]) == dict:
+                        measure = metrics[metric][mode][subgroup]['affected_percent']
+                    # The fairness metric returns a single value
+                    elif type(metrics[metric][mode]) == np.float64:
+                        measure = metrics[metric][mode]
+
                     # fairness measures
                     labelValues = QtWidgets.QLabel()
                     labelValues.setText(f"{measure:.3f}")
