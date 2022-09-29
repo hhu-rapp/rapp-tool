@@ -27,7 +27,6 @@ def pareto_front(costs):
     for i, c in enumerate(costs):
         if is_efficient[i]:
             duplicate_idx = np.argwhere(np.all(costs == c, axis=1)).flatten()
-            print(c, is_efficient[duplicate_idx])
             is_efficient[duplicate_idx] = is_efficient[i]
     return is_efficient
 
