@@ -351,7 +351,7 @@ class EvaluationWidget(QtWidgets.QWidget):
                         fairness_subgroups = []
 
                         # The fairness metric returns a dictionary
-                        if type(notions[mode]) == dict:
+                        if isinstance(notions[mode], dict):
                             # Get max difference between subgroups
                             for subgroup in notions[mode]:
                                 fairness_subgroups.append(notions[mode][subgroup]['affected_percent'])
@@ -359,7 +359,7 @@ class EvaluationWidget(QtWidgets.QWidget):
                             x_label = f"Max Difference {notion}"
 
                         # The fairness metric returns a single value
-                        elif type(notions[mode]) == np.float64:
+                        elif isinstance(notions[mode], np.float64):
                             fairness = notions[mode]
                             x_label = notion
 
