@@ -115,7 +115,6 @@ def test_performance_table__two_metrics():
     estimator = "foobar"
     report = {'train': {},
               'test': {}}
-
     report["train"] = {
         'scores': {
             'foo': 0,
