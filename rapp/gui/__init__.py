@@ -21,6 +21,7 @@ import logging
 
 log = logging.getLogger("GUI")
 log_pred = logging.getLogger("prediction")
+log_pred.setLevel(logging.INFO)
 log_pipeline = logging.getLogger("rapp.pipeline")
 
 sql_temp_path = "sql_temp.sql"
