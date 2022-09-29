@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt
 from scipy import stats
 
 from rapp import sqlbuilder
-from rapp.gui.helper import LoadModelPushButton, CheckableComboBox
+from rapp.gui.helper import IdButton, CheckableComboBox
 from rapp.pipeline import preprocess_data
 
 import logging
@@ -86,7 +86,9 @@ class PredictionWidget(QtWidgets.QWidget):
             predLabel = QtWidgets.QLabel()
             predLabel.setText("-")
 
-            loadModelButton = LoadModelPushButton(i)
+            loadModelButton = IdButton(i)
+            loadModelButton.setStatusTip('Load Model')
+            loadModelButton.setMaximumWidth(50)
             # Load model buttons and predLabel are saved in a list
             self.loadModelButtons.append(loadModelButton)
             self.loadModelButtons[i].set_click_function(self.showLoadModelDialog)
