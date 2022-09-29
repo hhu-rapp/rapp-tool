@@ -275,7 +275,7 @@ class SummaryTable(QtWidgets.QGroupBox):
                     labelModels = IdButton(j)
                     labelModels.setStatusTip(f'Inspect {est_name}')
                     labelModels.setText(est_name)
-                    labelModels.setMinimumWidth(150)
+                    labelModels.setMinimumWidth(200)
                     tableGridLayout.addWidget(labelModels, j + 1, 0, Qt.AlignLeft)
                     self.labels[labelModel].append(labelModels)
 
