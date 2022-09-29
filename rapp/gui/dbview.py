@@ -92,7 +92,8 @@ class DataView(QtWidgets.QWidget):
 
         self.table = QtWidgets.QTableView(self)
         self.table.setSortingEnabled(True)
-        self.table.resizeColumnsToContents()
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.combo)
