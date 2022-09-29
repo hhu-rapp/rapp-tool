@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from rapp.fair.metanotion import max_difference
 from rapp.gui.dbview import PandasModel
-from rapp.gui.helper import ClickableLabel, CollapsibleBox
+from rapp.gui.helper import ClickableLabel, CollapsibleBox, IdButton
 from rapp.util import estimator_name, pareto_front
 
 
@@ -249,7 +249,7 @@ class SummaryTable(QtWidgets.QGroupBox):
             super(SummaryTable, self).__init__(f"{str(mode).capitalize()}:")
 
         self.setFlat(True)
-        self.setStyleSheet("border:0;")
+        self.setStyleSheet("QGroupBox: border:0;")
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
         self.labels = {}
@@ -257,7 +257,7 @@ class SummaryTable(QtWidgets.QGroupBox):
         labelModel = QtWidgets.QLabel()
         labelModel.setText("Model")
         labelModel.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelModel, 0, 0, Qt.AlignLeft)
+        tableGridLayout.addWidget(labelModel, 0, 0, Qt.AlignCenter)
         self.labels[labelModel] = []
 
         # metrics labels
@@ -272,8 +272,10 @@ class SummaryTable(QtWidgets.QGroupBox):
             for j, model in enumerate(models):
                 if i == 0:
                     est_name = estimator_name(model)
-                    labelModels = ClickableLabel(j)
+                    labelModels = IdButton(j)
+                    labelModels.setStatusTip(f'Inspect {est_name}')
                     labelModels.setText(est_name)
+                    labelModels.setMinimumWidth(150)
                     tableGridLayout.addWidget(labelModels, j + 1, 0, Qt.AlignLeft)
                     self.labels[labelModel].append(labelModels)
 
