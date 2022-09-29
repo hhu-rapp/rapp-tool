@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt
 from scipy import stats
 
 from rapp import sqlbuilder
-from rapp.gui.helper import LoadModelPushButton, CheckableComboBox
+from rapp.gui.helper import IdButton, CheckableComboBox
 from rapp.pipeline import preprocess_data
 
 import logging
@@ -86,7 +86,9 @@ class PredictionWidget(QtWidgets.QWidget):
             predLabel = QtWidgets.QLabel()
             predLabel.setText("-")
 
-            loadModelButton = LoadModelPushButton(i)
+            loadModelButton = IdButton(i)
+            loadModelButton.setStatusTip('Load Model')
+            loadModelButton.setMaximumWidth(50)
             # Load model buttons and predLabel are saved in a list
             self.loadModelButtons.append(loadModelButton)
             self.loadModelButtons[i].set_click_function(self.showLoadModelDialog)
@@ -121,15 +123,18 @@ class PredictionWidget(QtWidgets.QWidget):
         if len(selected_indexes) > 0:
             selected_row = selected_indexes[0].row()
             X = X.iloc[[selected_row]]
-            log.error(f"Student No. {selected_row} selected.")
-            log.error(f"Student's features: \n {X}")
+            log.debug(f"Student No. {selected_row} selected.")
+            log.debug(f"Student's features: \n {X}")
+
+        predicted = False
 
         for i, modelCb in enumerate(self.loadedModelsCb):
             models = modelCb.get_checked_items()
 
-            if models is None:
-                log.error(f"No Model Selected")
-                return
+            self.predLabels[i].setText("-")
+
+            if len(models) <= 0:
+                continue
             else:
                 y_preds = []
                 for model in models:
@@ -141,12 +146,17 @@ class PredictionWidget(QtWidgets.QWidget):
                     if modelCb.itemData(item_index)['labels_id'].split('_')[0] != 'reg':
                         y_pred = stats.mode(np.array(y_preds))
                         self.predLabels[i].setText(str(y_pred[0][0][0]))
+                        predicted = True
                     # Mean for regression
                     if modelCb.itemData(item_index)['labels_id'].split('_')[0] == 'reg':
                         y_pred = np.mean(np.array(y_preds))
                         self.predLabels[i].setText(str(y_pred))
+                        predicted = True
 
-                log.error('Prediction finished.')
+        if predicted:
+            log.info('Prediction finished.')
+        if not predicted:
+            log.error('No Model loaded/selected, prediction failed.')
 
     def load_model(self, filename, index):
         """

@@ -2,10 +2,10 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[ngerman]{babel}
+%\usepackage[ngerman]{babel}
 
 \author{RAPP-Report}
-\title{Trainingsergebnisse}
+\title{Training Results}
 
 \usepackage{booktabs}
 \usepackage{subcaption}
@@ -30,16 +30,18 @@
 \section{Overview}
 
 {{{datasets}}}
+{{{performance_overview}}}
+{{{fairness_overview}}}
 
 {{#estimators}}
 \clearpage
 \section{ {{estimator_name}} }
 
-\subsection{Vorhersagemessungen}
+\subsection{Prediction Measurements}
 {{{metrics_table}}}
 {{{cross_validation}}}
 
-\subsection{Fairness}
+\subsection{Fairness Measurements}
 {{{fairness_evaluation}}}
 
 {{{additional_model_info}}}

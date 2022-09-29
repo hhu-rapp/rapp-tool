@@ -164,6 +164,7 @@ class Pipeline:
                 'Statistical Parity': notions.group_fairness,
                 'Predictive Equality': notions.predictive_equality,
                 'Equality of Opportunity': notions.equality_of_opportunity,
+                'Average Odds Error': notions.average_odds_error,
             }
         elif self.type == 'regression':
             self.fairness_functions = {

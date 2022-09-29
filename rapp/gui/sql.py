@@ -1,8 +1,9 @@
+import copy
 import logging
 from os.path import basename
 
 import pandas as pd
-from PyQt5.QtGui import QTextCharFormat
+from PyQt5.QtGui import QTextCharFormat, QColor
 from pandas.io.sql import DatabaseError
 
 from PyQt5 import QtCore
@@ -91,6 +92,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.advanced_tab.setLayout(QtWidgets.QVBoxLayout())
 
         self.highlighter = Highlighter()
+        self.Findhighlighter = Highlighter()
         init_sql_highlighter(self.highlighter, self.sql_field)
 
         self.__init_buttons()
@@ -123,11 +125,18 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
+        self.qPushButtonFindSql = QtWidgets.QPushButton()
+        self.qPushButtonFindSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
+        self.qPushButtonFindSql.setStatusTip('Find in SQL Query (Ctrl+Shift+F)')
+        self.qPushButtonFindSql.setShortcut('Ctrl+Shift+F')
+
         # add buttons to button layout
         self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.hlayoutSqlButtons.addStretch(1)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
 
         # add button actions
         self.qPushButtonExecuteSql.clicked.connect(
@@ -135,6 +144,7 @@ class SQLWidget(QtWidgets.QWidget):
         )
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
+        self.qPushButtonFindSql.clicked.connect(self.find_sql)
 
     def load_selected_sql_template(self):
         log.debug("Loading SQL template from GUI button click")
@@ -192,3 +202,19 @@ class SQLWidget(QtWidgets.QWidget):
 
         sqlbuilder.set_database_name(basename(self.db_filepath))
         self.__populate_template_options()
+
+    def find_sql(self):
+        """
+        Searches and highlights the inputted keyword in the SQL text field.
+        """
+        self.Findhighlighter.setDocument(None)
+        self.Findhighlighter = Highlighter()
+
+        init_sql_highlighter(self.Findhighlighter, self.sql_field)
+        keyword, done = QtWidgets.QInputDialog.getText(self, 'Find', 'Find Keyword:', flags=QtCore.Qt.WindowCloseButtonHint)
+
+        if done:
+            format = QTextCharFormat()
+            format.setBackground(QColor("#ffff00"))
+            self.Findhighlighter.add_mapping(keyword, format)
+            self.Findhighlighter.setDocument(self.sql_field.document())

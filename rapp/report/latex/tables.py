@@ -145,13 +145,13 @@ def tex_fairness(estimator, data):
 
         subgroups = data[group][notions[0]]["train"].keys()
         group_dict['subgroups'] = [{'subgroup': sub} for sub in subgroups]
-        group_dict['has_diff'] = (len(subgroups) == 2)
+        group_dict['has_diff'] = True  # Diff column is always added
 
         fairness['groups'].append(group_dict)
 
         group_dict['start_column'] = next_start
-        # If binary, we add a difference column. Hence at least three cols.
-        num_colums = max(len(subgroups), 3)
+        # We add a difference column. Hence at least three cols.
+        num_colums = len(subgroups) + 1
         next_start += num_colums
         group_dict['end_column'] = next_start - 1
         group_dict['num_cols'] = num_colums
@@ -182,16 +182,27 @@ def tex_fairness(estimator, data):
                 subgroups = group_dict['subgroups']
 
                 outcomes = data[group][notion][mode]
-                measures_dict = {
-                    'group': group,
-                    'measures': [{'value':
-                                  f"{outcomes[sub['subgroup']]['affected_percent']:.3f}",
-                                  'subgroup': sub['subgroup']}
-                                 for sub in subgroups],
-                    'difference': "-" if len(subgroups) != 2 else
-                    f"{(abs(outcomes[subgroups[0]['subgroup']]['affected_percent']) - abs(outcomes[subgroups[1]['subgroup']]['affected_percent'])):.3f}"
-
-                }
+                # The fairness metric returns a dictionary
+                if isinstance(outcomes, dict):
+                    measures_dict = {
+                        'group': group,
+                        'measures': [{'value':
+                                      f"{outcomes[sub['subgroup']]['affected_percent']:.3f}" if outcomes.get(sub['subgroup']) is not None else '-',
+                                      'subgroup': sub['subgroup']}
+                                     for sub in subgroups],
+                        'difference': "-" if len(subgroups) != 2 else
+                        f"{(abs(outcomes[subgroups[0]['subgroup']]['affected_percent']) - abs(outcomes[subgroups[1]['subgroup']]['affected_percent'])):.3f}"
+                    }
+                # The fairness metric returns a single value
+                if isinstance(outcomes, np.float64):
+                    measures_dict = {
+                        'group': group,
+                        'measures': [{'value':
+                                      "-",
+                                      'subgroup': sub['subgroup']}
+                                     for sub in subgroups],
+                        'difference': f"{outcomes:.3f}"
+                    }
 
                 notion_dict['group_measures'].append(measures_dict)
             mode_dict['notions'].append(notion_dict)

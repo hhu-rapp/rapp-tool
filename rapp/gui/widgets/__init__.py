@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from rapp.fair.metanotion import max_difference
 from rapp.gui.dbview import PandasModel
-from rapp.gui.helper import ClickableLabel, CollapsibleBox
+from rapp.gui.helper import ClickableLabel, CollapsibleBox, IdButton
 from rapp.util import estimator_name, pareto_front
 
 
@@ -249,7 +249,7 @@ class SummaryTable(QtWidgets.QGroupBox):
             super(SummaryTable, self).__init__(f"{str(mode).capitalize()}:")
 
         self.setFlat(True)
-        self.setStyleSheet("border:0;")
+        self.setStyleSheet("QGroupBox: border:0;")
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
         self.labels = {}
@@ -257,7 +257,7 @@ class SummaryTable(QtWidgets.QGroupBox):
         labelModel = QtWidgets.QLabel()
         labelModel.setText("Model")
         labelModel.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelModel, 0, 0, Qt.AlignLeft)
+        tableGridLayout.addWidget(labelModel, 0, 0, Qt.AlignCenter)
         self.labels[labelModel] = []
 
         # metrics labels
@@ -272,8 +272,10 @@ class SummaryTable(QtWidgets.QGroupBox):
             for j, model in enumerate(models):
                 if i == 0:
                     est_name = estimator_name(model)
-                    labelModels = ClickableLabel(j)
+                    labelModels = IdButton(j)
+                    labelModels.setStatusTip(f'Inspect {est_name}')
                     labelModels.setText(est_name)
+                    labelModels.setMinimumWidth(200)
                     tableGridLayout.addWidget(labelModels, j + 1, 0, Qt.AlignLeft)
                     self.labels[labelModel].append(labelModels)
 
@@ -290,21 +292,27 @@ class SummaryTable(QtWidgets.QGroupBox):
                         # fairness notions
                         values = fairness_results[model][sensitive_attribute][metric][mode]
                         if pl_type == "classification":
-                            # Difference across sensitive attribute
-                            keys = list(values.keys())
-                            group_values = [values[k]["affected_percent"] for k in keys]
-                            if len(values) == 2:
-                                measure = abs(group_values[0] - group_values[1])
-                            elif len(values) > 2:
-                                # We have multiple groups, so we assume the
-                                # maximum difference across groups as the final
-                                # measure
-                                logging.info("Multiple groups detected,"
-                                             "using the maximum difference across groups as fairness measure.")
-                                measure = max_difference(group_values)
-                            else:
-                                logging.error("No groups detected, cannot compute fairness measure.")
-                                measure = None
+                            # The fairness metric returns a dictionary
+                            if isinstance(values, dict):
+                                # Difference across sensitive attribute
+                                keys = list(values.keys())
+                                group_values = [values[k]["affected_percent"] for k in keys]
+                                if len(values) == 2:
+                                    measure = abs(group_values[0] - group_values[1])
+                                elif len(values) > 2:
+                                    # We have multiple groups, so we assume the
+                                    # maximum difference across groups as the final
+                                    # measure
+                                    logging.info("Multiple groups detected,"
+                                                 "using the maximum difference across groups as fairness measure.")
+                                    measure = max_difference(group_values)
+                                else:
+                                    logging.error("No groups detected, cannot compute fairness measure.")
+                                    measure = None
+
+                            # The fairness metric returns a single value
+                            if isinstance(values, np.float64):
+                                measure = values
 
                         if pl_type == "regression":
                             logging.warning("Fairness measures for regression tasks might not be suitable for "
@@ -661,7 +669,13 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
                         tableGridLayout.addWidget(labelMetrics, j + 1, 0, alignment=Qt.AlignLeft)
                         self.labels[labelMetric].append(labelMetrics)
 
-                    measure = metrics[metric][mode][subgroup]['affected_percent']
+                    # The fairness metric returns a dictionary
+                    if isinstance(metrics[metric][mode], dict):
+                        measure = metrics[metric][mode][subgroup]['affected_percent']
+                    # The fairness metric returns a single value
+                    elif isinstance(metrics[metric][mode], np.float64):
+                        measure = metrics[metric][mode]
+
                     # fairness measures
                     labelValues = QtWidgets.QLabel()
                     labelValues.setText(f"{measure:.3f}")

@@ -1,5 +1,8 @@
 import chevron
+import numpy as np
+
 import rapp.resources as rc
+from rapp.fair.metanotion import max_difference
 
 from rapp.util import estimator_name
 from rapp.pipeline import Pipeline
@@ -184,6 +187,153 @@ def tex_dataset_plot(report):
     return tex
 
 
+def tex_performance_overview(performance_results):
+    """
+    Parameters
+    ----------
+    performance_results : dict[estimator -> results]
+        Dictionary with estimators as key which map onto possibly
+        calculated performance results.
+
+        A performance result has the form
+
+            {mode:
+                {'scores': {score_functions_results},
+                'confusion_matrix' : confusion_matrix_results}}
+
+    Returns
+    -------
+    tex : str
+        Tables displaying the performance of the trained models.
+    """
+
+    # Tex file expects the following format for Chevron
+    # {'type': string,
+    #  'modes: list({'mode': str,
+    #                 'metrics': list({'metric': str}),
+    #                 'models': list({'model_name': str, 'measures': list({'value': float})})})}
+
+    mustache = {'type': 'Performance',
+                'modes': []}
+
+    trained_models = list(performance_results.keys())
+
+    for mode in performance_results[trained_models[0]]:
+        metrics = list(performance_results[trained_models[0]][mode]['scores'].keys())
+
+        models = []
+        # Fill in the model names
+        for model in trained_models:
+            model_name = estimator_name(model)
+
+            # Fill the performance metric data
+            measures = []
+            for metric in metrics:
+                measures_dict = {'value': f"{performance_results[model][mode]['scores'][metric]:.3f}"}
+                measures.append(measures_dict)
+
+            model_data = {"model_name": model_name,
+                         "measures": measures}
+
+            models.append(model_data)
+
+        mode_data = {"mode": mode.capitalize(),
+                     "metrics": [{'metric': metric} for metric in metrics],
+                     "models": models}
+
+        mustache["modes"].append(mode_data)
+
+    template = rc.get_text("reports/latex/metrics_overview_table.tex")
+    tex = chevron.render(template, mustache)
+
+    return tex
+
+
+def tex_fairness_overview(fairness_results):
+    """
+    Parameters
+    ----------
+    fairness_results : dict[estimator -> results]
+        Dictionary with estimators as key which map onto possibly
+        calculated fairness results.
+
+        A fairness result has the form
+
+            {protected_attribute:
+                {notion_name: {'train': train_results,
+                               'test': test_results}},
+                 ...}
+
+    Returns
+    -------
+    tex : str
+        Tables displaying the Max. (Un)Fairness of the trained models.
+    """
+
+    # Tex file expects the following format for Chevron
+    # {'type': string,
+    #  'modes: list({'mode': str,
+    #                 'metrics': list({'metric': str}),
+    #                 'models': list({'model_name': str, 'measures': list({'value': float})})})}
+
+    mustache = {'type': 'Max. (Un)Fairness',
+                'modes': []}
+
+    trained_models = list(fairness_results.keys())
+    sensitive_attributes = list(fairness_results[trained_models[0]].keys())
+
+    for mode in ['train', 'test']:
+        metrics = list(fairness_results[trained_models[0]][sensitive_attributes[0]].keys())
+
+        models = []
+        # Fill in the model names
+        for model in trained_models:
+            model_name = estimator_name(model)
+            measures = []
+            for metric in metrics:
+
+                fairness = []
+                for sensitive_attribute in sensitive_attributes:
+                    values = fairness_results[model][sensitive_attribute][metric][mode]
+
+                    if isinstance(values, dict):
+                        # Difference across sensitive attribute
+                        keys = list(values.keys())
+                        group_values = [values[k]["affected_percent"] for k in keys]
+                        if len(values) == 2:
+                            fairness.append(abs(group_values[0] - group_values[1]))
+                        elif len(values) > 2:
+                            # We have multiple groups, so we assume the
+                            # maximum difference across groups as the final
+                            # measure
+                            fairness.append(max_difference(group_values))
+
+                    # The fairness metric returns a single value
+                    elif isinstance(values, np.float64):
+                        fairness.append(values)
+                # Max unfairness across all sensitive attributes
+                max_fairness = max(fairness)
+
+                measures_dict = {'value': f"{max_fairness:.3f}"}
+                measures.append(measures_dict)
+
+            model_data = {"model_name": model_name,
+                         "measures": measures}
+
+            models.append(model_data)
+
+        mode_data = {"mode": mode.capitalize(),
+                     "metrics": [{'metric': metric} for metric in metrics],
+                     "models": models}
+
+        mustache["modes"].append(mode_data)
+
+    template = rc.get_text("reports/latex/metrics_overview_table.tex")
+    tex = chevron.render(template, mustache)
+
+    return tex
+
+
 def tex_regression_report(pipeline: Pipeline):
     """
     Prepares tex file for a regression report.
@@ -253,6 +403,8 @@ def _tex_report_with_functions(pipeline: Pipeline,
     """
     mustache = {'estimators': []}
     mustache['datasets'] = dataset_tex_fun(pipeline.statistics_results)
+    mustache['performance_overview'] = tex_performance_overview(pipeline.performance_results)
+    mustache['fairness_overview'] = tex_fairness_overview(pipeline.fairness_results)
 
     for estimator, results in pipeline.performance_results.items():
         est_name = estimator_name(estimator)
