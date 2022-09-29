@@ -183,7 +183,7 @@ def tex_fairness(estimator, data):
 
                 outcomes = data[group][notion][mode]
                 # The fairness metric returns a dictionary
-                if type(outcomes) == dict:
+                if isinstance(outcomes, dict):
                     measures_dict = {
                         'group': group,
                         'measures': [{'value':
@@ -194,7 +194,7 @@ def tex_fairness(estimator, data):
                         f"{(abs(outcomes[subgroups[0]['subgroup']]['affected_percent']) - abs(outcomes[subgroups[1]['subgroup']]['affected_percent'])):.3f}"
                     }
                 # The fairness metric returns a single value
-                if type(outcomes) == np.float64:
+                if isinstance(outcomes, np.float64):
                     measures_dict = {
                         'group': group,
                         'measures': [{'value':
