@@ -296,7 +296,7 @@ def tex_fairness_overview(fairness_results):
                 for sensitive_attribute in sensitive_attributes:
                     values = fairness_results[model][sensitive_attribute][metric][mode]
 
-                    if type(values) == dict:
+                    if isinstance(values, dict):
                         # Difference across sensitive attribute
                         keys = list(values.keys())
                         group_values = [values[k]["affected_percent"] for k in keys]
@@ -309,7 +309,7 @@ def tex_fairness_overview(fairness_results):
                             fairness.append(max_difference(group_values))
 
                     # The fairness metric returns a single value
-                    elif type(values) == np.float64:
+                    elif isinstance(values, np.float64):
                         fairness.append(values)
                 # Max unfairness across all sensitive attributes
                 max_fairness = max(fairness)

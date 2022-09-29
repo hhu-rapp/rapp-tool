@@ -293,7 +293,7 @@ class SummaryTable(QtWidgets.QGroupBox):
                         values = fairness_results[model][sensitive_attribute][metric][mode]
                         if pl_type == "classification":
                             # The fairness metric returns a dictionary
-                            if type(values) == dict:
+                            if isinstance(values, dict):
                                 # Difference across sensitive attribute
                                 keys = list(values.keys())
                                 group_values = [values[k]["affected_percent"] for k in keys]
@@ -311,7 +311,7 @@ class SummaryTable(QtWidgets.QGroupBox):
                                     measure = None
 
                             # The fairness metric returns a single value
-                            if type(values) == np.float64:
+                            if isinstance(values, np.float64):
                                 measure = values
 
                         if pl_type == "regression":
@@ -670,10 +670,10 @@ class FairnessMetricsTable(QtWidgets.QGroupBox):
                         self.labels[labelMetric].append(labelMetrics)
 
                     # The fairness metric returns a dictionary
-                    if type(metrics[metric][mode]) == dict:
+                    if isinstance(metrics[metric][mode], dict):
                         measure = metrics[metric][mode][subgroup]['affected_percent']
                     # The fairness metric returns a single value
-                    elif type(metrics[metric][mode]) == np.float64:
+                    elif isinstance(metrics[metric][mode], np.float64):
                         measure = metrics[metric][mode]
 
                     # fairness measures
