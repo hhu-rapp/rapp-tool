@@ -187,7 +187,7 @@ def tex_fairness(estimator, data):
                     measures_dict = {
                         'group': group,
                         'measures': [{'value':
-                                      f"{outcomes[sub['subgroup']]['affected_percent']:.3f}",
+                                      f"{outcomes[sub['subgroup']]['affected_percent']:.3f}" if outcomes.get(sub['subgroup']) is not None else '-',
                                       'subgroup': sub['subgroup']}
                                      for sub in subgroups],
                         'difference': "-" if len(subgroups) != 2 else
