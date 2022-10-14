@@ -6,7 +6,7 @@ import pandas as pd
 from PyQt5.QtGui import QTextCharFormat, QColor
 from pandas.io.sql import DatabaseError
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 from PyQt5 import QtWidgets
 
 from rapp.gui.helper import Highlighter, init_sql_highlighter
@@ -95,14 +95,14 @@ class SQLWidget(QtWidgets.QWidget):
         self.Findhighlighter = Highlighter()
         init_sql_highlighter(self.highlighter, self.sql_field)
 
-        self.__init_buttons()
+        self.__init_footer()
         self.advanced_tab.layout().addWidget(self.sql_field)
         self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
 
         tab_idx = self.tabs.addTab(self.advanced_tab, 'SQL Query')
         self.advanced_tab_index = tab_idx
 
-    def __init_buttons(self):
+    def __init_footer(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
 
@@ -125,6 +125,13 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
+        self.qLineEditFindSql = QtWidgets.QLineEdit()
+        self.qLineEditFindSql.setHidden(True)
+        self.qLineEditFindSql.setPlaceholderText("Find keyword")
+
+        self.qLabelFoundResults = QtWidgets.QLabel()
+        self.qLabelFoundResults.setHidden(True)
+
         self.qPushButtonFindSql = QtWidgets.QPushButton()
         self.qPushButtonFindSql.setIcon(self.style().standardIcon(
             getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
@@ -136,6 +143,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.hlayoutSqlButtons.addStretch(1)
+        self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
+        self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
 
         # add button actions
@@ -144,7 +153,7 @@ class SQLWidget(QtWidgets.QWidget):
         )
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
-        self.qPushButtonFindSql.clicked.connect(self.find_sql)
+        self.qPushButtonFindSql.clicked.connect(self.toggle_find_sql)
 
     def load_selected_sql_template(self):
         log.debug("Loading SQL template from GUI button click")
@@ -203,18 +212,39 @@ class SQLWidget(QtWidgets.QWidget):
         sqlbuilder.set_database_name(basename(self.db_filepath))
         self.__populate_template_options()
 
-    def find_sql(self):
+    def toggle_find_sql(self):
         """
-        Searches and highlights the inputted keyword in the SQL text field.
+        Toggles SQL search bar.
         """
-        self.Findhighlighter.setDocument(None)
-        self.Findhighlighter = Highlighter()
 
-        init_sql_highlighter(self.Findhighlighter, self.sql_field)
-        keyword, done = QtWidgets.QInputDialog.getText(self, 'Find', 'Find Keyword:', flags=QtCore.Qt.WindowCloseButtonHint)
+        if self.qLineEditFindSql.isHidden():
+            # show line edit
+            self.qLineEditFindSql.setHidden(False)
+            self.qLineEditFindSql.setFocus()
 
-        if done:
-            format = QTextCharFormat()
-            format.setBackground(QColor("#ffff00"))
-            self.Findhighlighter.add_mapping(keyword, format)
-            self.Findhighlighter.setDocument(self.sql_field.document())
+            self.qLabelFoundResults.setHidden(False)
+            self.qPushButtonFindSql.setIcon(self.style().standardIcon(
+                getattr(QtWidgets.QStyle, 'SP_DialogCancelButton')))
+
+            # add actions
+            self.qLineEditFindSql.textChanged.connect(
+                lambda keyword: self.find_sql(keyword))
+            # hide line edit
+            self.qLineEditFindSql.clear()
+            self.qLineEditFindSql.setHidden(True)
+
+            self.qLabelFoundResults.clear()
+            self.qLabelFoundResults.setHidden(True)
+
+            # remove actions
+            self.qLineEditFindSql.textChanged.disconnect()
+
+    def find_sql(self, keyword):
+        """
+        Finds keyword in sql field and counts occurrences.
+        """
+        self.qLabelFoundResults.clear()
+        if len(keyword) > 0:
+            count = self.sql_field.toPlainText().lower().count(keyword.lower())
+            self.qLabelFoundResults.setText(f"{count} result" + ("s" if count != 1 else ""))
+        self.sql_field.find(keyword)
