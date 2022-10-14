@@ -132,6 +132,20 @@ class SQLWidget(QtWidgets.QWidget):
         self.qLabelFoundResults = QtWidgets.QLabel()
         self.qLabelFoundResults.setHidden(True)
 
+        self.qPushButtonFindPrevious = QtWidgets.QPushButton()
+        self.qPushButtonFindPrevious.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_TitleBarShadeButton')))
+        self.qPushButtonFindPrevious.setStatusTip('Find Previous (Shift+F3)')
+        self.qPushButtonFindPrevious.setShortcut('Shift+F3')
+        self.qPushButtonFindPrevious.setHidden(True)
+
+        self.qPushButtonFindNext = QtWidgets.QPushButton()
+        self.qPushButtonFindNext.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_TitleBarUnshadeButton')))
+        self.qPushButtonFindNext.setStatusTip('Find Next (F3)')
+        self.qPushButtonFindNext.setShortcut('F3')
+        self.qPushButtonFindNext.setHidden(True)
+
         self.qPushButtonFindSql = QtWidgets.QPushButton()
         self.qPushButtonFindSql.setIcon(self.style().standardIcon(
             getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
@@ -145,6 +159,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addStretch(1)
         self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
         self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindPrevious)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindNext)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
 
         # add button actions
@@ -223,21 +239,38 @@ class SQLWidget(QtWidgets.QWidget):
             self.qLineEditFindSql.setFocus()
 
             self.qLabelFoundResults.setHidden(False)
+            # show buttons
+            self.qPushButtonFindPrevious.setHidden(False)
+            self.qPushButtonFindNext.setHidden(False)
+
             self.qPushButtonFindSql.setIcon(self.style().standardIcon(
                 getattr(QtWidgets.QStyle, 'SP_DialogCancelButton')))
 
             # add actions
             self.qLineEditFindSql.textChanged.connect(
                 lambda keyword: self.find_sql(keyword))
+            self.qPushButtonFindPrevious.clicked.connect(
+                lambda: self.sql_field.find(self.qLineEditFindSql.text(), QtGui.QTextDocument.FindBackward))
+            self.qPushButtonFindNext.clicked.connect(
+                lambda: self.sql_field.find(self.qLineEditFindSql.text()))
+        else:
             # hide line edit
             self.qLineEditFindSql.clear()
             self.qLineEditFindSql.setHidden(True)
 
             self.qLabelFoundResults.clear()
             self.qLabelFoundResults.setHidden(True)
+            # hide buttons
+            self.qPushButtonFindPrevious.setHidden(True)
+            self.qPushButtonFindNext.setHidden(True)
+
+            self.qPushButtonFindSql.setIcon(self.style().standardIcon(
+                getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
 
             # remove actions
             self.qLineEditFindSql.textChanged.disconnect()
+            self.qPushButtonFindPrevious.clicked.disconnect()
+            self.qPushButtonFindNext.clicked.disconnect()
 
     def find_sql(self, keyword):
         """
