@@ -248,7 +248,7 @@ class Pipeline(QtWidgets.QWidget):
             self.qmainwindow.settings.refresh_data(pl, data_settings)
         else:
             self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, False)
-            log.warning("No sensitive attributes selected, fairness overview was skipped.")
+            log.warning("No sensitive attributes selected, fairness evaluation was skipped.")
 
         # Enable Interpretability tab
         self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.interpretability_tab_index, True)
