@@ -167,12 +167,14 @@ class ModelViewCLF(QtWidgets.QWidget):
 
             self.table_views[label] = QtWidgets.QTableView(self)
             self.table_views[label].setSortingEnabled(True)
-            self.table_views[label].resizeColumnsToContents()
             self.table_views[label].setSelectionBehavior(QtWidgets.QTableView.SelectRows)
             self.table_views[label].clicked.connect(self.row_callback_function)
 
             model = PandasModelColor(self.df[label])
             self.table_views[label].setModel(model)
+
+            header = self.table_views[label].horizontalHeader()
+            header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
             self.tabs.addTab(self.table_views[label], f'{target}={str(label)}')
 
