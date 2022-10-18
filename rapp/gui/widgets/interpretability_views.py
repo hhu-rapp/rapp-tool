@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, Qt, QtGui, QtCore
-from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtWidgets import QGroupBox, QScrollArea
 
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
@@ -341,10 +341,27 @@ class SampleView(QtWidgets.QWidget):
         # Layout for the sample entries
         self.entries_layout = QtWidgets.QVBoxLayout()
         self.entries_layout.setContentsMargins(10, 10, 50, 10)
+        # Scroll Area for entries
+        self.entries_widget = QtWidgets.QWidget()
+        self.entries_widget.setLayout(self.entries_layout)
+        self.entries_scroll = QScrollArea()
+        self.entries_scroll.setWidgetResizable(True)
+        self.entries_scroll.setWidget(self.entries_widget)
+
+        self.entries_scroll.setStyleSheet("QScrollArea{background-color: white}"
+                                         "QWidget#WhiteBackground {background-color: white}")
+        self.entries_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.entries_widget.setObjectName("WhiteBackground")
 
         self.right_layout = QtWidgets.QVBoxLayout()
         self.right_layout.setContentsMargins(50, 10, 100, 150)
+        self.right_widget = QtWidgets.QWidget()
+        self.right_widget.setLayout(self.right_layout)
+
         self.predictions_layout = QtWidgets.QHBoxLayout()
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+
         # Layout for the probability values table
         self.proba_layout = QtWidgets.QGridLayout()
         self.proba_layout.setColumnStretch(0, 2)
@@ -378,8 +395,10 @@ class SampleView(QtWidgets.QWidget):
             self._populate_pred_tables(data_sample.iloc[:, -2:], probabilities)
 
         # add to layout
-        self.main_layout.addLayout(self.entries_layout)
-        self.main_layout.addLayout(self.right_layout)
+        splitter.addWidget(self.entries_scroll)
+        splitter.addWidget(self.right_widget)
+        splitter.setSizes([480, 800])
+        self.main_layout.addWidget(splitter)
         self.right_layout.addLayout(self.predictions_layout)
         self.right_layout.addStretch()
         self.right_layout.addWidget(self.button_explanation)
