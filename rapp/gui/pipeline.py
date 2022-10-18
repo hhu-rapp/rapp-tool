@@ -237,8 +237,8 @@ class Pipeline(QtWidgets.QWidget):
         self.qmainwindow.settings.tab.setTabEnabled(self.qmainwindow.settings.individual_tab_idx, True)
 
         if pl.fairness_results[next(iter(pl.fairness_results))]:
-            data_settings = {"studies_id": cf.studies_id,
-                             "features_id": cf.features_id,
+            data_settings = {"studies_id": getattr(cf, "studies_id", None),
+                             "features_id": getattr(cf, "features_id", None),
                              "labels_id": cf.labels_id}
 
             # Enable Evaluation tab
@@ -266,9 +266,12 @@ class Pipeline(QtWidgets.QWidget):
             return None
 
         cf.filename = None
-        studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
-        cf.studies_id = studies_feat_id[0]
-        cf.features_id = studies_feat_id[1]
+
+        if self.qmainwindow.databaseLayoutWidget.features_id is not None:
+            studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
+            cf.studies_id = studies_feat_id[0]
+            cf.features_id = studies_feat_id[1]
+
         cf.labels_id = self.qmainwindow.databaseLayoutWidget.labels_id
         cf.sql_df = self.qmainwindow.databaseLayoutWidget.sql_df
         cf.label_name = self.cbName.currentText()
