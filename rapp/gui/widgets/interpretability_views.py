@@ -339,7 +339,7 @@ class SampleView(QtWidgets.QWidget):
         self.main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.main_layout)
         # Layout for the sample entries
-        self.entries_layout = QtWidgets.QVBoxLayout()
+        self.entries_layout = QtWidgets.QGridLayout()
         self.entries_layout.setContentsMargins(10, 10, 50, 10)
         # Scroll Area for entries
         self.entries_widget = QtWidgets.QWidget()
@@ -410,17 +410,29 @@ class SampleView(QtWidgets.QWidget):
     def _populate_entries_labels(self, sample):
         # Labels are stored in a dict with title label as key
         entriesLabel = QtWidgets.QLabel()
-        entriesLabel.setText('Eintrag')
+        entriesLabel.setText('Feature')
         entriesLabel.setStyleSheet('font-weight: bold;')
-        self.entries_layout.addWidget(entriesLabel)
+        self.entries_layout.addWidget(entriesLabel, 0, 0)
+
+        valuesLabel = QtWidgets.QLabel()
+        valuesLabel.setText('Value')
+        valuesLabel.setStyleSheet('font-weight: bold;')
+        self.entries_layout.addWidget(valuesLabel, 0, 1)
 
         # Entry labels stored in a list
         self.entries_labels[entriesLabel] = []
-        for feature, value in sample.to_dict(orient='records')[0].items():
+        self.entries_labels[valuesLabel] = []
+        for i, (feature, value) in enumerate(sample.to_dict(orient='records')[0].items()):
             featureLabel = QtWidgets.QLabel()
-            featureLabel.setText(f'{feature}: {value}')
-            self.entries_layout.addWidget(featureLabel)
+            featureLabel.setText(str(feature))
+
+            valueLabel = QtWidgets.QLabel()
+            valueLabel.setText(f'{value:.3f}')
+
+            self.entries_layout.addWidget(featureLabel, i + 1, 0)
+            self.entries_layout.addWidget(valueLabel, i + 1, 1)
             self.entries_labels[entriesLabel].append(featureLabel)
+            self.entries_labels[valuesLabel].append(valueLabel)
 
     def _populate_pred_tables(self, sample_pred, probabilities=None):
         self.pred_label = QtWidgets.QLabel()
