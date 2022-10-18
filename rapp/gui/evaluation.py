@@ -56,9 +56,18 @@ class EvaluationWidget(QtWidgets.QWidget):
         # create layout
         self.dataset_tab = QtWidgets.QWidget()
         self.dataset_tab.setLayout(QtWidgets.QVBoxLayout())
+        self.dataset_scroll = QScrollArea()
+        self.dataset_scroll.setWidgetResizable(True)
+        self.dataset_scroll.setWidget(self.dataset_tab)
+
+        self.dataset_scroll.setStyleSheet("QScrollBar{background-color: white}"
+                                             "QWidget#WhiteBackground {background-color: white}")
+        self.dataset_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.dataset_tab.setObjectName("WhiteBackground")
 
         # add to layout
-        self.tabs.addTab(self.dataset_tab, 'Dataset')
+        tab_idx = self.tabs.addTab(self.dataset_scroll, 'Dataset')
+        self.dataset_tab_idx = tab_idx
 
     def __init_summary_tab(self):
         # create layout
@@ -73,9 +82,17 @@ class EvaluationWidget(QtWidgets.QWidget):
         # create layout
         self.inspection_tab = QtWidgets.QWidget()
         self.inspection_tab.setLayout(QtWidgets.QVBoxLayout())
+        self.inspection_scroll = QScrollArea()
+        self.inspection_scroll.setWidgetResizable(True)
+        self.inspection_scroll.setWidget(self.inspection_tab)
+
+        self.inspection_scroll.setStyleSheet("QScrollBar{background-color: white}"
+                                         "QWidget#WhiteBackground {background-color: white}")
+        self.inspection_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.inspection_tab.setObjectName("WhiteBackground")
 
         # add to layout
-        tab_idx = self.tabs.addTab(self.inspection_tab, 'Model Inspection')
+        tab_idx = self.tabs.addTab(self.inspection_scroll, 'Model Inspection')
         self.inspection_tab_idx = tab_idx
 
     def __init_pareto_tab(self):
@@ -83,12 +100,12 @@ class EvaluationWidget(QtWidgets.QWidget):
         self.pareto_tab = QtWidgets.QWidget()
         self.pareto_tab.setLayout(QtWidgets.QVBoxLayout())
         self.pareto_scroll = QScrollArea()
-        self.pareto_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.pareto_scroll.setWidgetResizable(True)
         self.pareto_scroll.setWidget(self.pareto_tab)
 
         self.pareto_scroll.setStyleSheet("QScrollBar{background-color: white}"
                                          "QWidget#WhiteBackground {background-color: white}")
+        self.pareto_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.pareto_tab.setObjectName("WhiteBackground")
 
         # add to layout
