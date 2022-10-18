@@ -34,7 +34,7 @@ def test_sql_template_loading(gui: GuiTestApi):
             gui.widget.databaseLayoutWidget.pandas_dataview.get_custom_sql())
 
 
-def test_sql_template_loads_df(gui: GuiTestApi):
+def test_sql_template_loads_df_capitalized(gui: GuiTestApi):
     features_id = "cs_first_term_modules"
     labels_id = "3_dropout"
 
@@ -46,6 +46,7 @@ def test_sql_template_loads_df(gui: GuiTestApi):
 
     conn = get_db_connection()
     expected_df = pd.read_sql_query(reference_sql, conn)
+    expected_df.columns = expected_df.columns.str.capitalize()
 
     assert gui.get_df().equals(expected_df)
 
