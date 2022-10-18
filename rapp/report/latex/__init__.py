@@ -404,7 +404,8 @@ def _tex_report_with_functions(pipeline: Pipeline,
     mustache = {'estimators': []}
     mustache['datasets'] = dataset_tex_fun(pipeline.statistics_results)
     mustache['performance_overview'] = tex_performance_overview(pipeline.performance_results)
-    mustache['fairness_overview'] = tex_fairness_overview(pipeline.fairness_results)
+    if pipeline.fairness_results[next(iter(pipeline.fairness_results))]:
+        mustache['fairness_overview'] = tex_fairness_overview(pipeline.fairness_results)
 
     for estimator, results in pipeline.performance_results.items():
         est_name = estimator_name(estimator)
