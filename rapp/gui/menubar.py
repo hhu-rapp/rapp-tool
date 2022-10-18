@@ -160,6 +160,7 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:
+            log.info("Loading SQL file into GUI: %s", fileName)
             with open(fileName, 'r') as file:
                 data = file.read()
                 self.databaseLayoutWidget.load_sql(data)
@@ -171,10 +172,10 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.sql);;All Files (*)", options=options)
 
         if fileName:
-            log.info("Loading SQL file into GUI: %s", fileName)
             with open(fileName, 'w+') as file:
-                data = self.databaseLayoutWidget.sqlTbox.toPlainText()
+                data = self.databaseLayoutWidget.pandas_dataview.get_custom_sql()
                 file.write(data)
+            log.info("SQL Query saved as: %s", fileName)
 
     def showConfigurationFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
