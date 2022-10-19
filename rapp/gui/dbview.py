@@ -153,6 +153,7 @@ class DataView(QtWidgets.QWidget):
 
     def set_custom_sql(self, sql_query):
         df = data.query_sql(sql_query, self.__conn)
+        df.columns = df.columns.str.capitalize()
         model = PandasModel(df)
         self.table.setModel(model)
         self.__sql_query = sql_query

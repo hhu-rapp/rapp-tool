@@ -305,8 +305,8 @@ def test_entries_data_in_sample_view(interpretability_clf: GuiTestApi):
             values[key].append(val.text())
 
     actual = values
-    expected = {'Eintrag': ['foo: 0.6823518632481435',
-                            'bar: 0.053821018802222675']}
+    expected = {'Feature': ['foo', 'bar'],
+                'Value': ['0.682', '0.054']}
     assert actual == expected, \
         f"The values in entry table should be {expected}, but is {actual}"
 

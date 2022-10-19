@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, Qt, QtGui, QtCore
-from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtWidgets import QGroupBox, QScrollArea
 
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
@@ -167,12 +167,14 @@ class ModelViewCLF(QtWidgets.QWidget):
 
             self.table_views[label] = QtWidgets.QTableView(self)
             self.table_views[label].setSortingEnabled(True)
-            self.table_views[label].resizeColumnsToContents()
             self.table_views[label].setSelectionBehavior(QtWidgets.QTableView.SelectRows)
             self.table_views[label].clicked.connect(self.row_callback_function)
 
             model = PandasModelColor(self.df[label])
             self.table_views[label].setModel(model)
+
+            header = self.table_views[label].horizontalHeader()
+            header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
             self.tabs.addTab(self.table_views[label], f'{target}={str(label)}')
 
@@ -337,12 +339,29 @@ class SampleView(QtWidgets.QWidget):
         self.main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(self.main_layout)
         # Layout for the sample entries
-        self.entries_layout = QtWidgets.QVBoxLayout()
+        self.entries_layout = QtWidgets.QGridLayout()
         self.entries_layout.setContentsMargins(10, 10, 50, 10)
+        # Scroll Area for entries
+        self.entries_widget = QtWidgets.QWidget()
+        self.entries_widget.setLayout(self.entries_layout)
+        self.entries_scroll = QScrollArea()
+        self.entries_scroll.setWidgetResizable(True)
+        self.entries_scroll.setWidget(self.entries_widget)
+
+        self.entries_scroll.setStyleSheet("QScrollArea{background-color: white}"
+                                         "QWidget#WhiteBackground {background-color: white}")
+        self.entries_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.entries_widget.setObjectName("WhiteBackground")
 
         self.right_layout = QtWidgets.QVBoxLayout()
         self.right_layout.setContentsMargins(50, 10, 100, 150)
+        self.right_widget = QtWidgets.QWidget()
+        self.right_widget.setLayout(self.right_layout)
+
         self.predictions_layout = QtWidgets.QHBoxLayout()
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+
         # Layout for the probability values table
         self.proba_layout = QtWidgets.QGridLayout()
         self.proba_layout.setColumnStretch(0, 2)
@@ -376,8 +395,10 @@ class SampleView(QtWidgets.QWidget):
             self._populate_pred_tables(data_sample.iloc[:, -2:], probabilities)
 
         # add to layout
-        self.main_layout.addLayout(self.entries_layout)
-        self.main_layout.addLayout(self.right_layout)
+        splitter.addWidget(self.entries_scroll)
+        splitter.addWidget(self.right_widget)
+        splitter.setSizes([480, 800])
+        self.main_layout.addWidget(splitter)
         self.right_layout.addLayout(self.predictions_layout)
         self.right_layout.addStretch()
         self.right_layout.addWidget(self.button_explanation)
@@ -389,17 +410,29 @@ class SampleView(QtWidgets.QWidget):
     def _populate_entries_labels(self, sample):
         # Labels are stored in a dict with title label as key
         entriesLabel = QtWidgets.QLabel()
-        entriesLabel.setText('Eintrag')
+        entriesLabel.setText('Feature')
         entriesLabel.setStyleSheet('font-weight: bold;')
-        self.entries_layout.addWidget(entriesLabel)
+        self.entries_layout.addWidget(entriesLabel, 0, 0)
+
+        valuesLabel = QtWidgets.QLabel()
+        valuesLabel.setText('Value')
+        valuesLabel.setStyleSheet('font-weight: bold;')
+        self.entries_layout.addWidget(valuesLabel, 0, 1)
 
         # Entry labels stored in a list
         self.entries_labels[entriesLabel] = []
-        for feature, value in sample.to_dict(orient='records')[0].items():
+        self.entries_labels[valuesLabel] = []
+        for i, (feature, value) in enumerate(sample.to_dict(orient='records')[0].items()):
             featureLabel = QtWidgets.QLabel()
-            featureLabel.setText(f'{feature}: {value}')
-            self.entries_layout.addWidget(featureLabel)
+            featureLabel.setText(str(feature))
+
+            valueLabel = QtWidgets.QLabel()
+            valueLabel.setText(f'{value:.3f}')
+
+            self.entries_layout.addWidget(featureLabel, i + 1, 0)
+            self.entries_layout.addWidget(valueLabel, i + 1, 1)
             self.entries_labels[entriesLabel].append(featureLabel)
+            self.entries_labels[valuesLabel].append(valueLabel)
 
     def _populate_pred_tables(self, sample_pred, probabilities=None):
         self.pred_label = QtWidgets.QLabel()
