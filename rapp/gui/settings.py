@@ -99,27 +99,40 @@ class SimpleSettings(QtWidgets.QWidget):
         {'model' : trained estimator,
         'studies_id': studies_id of train data,
         'features_id': features_id of train data,
-        'labels_id': predicting label_id of the model}
+        'labels_id': predicting label_id of the model,
+        'uses_templates': specifies if the sql templates was used}
         """
         if self.pipeline is None:
             log.error("There are currently no models in the pipeline")
             return
 
         model_idx = self.cbModels.currentIndex()
+        model_dict = self.data_settings.copy()
 
         file_name = ""
         for col_id in self.data_settings:
             label = self.data_settings[col_id]
+
+            if label is None:
+                continue
+
             file_name += f"{label}_"
+            model_dict['uses_templates'] = True
 
         file_name += self.cbModels.currentText()
 
-        self.data_settings['model'] = list(self.pipeline.fairness_results.keys())[model_idx]
+        if model_dict.get("uses_templates", None) is not None:
+            model_dict['model'] = list(self.pipeline.fairness_results.keys())[model_idx]
+
+            model_file = model_dict
+
+        else:
+            model_file = list(self.pipeline.fairness_results.keys())[model_idx]
 
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File", "",
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File", file_name,
                                                             "Joblib Files (*.joblib);;All Files (*)", options=options)
 
         if fileName:
-            joblib.dump(self.data_settings, f"{fileName}.joblib")
+            joblib.dump(model_file, f"{fileName}.joblib")
