@@ -1,20 +1,16 @@
 import os.path
-from os import listdir, getcwd
-from os.path import isdir, join, abspath
+import pathlib
+import traceback
 
 import joblib
 # PyQt5
-import numpy as np
 from PyQt5 import QtWidgets
 # rapp gui
 from PyQt5.QtCore import Qt
-from scipy import stats
 
-from rapp import sqlbuilder
-from rapp.gui.helper import IdButton, CheckableComboBox
-from rapp.pipeline import preprocess_data
-
+from rapp.gui.widgets.prediction_views import LoadModelView
 import logging
+
 log = logging.getLogger("prediction")
 
 
@@ -29,174 +25,100 @@ class PredictionWidget(QtWidgets.QWidget):
     def initUI(self):
         # create layout
         self.vlayoutPrediction = QtWidgets.QVBoxLayout()
-        self.vlayoutPrediction.setContentsMargins(25, 11, 0, 0)
+        self.vlayoutPrediction.setContentsMargins(0, 11, 0, 0)
+        self.hlayoutTop = QtWidgets.QHBoxLayout()
+        self.hlayoutTop.setContentsMargins(0, 0, 0, 22)
         self.featuresLayout = QtWidgets.QFormLayout()
-        self.featuresLayout.setContentsMargins(0,11,11,22)
+        self.featuresLayout.setContentsMargins(0, 11, 11, 0)
         self.gridlayoutPrediction = QtWidgets.QGridLayout()
         self.menubuttonsPrediction = QtWidgets.QHBoxLayout()
+        self.loadModelView = LoadModelView()
 
         self.vlayoutPrediction.addLayout(self.featuresLayout)
-        self.vlayoutPrediction.addLayout(self.gridlayoutPrediction)
-        self.vlayoutPrediction.addStretch(1)
+        self.vlayoutPrediction.addLayout(self.hlayoutTop)
+        self.vlayoutPrediction.addWidget(self.loadModelView)
         self.vlayoutPrediction.addLayout(self.menubuttonsPrediction)
 
         # create buttons
+        loadButton = QtWidgets.QPushButton('Load')
+        loadButton.clicked.connect(self.showLoadModelDialog)
+        loadButton.setStatusTip('Load trained model (Ctrl+l)')
+        loadButton.setShortcut('Ctrl+l')
+        loadButton.setFixedWidth(300)
+        loadButton.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_FileIcon')))
+        self.loadButton = loadButton
+
         predictButton = QtWidgets.QPushButton('Predict')
         predictButton.clicked.connect(self.predict)
         predictButton.setStatusTip('Predict SQL query with Models (Ctrl+P)')
         predictButton.setShortcut('Ctrl+p')
         self.predictButton = predictButton
 
-        clearButton = QtWidgets.QPushButton('Clear')
-        clearButton.clicked.connect(self.clear_loaded_models)
-        clearButton.setStatusTip('Clear all loaded models')
-        self.clearButton = clearButton
-
-        # add pred button
+        # add buttons
+        self.hlayoutTop.addStretch()
+        self.hlayoutTop.addWidget(self.loadButton, alignment=Qt.AlignLeft)
+        self.hlayoutTop.addStretch()
         self.menubuttonsPrediction.addWidget(predictButton)
-
-        # headers
-        headers = ['Load', 'Model', 'Target', 'Prediction', 'Mean Student']
-
-        # get labels
-        self.label_ids = sqlbuilder.list_available_labels()
-        self.label_ids.sort()
-        # create lists for widgets
-        self.predLabels = []
-        self.loadedModelsCb = []
-        self.loadModelButtons = []
-
-        # add headers
-        self.featuresIdLabel = QtWidgets.QLabel()
-        self.featuresIdLabel.setText("")
-
-        for i, header in enumerate(headers):
-            headerLabel = QtWidgets.QLabel()
-            headerLabel.setText(header)
-            headerLabel.setStyleSheet("font-weight: bold")
-            self.gridlayoutPrediction.addWidget(headerLabel, 0, i, alignment=Qt.AlignCenter)
-
-        self.featuresLayout.addRow('Features:', self.featuresIdLabel)
-
-        # add rows
-        for i, target in enumerate(self.label_ids):
-            targetLabel = QtWidgets.QLabel()
-            targetLabel.setText(target)
-
-            predLabel = QtWidgets.QLabel()
-            predLabel.setText("-")
-
-            loadModelButton = IdButton(i)
-            loadModelButton.setStatusTip('Load Model')
-            loadModelButton.setMaximumWidth(50)
-            # Load model buttons and predLabel are saved in a list
-            self.loadModelButtons.append(loadModelButton)
-            self.loadModelButtons[i].set_click_function(self.showLoadModelDialog)
-            self.predLabels.append(predLabel)
-            self.loadedModelsCb.append(CheckableComboBox())
-            # add widgets
-            self.gridlayoutPrediction.addWidget(self.loadModelButtons[i], i+1, 0)
-            self.gridlayoutPrediction.addWidget(self.loadedModelsCb[i], i+1, 1)
-            self.gridlayoutPrediction.addWidget(targetLabel, i+1, 2, alignment=Qt.AlignCenter)
-            self.gridlayoutPrediction.addWidget(self.predLabels[i], i+1, 3, alignment=Qt.AlignCenter)
-
-        self.gridlayoutPrediction.addWidget(self.clearButton, i+2, 0, 1, 2, alignment=Qt.AlignCenter)
 
         self.setLayout(self.vlayoutPrediction)
 
     def predict(self):
         """
-        Predicts selected data with the loaded and selected Models.
+        Predicts selected data with the loaded Models.
         It assumes that the models loaded are compatible with the data.
         """
-        data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
+        data_df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
         selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandas_dataview.table.selectionModel().selectedIndexes()
 
-        if data_df is None or data_f_id is None or data_l_id is None:
-            log.error(f"No valid data to predict")
+        if data_df is None:
+            log.error(f"No loaded data to predict from")
+            return
+        if len(self.loadModelView.loadedModels) == 0:
+            log.error(f"No loaded models")
             return
 
-        # drop last column
-        data_df = data_df.iloc[:, :-1]
-
-        X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
         if len(selected_indexes) > 0:
-            selected_row = selected_indexes[0].row()
-            X = X.iloc[[selected_row]]
-            log.debug(f"Student No. {selected_row} selected.")
-            log.debug(f"Student's features: \n {X}")
+            # selected_row = selected_indexes.rows()
+            selected = [selected_index.row() for selected_index in selected_indexes]
+            data_df = data_df.iloc[selected]
+            log.debug(f"Student No. {selected} selected.")
+            log.debug(f"Student's features: \n {data_df}")
 
-        predicted = False
+        try:
+            self.loadModelView.predict(data_df)
+        except Exception as e:
+            log.error(traceback.format_exc())
+            traceback.print_exc()
+            return
 
-        for i, modelCb in enumerate(self.loadedModelsCb):
-            models = modelCb.get_checked_items()
+        log.info('Prediction finished.')
 
-            self.predLabels[i].setText("-")
-
-            if len(models) <= 0:
-                continue
-            else:
-                y_preds = []
-                for model in models:
-                    item_index = modelCb.find_item_index(model)
-                    y_preds.append(modelCb.itemData(item_index)['model'].predict(X))
-
-                if modelCb.itemData(item_index) is not None:
-                    # Majority voting for classification
-                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] != 'reg':
-                        y_pred = stats.mode(np.array(y_preds))
-                        self.predLabels[i].setText(str(y_pred[0][0][0]))
-                        predicted = True
-                    # Mean for regression
-                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] == 'reg':
-                        y_pred = np.mean(np.array(y_preds))
-                        self.predLabels[i].setText(str(y_pred))
-                        predicted = True
-
-        if predicted:
-            log.info('Prediction finished.')
-        if not predicted:
-            log.error('No Model loaded/selected, prediction failed.')
-
-    def load_model(self, filename, index):
+    def _load_model(self, filename):
         """
         Loads a .joblib model file and loads it to the comboBox[index].
         """
         model = joblib.load(filename)
 
-        # Verify models compatibility
-        _, data_f_id, _ = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
-        # same features as data
-        if data_f_id != f"{model['studies_id']}_{model['features_id']}":
-            log.error(f"Model trained with {model['studies_id']}_{model['features_id']} "
-                      f"is not compatible with {data_f_id}")
-            return
-        # same label
-        if self.label_ids[index] != model['labels_id']:
-            log.error(f"Model trained with {model['labels_id']} is not compatible with {self.label_ids[index]}")
-            return
 
-        modelName = os.path.basename(filename)
-        # append loaded model
-        self.loadedModelsCb[index].addItem(str(modelName), userData=model)
-        item_index = self.loadedModelsCb[index].find_item_index(str(modelName))
-        self.loadedModelsCb[index].setItemChecked(item_index)
 
-    def showLoadModelDialog(self, index):
+        df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
+        pos_targets = df.columns.tolist()
+
+        self.loadModelView.load_model(estimator, model_name, pos_targets)
+        self.loadModelView.update_labels(pos_targets)
+
+    def showLoadModelDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Config File", "",
-                                                            "Joblib Files (*.joblib);;All Files (*)",
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Trained Model", "",
+                                                            "Joblib Files (*.joblib);; H5 Files (*.h5);;All Files (*)",
                                                             options=options)
         if fileName:
-            self.load_model(fileName, index)
-
-    def clear_loaded_models(self):
-        for modelCb in self.loadedModelsCb:
-            modelCb.clear()
+            self._load_model(fileName)
 
     def refresh_labels(self):
-        self.clear_loaded_models()
+        df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
+        pos_targets = df.columns.tolist()
 
-        _, f_id, _ = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
-        self.featuresIdLabel.setText(f_id)
+        self.loadModelView.update_labels(pos_targets)
