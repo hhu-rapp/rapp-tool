@@ -6,6 +6,142 @@ from rapp.gui.helper import IdButton
 from rapp.pipeline import preprocess_data
 
 
+class LoadModelView(QtWidgets.QWidget):
+    def __init__(self):
+        """
+        Generates a widget to display all trained models with their corresponding predictive performances.
+        """
+        super(LoadModelView, self).__init__()
+
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.main_layout)
+        self.headersLayout = QtWidgets.QHBoxLayout()
+        self.predVBoxLayout = QtWidgets.QVBoxLayout()
+        self.predWidget = QtWidgets.QWidget()
+        self.pred_scroll = QtWidgets.QScrollArea()
+
+        self.loadedModels = []
+
+        # add default text
+        self.defaultTextLabel = QtWidgets.QLabel()
+        self.defaultTextLabel.setText("Drop your files here")
+        self.defaultTextLabel.setAlignment(QtCore.Qt.AlignCenter)
+
+        # add headers
+        self.modelLabel = QtWidgets.QLabel()
+        self.modelLabel.setText("Model")
+        self.modelLabel.setStyleSheet("font-weight: bold")
+
+        self.targetLabel = QtWidgets.QLabel()
+        self.targetLabel.setText("Target")
+        self.targetLabel.setStyleSheet("font-weight: bold")
+        self.targetLabel.setFixedWidth(150)
+
+        self.predLabel = QtWidgets.QLabel()
+        self.predLabel.setText("Prediction")
+        self.predLabel.setStyleSheet("font-weight: bold")
+        self.predLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.predLabel.setFixedWidth(150)
+
+        self.probaLabel = QtWidgets.QLabel()
+        self.probaLabel.setText("Proba")
+        self.probaLabel.setStyleSheet("font-weight: bold")
+        self.probaLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.probaLabel.setFixedWidth(150)
+
+        # TODO: Implement Ensemble Learning
+        # self.ensembleLabel = QtWidgets.QLabel()
+        # self.ensembleLabel.setText("Ensemble Learning")
+        # self.ensembleLabel.setStyleSheet("font-weight: bold")
+
+        self.predStretch = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                 QtWidgets.QSizePolicy.Expanding)
+
+        self.headersLayout.addWidget(self.modelLabel, 0, QtCore.Qt.AlignCenter)
+        self.headersLayout.addStretch()
+        self.headersLayout.addWidget(self.targetLabel, 0, QtCore.Qt.AlignCenter)
+
+        self.predWidget.setLayout(self.predVBoxLayout)
+
+        # add scroll area
+        self.pred_scroll.setWidgetResizable(True)
+        self.pred_scroll.setWidget(self.predWidget)
+        self.pred_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+        # add to layout
+        self.predVBoxLayout.addLayout(self.headersLayout)
+        self.stretch_models = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                    QtWidgets.QSizePolicy.Expanding)
+        self.predVBoxLayout.addItem(self.stretch_models)
+
+        self.main_layout.addWidget(self.defaultTextLabel)
+        self.main_layout.setAlignment(QtCore.Qt.AlignCenter)
+
+    def load_model(self, model, model_name, labels):
+        index = len(self.loadedModels)
+
+        # first model is loaded
+        if index == 0:
+            # remove default text
+            self.defaultTextLabel.setParent(None)
+
+            # add scroll area to layout
+            self.main_layout.addWidget(self.pred_scroll)
+            self.main_layout.setAlignment(QtCore.Qt.AlignTop)
+
+        # create model widget
+        widget = LoadedModelWidget(model, model_name, labels, index)
+        widget.removeButton.set_click_function(self._remove_model)
+
+        # add to layout
+        self.predVBoxLayout.removeItem(self.stretch_models)
+        self.loadedModels.append(widget)
+        self.predVBoxLayout.addWidget(widget)
+        self.predVBoxLayout.addItem(self.stretch_models)
+
+    def predict(self, data):
+        # add pred headers
+        self.headersLayout.addItem(self.predStretch)
+        self.headersLayout.addWidget(self.predLabel, 0, QtCore.Qt.AlignCenter)
+        self.headersLayout.addWidget(self.probaLabel, 0, QtCore.Qt.AlignCenter)
+
+        for model in self.loadedModels:
+            model.predict(data)
+
+        # TODO: Implement Ensemble Learning
+        # self.predVBoxLayout.addWidget(self.ensembleLabel, 0, QtCore.Qt.AlignCenter)
+
+    def _remove_model(self, index):
+        # remove model
+        widget = self.loadedModels.pop(index)
+        widget.clear_widget()
+        # update index of loaded models
+        for widget in self.loadedModels[index:]:
+            widget.subtract_index()
+
+        # no models are loaded
+        if len(self.loadedModels) == 0:
+            self._clear_pred_widget()
+            self.headersLayout.removeItem(self.predStretch)
+            self.main_layout.addWidget(self.defaultTextLabel)
+            self.main_layout.setAlignment(QtCore.Qt.AlignCenter)
+
+    def _clear_pred_widget(self):
+        self._clear_pred_headers()
+        self.pred_scroll.setParent(None)
+        # TODO: Implement Ensemble Learning
+        # self.ensembleLabel.setParent(None)
+
+    def _clear_pred_headers(self):
+        self.predLabel.setParent(None)
+        self.probaLabel.setParent(None)
+
+    def update_labels(self, labels):
+        for model in self.loadedModels:
+            model.update_labels(labels)
+
+
 class LoadedModelWidget(QtWidgets.QWidget):
     """
     Generates a widget that handles all interactions with the loaded model.
