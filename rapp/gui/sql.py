@@ -196,6 +196,14 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field.textChanged.connect(self.reset_simple_tab)
         self.__is_reset_connected = True
 
+    def set_template_ids(self, f_id=None, l_id=None):
+        if f_id is not None:
+            self.featuresSelect.setCurrentText(f_id)
+        if l_id is not None:
+            self.targetSelect.setCurrentText(l_id)
+
+        self.load_selected_sql_template()
+
     def reset_simple_tab(self):
         log.debug("Resetting selection in Simple SQL tab")
         self.featuresSelect.setCurrentIndex(0)
