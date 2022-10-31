@@ -21,6 +21,7 @@ class PredictionWidget(QtWidgets.QWidget):
 
         self.qmainwindow = qmainwindow
         self.initUI()
+        self.setAcceptDrops(True)
 
     def initUI(self):
         # create layout
@@ -62,6 +63,24 @@ class PredictionWidget(QtWidgets.QWidget):
         self.menubuttonsPrediction.addWidget(predictButton)
 
         self.setLayout(self.vlayoutPrediction)
+
+    def dragEnterEvent(self, event):
+        print('drag-enter')
+        if event.mimeData().hasUrls():
+            print('has urls')
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            file_extension = pathlib.Path(file_path).suffix
+
+            if file_extension == '.joblib' or file_extension == '.h5':
+                self._load_model(file_path)
+            else:
+                log.error(f'{file_extension} is not supported.')
 
     def predict(self):
         """
