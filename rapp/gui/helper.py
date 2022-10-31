@@ -140,6 +140,9 @@ class IdButton(QtWidgets.QPushButton):
     def set_click_function(self, function):
         self.clicked.connect(lambda: function(self.id))
 
+    def set_id(self, new_id):
+        self.id = new_id
+
 
 class ClickableLabel(QtWidgets.QLabel):
 
