@@ -99,8 +99,32 @@ class PredictionWidget(QtWidgets.QWidget):
         Loads a .joblib model file and loads it to the comboBox[index].
         """
         model = joblib.load(filename)
+        model_name = os.path.basename(filename)
+        # models can be loaded as a dictionary
+        if isinstance(model, dict):
+            if model.get('uses_templates'):
+                # get features
+                if model.get('features_id', None) is not None:
+                    if model.get('studies_id', None) is None:
+                        features_id = model['features_id']
+                    else:
+                        features_id = f"{model['studies_id']}_{model['features_id']}"
+                # get label
+                if model.get('labels_id', None) is not None:
+                    labels_id = model['labels_id']
 
+                    current_f_id, current_l_id = self.qmainwindow.databasePredictionLayoutWidget.get_current_template_id()
 
+                    if current_f_id != features_id or current_l_id != labels_id:
+                        self.qmainwindow.databasePredictionLayoutWidget.sql_tabs.set_template_ids(f_id=features_id, l_id=labels_id)
+
+                        if len(self.loadModelView.loadedModels) > 0:
+                            log.warning("The data has been updated; Ensure that the loaded models are still compatible.")
+
+            estimator = model['model']
+
+        else:
+            estimator = model
 
         df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
         pos_targets = df.columns.tolist()
