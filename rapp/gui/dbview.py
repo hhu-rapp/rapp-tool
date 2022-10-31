@@ -226,11 +226,14 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.pandas_dataview.set_connection(self.__conn)
 
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
+
         try:
             self.sql_df = self.pandas_dataview.set_custom_sql(sql_query)
-            self.qmainwindow.sql_df = self.sql_df
+
             self.features_id = f_id
             self.labels_id = l_id
+
+            self.qmainwindow.sql_df = self.sql_df
 
             # TODO: better way to do access the method
             self.qmainwindow.settings.simple_tab.refresh_labels()
@@ -238,6 +241,12 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         except (DatabaseError, TypeError) as e:
             log.error(str(e))
+
+    def get_current_df(self):
+        return self.pandas_dataview.table.model().df
+
+    def get_current_template_id(self):
+        return self.features_id, self.labels_id
 
     def getDataSettings(self):
         # TODO: Cannot access current dataframe
