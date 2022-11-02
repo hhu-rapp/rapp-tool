@@ -1,4 +1,6 @@
 # table
+import pathlib
+
 import pandas as pd
 from pandas.io.sql import DatabaseError
 import logging
@@ -148,14 +150,13 @@ class DataView(QtWidgets.QWidget):
         """
         Display the given Pandas DataFrame in the widget.
         """
+        df.columns = df.columns.str.capitalize()
         model = PandasModel(df)
         self.table.setModel(model)
 
     def set_custom_sql(self, sql_query):
         df = data.query_sql(sql_query, self.__conn)
-        df.columns = df.columns.str.capitalize()
-        model = PandasModel(df)
-        self.table.setModel(model)
+        self.display_dataframe(df)
         self.__sql_query = sql_query
         self.combo.setCurrentIndex(self.__sql_idx)
 
@@ -163,6 +164,11 @@ class DataView(QtWidgets.QWidget):
 
     def get_custom_sql(self):
         return self.__sql_query
+
+    def load_dataframe(self, df):
+        self.__sql_query = None
+        self.combo.setCurrentIndex(self.__sql_idx)
+        self.display_dataframe(df)
 
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
@@ -243,6 +249,20 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         except (DatabaseError, TypeError) as e:
             log.error(str(e))
 
+    def displayDataframe(self, df):
+        self.sql_df = df
+
+        self.features_id = None
+        self.labels_id = None
+
+        self.qmainwindow.sql_df = self.sql_df
+
+        self.pandas_dataview.load_dataframe(df)
+
+        # TODO: better way to do access the method
+        self.qmainwindow.settings.simple_tab.refresh_labels()
+        self.qmainwindow.prediction.refresh_labels()
+
     def get_current_df(self):
         return self.pandas_dataview.table.model().df
 
@@ -270,6 +290,10 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
             if file_extension == '.db':
                 self.connectDatabase(file_path)
+
+            elif file_extension == '.csv':
+                df = pd.read_csv(file_path)
+                self.displayDataframe(df)
 
             else:
                 log.error(f'{file_extension} is not supported.')
