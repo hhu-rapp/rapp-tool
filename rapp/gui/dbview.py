@@ -179,6 +179,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.initUI()
         self.connectDatabase(self.filepath_db) # init database
+        self.setAcceptDrops(True)
 
     def initUI(self):
         layout = QtWidgets.QVBoxLayout()
@@ -255,3 +256,20 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def load_sql(self, sql_query):
         self.sql_tabs.set_sql(sql_query)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            file_extension = pathlib.Path(file_path).suffix
+
+            if file_extension == '.db':
+                self.connectDatabase(file_path)
+
+            else:
+                log.error(f'{file_extension} is not supported.')
