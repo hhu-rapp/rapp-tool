@@ -4,12 +4,15 @@ import traceback
 
 import joblib
 # PyQt5
+import pandas as pd
 from PyQt5 import QtWidgets
 # rapp gui
 from PyQt5.QtCore import Qt
 
 from rapp.gui.widgets.prediction_views import LoadModelView
 import logging
+
+from rapp.pipeline import preprocess_data
 
 log = logging.getLogger("prediction")
 
@@ -65,9 +68,7 @@ class PredictionWidget(QtWidgets.QWidget):
         self.setLayout(self.vlayoutPrediction)
 
     def dragEnterEvent(self, event):
-        print('drag-enter')
         if event.mimeData().hasUrls():
-            print('has urls')
             event.accept()
         else:
             event.ignore()
@@ -97,15 +98,16 @@ class PredictionWidget(QtWidgets.QWidget):
             log.error(f"No loaded models")
             return
 
+        X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
+
         if len(selected_indexes) > 0:
-            # selected_row = selected_indexes.rows()
             selected = [selected_index.row() for selected_index in selected_indexes]
-            data_df = data_df.iloc[selected]
+            X = X.iloc[selected]
             log.debug(f"Student No. {selected} selected.")
-            log.debug(f"Student's features: \n {data_df}")
+            log.debug(f"Student's features: \n {X}")
 
         try:
-            self.loadModelView.predict(data_df)
+            self.loadModelView.predict(X)
         except Exception as e:
             log.error(traceback.format_exc())
             traceback.print_exc()

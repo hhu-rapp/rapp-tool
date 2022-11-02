@@ -3,7 +3,6 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from scipy.stats import stats
 
 from rapp.gui.helper import IdButton
-from rapp.pipeline import preprocess_data
 
 
 class LoadModelView(QtWidgets.QWidget):
@@ -214,9 +213,7 @@ class LoadedModelWidget(QtWidgets.QWidget):
         if target != 'other':
             df = df.drop(target, axis=1)
 
-        X = preprocess_data(df, df.select_dtypes(exclude=["number"]).columns)
-
-        return X
+        return df.to_numpy()
 
     def predict(self, df):
         self._clear_prediction()
