@@ -1,5 +1,6 @@
 import copy
 import logging
+import pathlib
 from os.path import basename
 
 import pandas as pd
@@ -36,6 +37,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.__init_advanced_tab()
 
         self.__is_reset_connected = False
+
+        self.setAcceptDrops(True)
 
         # Arrange layout
         layout = QtWidgets.QVBoxLayout()
@@ -289,3 +292,23 @@ class SQLWidget(QtWidgets.QWidget):
             count = self.sql_field.toPlainText().lower().count(keyword.lower())
             self.qLabelFoundResults.setText(f"{count} result" + ("s" if count != 1 else ""))
         self.sql_field.find(keyword)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            file_extension = pathlib.Path(file_path).suffix
+
+            if file_extension == '.sql' or file_extension == '.txt':
+                log.info("Loading SQL file into GUI: %s", file_path)
+                with open(file_path, 'r') as file:
+                    data = file.read()
+                    self.set_sql(data)
+
+            else:
+                log.error(f'{file_extension} is not supported.')
