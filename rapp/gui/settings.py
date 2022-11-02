@@ -89,7 +89,7 @@ class SimpleSettings(QtWidgets.QWidget):
         self.featuresIdLabel.setText(f"{data_settings['studies_id']}_{data_settings['features_id']}")
         self.labelsIdLabel.setText(data_settings['labels_id'])
 
-        for model in self.pipeline.fairness_results:
+        for model in self.pipeline.performance_results:
             self.cbModels.addItem(estimator_name(model))
 
     def saveModel(self):
