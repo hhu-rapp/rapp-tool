@@ -21,6 +21,8 @@ class LoadModelView(QtWidgets.QWidget):
         self.pred_scroll = QtWidgets.QScrollArea()
 
         self.loadedModels = []
+        self.ensembleLabels = {}
+        self.ensembleLayouts = []
 
         # add default text
         self.defaultTextLabel = QtWidgets.QLabel()
@@ -49,10 +51,9 @@ class LoadModelView(QtWidgets.QWidget):
         self.probaLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.probaLabel.setFixedWidth(150)
 
-        # TODO: Implement Ensemble Learning
-        # self.ensembleLabel = QtWidgets.QLabel()
-        # self.ensembleLabel.setText("Ensemble Learning")
-        # self.ensembleLabel.setStyleSheet("font-weight: bold")
+        self.ensembleLabel = QtWidgets.QLabel()
+        self.ensembleLabel.setText("Ensemble Learning")
+        self.ensembleLabel.setStyleSheet("font-weight: bold")
 
         self.predStretch = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
                                                  QtWidgets.QSizePolicy.Expanding)
@@ -100,16 +101,71 @@ class LoadModelView(QtWidgets.QWidget):
         self.predVBoxLayout.addItem(self.stretch_models)
 
     def predict(self, data):
+        self._clear_ensemble_labels()
         # add pred headers
         self.headersLayout.addItem(self.predStretch)
         self.headersLayout.addWidget(self.predLabel, 0, QtCore.Qt.AlignCenter)
         self.headersLayout.addWidget(self.probaLabel, 0, QtCore.Qt.AlignCenter)
 
+        ensemble = {}
         for model in self.loadedModels:
             model.predict(data)
 
-        # TODO: Implement Ensemble Learning
-        # self.predVBoxLayout.addWidget(self.ensembleLabel, 0, QtCore.Qt.AlignCenter)
+            # ensemble learning
+            target = model.cbTarget.currentText()
+            if model.probaLabel.text() == '-':
+                ml_type = 'regression'
+                if ensemble.get(ml_type) is None:
+                    ensemble[ml_type] = {}
+
+            elif model.probaLabel.text() != '-':
+                ml_type = 'classification'
+                if ensemble.get(ml_type) is None:
+                    ensemble[ml_type] = {}
+
+            # group prediction by target and type
+            if ensemble[ml_type].get(target) is None:
+                ensemble[ml_type][target] = []
+
+            ensemble[ml_type][target].append(np.float(model.predLabel.text()))
+
+        self.ensembleLabel.setText('Ensemble Learning')
+        self.predVBoxLayout.addWidget(self.ensembleLabel, 0, QtCore.Qt.AlignCenter)
+
+        for ensemble_type, targets in ensemble.items():
+            # mean for regression, majority voting for classification
+            if ensemble_type == 'regression':
+                ensemble_func = np.mean
+            elif ensemble_type == 'classification':
+                ensemble_func = lambda x: stats.mode(x)[0][0]
+
+            for target, preds in targets.items():
+                if len(preds) > 1:
+                    pred = ensemble_func(preds)
+
+                    targetLabel = QtWidgets.QLabel()
+                    targetLabel.setText(target)
+                    targetLabel.setAlignment(QtCore.Qt.AlignRight)
+                    targetLabel.setStyleSheet("font-weight: bold")
+                    targetLabel.setFixedWidth(150)
+
+                    ensemblePredLabel = QtWidgets.QLabel()
+                    ensemblePredLabel.setText(f'{pred:.3f}')
+                    ensemblePredLabel.setAlignment(QtCore.Qt.AlignRight)
+                    ensemblePredLabel.setFixedWidth(150)
+
+                    self.ensembleLabels[targetLabel] = ensemblePredLabel
+
+                    ensembleLayout = QtWidgets.QHBoxLayout()
+                    ensembleLayout.addStretch()
+                    ensembleLayout.addWidget(targetLabel, 0, QtCore.Qt.AlignRight)
+                    ensembleLayout.addWidget(ensemblePredLabel, 0, QtCore.Qt.AlignRight)
+
+                    self.predVBoxLayout.addLayout(ensembleLayout)
+                    self.ensembleLayouts.append(ensembleLayout)
+
+        if len(self.ensembleLayouts) == 0:
+            self.ensembleLabel.setText('')
 
     def _remove_model(self, index):
         # remove model
@@ -119,6 +175,7 @@ class LoadModelView(QtWidgets.QWidget):
         for widget in self.loadedModels[index:]:
             widget.subtract_index()
 
+        self._clear_ensemble_labels()
         # no models are loaded
         if len(self.loadedModels) == 0:
             self._clear_pred_widget()
@@ -129,8 +186,18 @@ class LoadModelView(QtWidgets.QWidget):
     def _clear_pred_widget(self):
         self._clear_pred_headers()
         self.pred_scroll.setParent(None)
-        # TODO: Implement Ensemble Learning
-        # self.ensembleLabel.setParent(None)
+
+    def _clear_ensemble_labels(self):
+        self.ensembleLabel.setParent(None)
+
+        for targetLabel, predLabel in self.ensembleLabels.items():
+            targetLabel.setParent(None)
+            predLabel.setParent(None)
+        self.ensembleLabels.clear()
+
+        for layout in self.ensembleLayouts:
+            layout.setParent(None)
+        self.ensembleLayouts.clear()
 
     def _clear_pred_headers(self):
         self.predLabel.setParent(None)
