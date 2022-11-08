@@ -1,6 +1,6 @@
 import pytest
 from pytestqt.qtbot import QtBot
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QItemSelectionModel
 from rapp.gui import Window
 
 import tests.resources as rc
@@ -87,6 +87,11 @@ class GuiTestApi():
 
     def get_pred_template_ids(self):
         return self.widget.databasePredictionLayoutWidget.get_current_template_id()
+
+    def select_pred_row(self, row, col):
+        index = self.widget.databasePredictionLayoutWidget.pandas_dataview.table.model().index(row, col)
+        self.widget.databasePredictionLayoutWidget.pandas_dataview.table.selectionModel()\
+            .select(index, QItemSelectionModel.Select | QItemSelectionModel.Current)
 
     def key_click(self, element, key_sequence, mod=Qt.NoModifier, delay=-1):
         """

@@ -98,34 +98,33 @@ def test_predict_shows_pred_and_proba_labels(prediction_clf_reg: GuiTestApi):
         f"The loaded model layout length should be {expected}, but is {actual}"
 
 
-def test_predict_whole_df_shows_correct_values_clf(gui: GuiTestApi):
+def test_predict_shows_correct_values_clf(gui: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     gui.load_model(path)
-
-    # TODO predict a single sample
+    gui.select_pred_row(0, 0)  # predict only the first sample
     gui.predict()
 
     actual = [(model.predLabel.text(), model.probaLabel.text()) for model in gui.loadedModels]
-    expected = [('1', '0.904')]
+    expected = [('1', '0.849')]
     assert actual == expected, \
         f"The predictions of the models should be {expected}, but is {actual}"
 
 
 @pytest.mark.skip(reason="Prediction in gitlab is different than local")
-def test_predict_whole_df_shows_correct_values_reg(gui: GuiTestApi):
+def test_predict_shows_correct_values_reg(gui: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     gui.load_model(path)
-
-    # TODO predict a single sample
+    gui.select_pred_row(0, 0) # predict only the first sample
     gui.predict()
 
     actual = [(model.predLabel.text(), model.probaLabel.text()) for model in gui.loadedModels]
-    expected = [('4.207', '-')]
+    expected = [('3.600', '-')]
     assert actual == expected, \
         f"The predictions of the models should be {expected}, but is {actual}"
 
 
 def test_predict_without_ensemble(prediction_clf_reg: GuiTestApi):
+    prediction_clf_reg.select_pred_row(0, 0)  # predict only the first sample
     prediction_clf_reg.predict()
 
     actual = len(prediction_clf_reg.ensembleLabels)
@@ -138,7 +137,7 @@ def test_predict_clf_with_ensemble(prediction_clf_reg: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     prediction_clf_reg.load_model(path)
 
-    # TODO predict a single sample
+    prediction_clf_reg.select_pred_row(0, 0) # predict only the first sample
     prediction_clf_reg.predict()
 
     ensemble = prediction_clf_reg.ensembleLabels
@@ -159,7 +158,7 @@ def test_predict_reg_with_ensemble(prediction_clf_reg: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     prediction_clf_reg.load_model(path)
 
-    # TODO predict a single sample
+    prediction_clf_reg.select_pred_row(0, 0) # predict only the first sample
     prediction_clf_reg.predict()
 
     ensemble = prediction_clf_reg.ensembleLabels
@@ -169,7 +168,7 @@ def test_predict_reg_with_ensemble(prediction_clf_reg: GuiTestApi):
         values[target.text()] = pred.text()
 
     actual = values
-    expected = {'Finalgrade': '4.207'}
+    expected = {'Finalgrade': '3.600'}
 
     assert actual == expected, \
         f"The ensemble labels dict should be {expected}, but is {actual}"
