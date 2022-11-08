@@ -233,6 +233,7 @@ class LoadedModelWidget(QtWidgets.QWidget):
         self.index = index
 
         self.mainHBoxLayout = QtWidgets.QHBoxLayout()
+        self.mainHBoxLayout.setAlignment(QtCore.Qt.AlignBottom)
 
         removeButton = IdButton(self.index, '')
         removeButton.setFixedWidth(50)
@@ -262,8 +263,7 @@ class LoadedModelWidget(QtWidgets.QWidget):
         self.probaLabel.setText('-')
         self.probaLabel.setFixedWidth(150)
 
-        self.predStretch = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
-                                                 QtWidgets.QSizePolicy.Expanding)
+        self.predStretch = QtWidgets.QSpacerItem(10, 0)
 
         self.mainHBoxLayout.addWidget(self.removeButton)
         self.mainHBoxLayout.addWidget(self.modelLabel)
