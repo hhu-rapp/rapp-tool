@@ -4,11 +4,8 @@ import traceback
 
 import joblib
 # PyQt5
-import pandas as pd
 from PyQt5 import QtWidgets
 # rapp gui
-from PyQt5.QtCore import Qt
-
 from rapp.gui.widgets.prediction_views import LoadModelView
 import logging
 
@@ -29,41 +26,40 @@ class PredictionWidget(QtWidgets.QWidget):
     def initUI(self):
         # create layout
         self.vlayoutPrediction = QtWidgets.QVBoxLayout()
-        self.vlayoutPrediction.setContentsMargins(0, 11, 0, 0)
+        self.vlayoutPrediction.setContentsMargins(0, 0, 0, 0)
         self.hlayoutTop = QtWidgets.QHBoxLayout()
         self.hlayoutTop.setContentsMargins(0, 0, 0, 22)
         self.featuresLayout = QtWidgets.QFormLayout()
         self.featuresLayout.setContentsMargins(0, 11, 11, 0)
         self.gridlayoutPrediction = QtWidgets.QGridLayout()
-        self.menubuttonsPrediction = QtWidgets.QHBoxLayout()
         self.loadModelView = LoadModelView()
 
         self.vlayoutPrediction.addLayout(self.featuresLayout)
         self.vlayoutPrediction.addLayout(self.hlayoutTop)
         self.vlayoutPrediction.addWidget(self.loadModelView)
-        self.vlayoutPrediction.addLayout(self.menubuttonsPrediction)
 
         # create buttons
-        loadButton = QtWidgets.QPushButton('Load')
+        loadButton = QtWidgets.QPushButton('Open Model')
         loadButton.clicked.connect(self.showLoadModelDialog)
-        loadButton.setStatusTip('Load trained model (Ctrl+l)')
+        loadButton.setStatusTip('Open Trained Model (Ctrl+L)')
         loadButton.setShortcut('Ctrl+l')
         loadButton.setFixedWidth(300)
         loadButton.setIcon(self.style().standardIcon(
-            getattr(QtWidgets.QStyle, 'SP_FileIcon')))
+            getattr(QtWidgets.QStyle, 'SP_DirOpenIcon')))
         self.loadButton = loadButton
 
         predictButton = QtWidgets.QPushButton('Predict')
         predictButton.clicked.connect(self.predict)
-        predictButton.setStatusTip('Predict SQL query with Models (Ctrl+P)')
+        predictButton.setStatusTip('Predict (Ctrl+P)')
         predictButton.setShortcut('Ctrl+p')
+        predictButton.setFixedWidth(300)
+        predictButton.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_MediaSeekForward')))
         self.predictButton = predictButton
 
         # add buttons
-        self.hlayoutTop.addStretch()
-        self.hlayoutTop.addWidget(self.loadButton, alignment=Qt.AlignLeft)
-        self.hlayoutTop.addStretch()
-        self.menubuttonsPrediction.addWidget(predictButton)
+        self.hlayoutTop.addWidget(self.loadButton)
+        self.hlayoutTop.addWidget(predictButton)
 
         self.setLayout(self.vlayoutPrediction)
 
@@ -92,10 +88,10 @@ class PredictionWidget(QtWidgets.QWidget):
         selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandas_dataview.table.selectionModel().selectedIndexes()
 
         if data_df is None:
-            log.error(f"No loaded data to predict from")
+            log.error(f"No data to predict from")
             return
         if len(self.loadModelView.loadedModels) == 0:
-            log.error(f"No loaded models")
+            log.error(f"No models to predict with")
             return
 
         X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
