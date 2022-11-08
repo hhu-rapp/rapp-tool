@@ -113,7 +113,7 @@ def test_predict_shows_correct_values_clf(gui: GuiTestApi):
 def test_predict_shows_correct_values_reg(gui: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     gui.load_model(path)
-    gui.select_pred_row(0, 0) # predict only the first sample
+    gui.select_pred_row(0, 0)  # predict only the first sample
     gui.predict()
 
     actual = [(model.predLabel.text(), model.probaLabel.text()) for model in gui.loadedModels]
@@ -136,7 +136,7 @@ def test_predict_clf_with_ensemble(prediction_clf_reg: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     prediction_clf_reg.load_model(path)
 
-    prediction_clf_reg.select_pred_row(0, 0) # predict only the first sample
+    prediction_clf_reg.select_pred_row(0, 0)  # predict only the first sample
     prediction_clf_reg.predict()
 
     ensemble = prediction_clf_reg.ensembleLabels
@@ -156,7 +156,7 @@ def test_predict_reg_with_ensemble(prediction_clf_reg: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     prediction_clf_reg.load_model(path)
 
-    prediction_clf_reg.select_pred_row(0, 0) # predict only the first sample
+    prediction_clf_reg.select_pred_row(0, 0)  # predict only the first sample
     prediction_clf_reg.predict()
 
     ensemble = prediction_clf_reg.ensembleLabels
