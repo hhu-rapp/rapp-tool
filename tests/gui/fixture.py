@@ -72,8 +72,21 @@ class GuiTestApi():
 
         self.populate_interpretability_tab = lambda pl: self._populate_interpretability_tab(widget, pl)
 
+        # Prediction Tab
+        self.load_model = widget.prediction._load_model
+        self.predict = widget.prediction.predict
+        self.predictionView = widget.prediction.loadModelView
+        self.loadedModels = widget.prediction.loadModelView.loadedModels
+        self.ensembleLabels = widget.prediction.loadModelView.ensembleLabels
+
     def get_df(self):
         return self.widget.databaseLayoutWidget.sql_df
+
+    def get_pred_df(self):
+        return self.widget.databasePredictionLayoutWidget.get_current_df()
+
+    def get_pred_template_ids(self):
+        return self.widget.databasePredictionLayoutWidget.get_current_template_id()
 
     def key_click(self, element, key_sequence, mod=Qt.NoModifier, delay=-1):
         """
