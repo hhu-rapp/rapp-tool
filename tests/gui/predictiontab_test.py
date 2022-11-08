@@ -110,7 +110,6 @@ def test_predict_shows_correct_values_clf(gui: GuiTestApi):
         f"The predictions of the models should be {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="Prediction in gitlab is different than local")
 def test_predict_shows_correct_values_reg(gui: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     gui.load_model(path)
@@ -153,7 +152,6 @@ def test_predict_clf_with_ensemble(prediction_clf_reg: GuiTestApi):
         f"The ensemble labels dict should be {expected}, but is {actual}"
 
 
-@pytest.mark.skip(reason="Prediction in gitlab is different than local")
 def test_predict_reg_with_ensemble(prediction_clf_reg: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     prediction_clf_reg.load_model(path)
