@@ -1,5 +1,6 @@
 import os.path
 import pathlib
+import pickle
 import traceback
 
 import joblib
@@ -74,7 +75,7 @@ class PredictionWidget(QtWidgets.QWidget):
             file_path = url.toLocalFile()
             file_extension = pathlib.Path(file_path).suffix
 
-            if file_extension == '.joblib' or file_extension == '.h5':
+            if file_extension == '.joblib' or file_extension == '.pickle':
                 self._load_model(file_path)
             else:
                 log.error(f'{file_extension} is not supported.')
@@ -93,9 +94,10 @@ class PredictionWidget(QtWidgets.QWidget):
         if len(self.loadModelView.loadedModels) == 0:
             log.error(f"No models to predict with")
             return
-
+        # preprocess df based on currently loaded data
         X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
 
+        # if no index is selected the whole df is passed for prediction
         if len(selected_indexes) > 0:
             selected = [selected_index.row() for selected_index in selected_indexes]
             X = X.iloc[selected]
@@ -113,11 +115,29 @@ class PredictionWidget(QtWidgets.QWidget):
 
     def _load_model(self, filename):
         """
-        Loads a .joblib model file and loads it to the comboBox[index].
+        Loads a .joblib or .pickle model file and loads it to the loadModelView.
+
+        The model file can be a trained estimator, or a dictionary with the form:
+
+        {'model' : trained estimator,
+        'studies_id': studies_id of train data,
+        'features_id': features_id of train data,
+        'labels_id': predicting label_id of the model,
+        'uses_templates': specifies if the sql templates was used}
         """
-        model = joblib.load(filename)
+        file_extension = pathlib.Path(filename).suffix
         model_name = os.path.basename(filename)
-        # models can be loaded as a dictionary
+
+        if file_extension == '.joblib':
+            model = joblib.load(filename)
+        elif file_extension == '.pickle':
+            with open(filename, 'rb') as f:
+                model = pickle.load(f)
+                f.close()
+        else:
+            log.error(f'{file_extension} is not supported.')
+
+        # models can be loaded as a dictionary, this loads the given sql templates
         if isinstance(model, dict):
             if model.get('uses_templates'):
                 # get features
@@ -153,7 +173,7 @@ class PredictionWidget(QtWidgets.QWidget):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Trained Model", "",
-                                                            "Joblib Files (*.joblib);; H5 Files (*.h5);;All Files (*)",
+                                                            "Joblib Files (*.joblib);; Pickle Files (*.pickle);;All Files (*)",
                                                             options=options)
         if fileName:
             self._load_model(fileName)
