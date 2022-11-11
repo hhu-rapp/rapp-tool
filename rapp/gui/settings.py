@@ -100,7 +100,7 @@ class SimpleSettings(QtWidgets.QWidget):
         'studies_id': studies_id of train data,
         'features_id': features_id of train data,
         'labels_id': predicting label_id of the model,
-        'uses_templates': specifies if the sql templates was used}
+        'uses_templates': specifies if the sql templates were used}
         """
         if self.pipeline is None:
             log.error("There are currently no models in the pipeline")
