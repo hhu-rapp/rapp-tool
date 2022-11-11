@@ -12,7 +12,7 @@ def test_no_loaded_models(gui: GuiTestApi):
         f"The Number of loaded models at the beginning should be {expected}, but is {actual}"
 
 
-def test_load_model(gui: GuiTestApi):
+def test_load_model_as_dict(gui: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     gui.load_model(path)
 
@@ -29,6 +29,16 @@ def test_loaded_model_type(gui: GuiTestApi):
     actual = type(gui.loadedModels[0])
     expected = LoadedModelWidget
     assert actual == expected, \
+        f"The type of loaded models should be {expected}, but is {actual}"
+
+
+def test_load_model_as_pickle(gui: GuiTestApi):
+    path = rc.get_path('prediction/models/clf_svc.pickle')
+    gui.load_model(path)
+
+    actual = len(gui.loadedModels)
+    expected = 1
+    assert actual == expected, \
         f"The Number of loaded models after loading should be {expected}, but is {actual}"
 
 
@@ -44,7 +54,19 @@ def test_loaded_model_target_set_on_last_feature(gui: GuiTestApi):
         f"The default target should be {expected}, but is {actual}"
 
 
-def test_loading_model_updates_template_ids(gui: GuiTestApi):
+def test_loading_model_as_pickle_does_not_update_template_ids(gui: GuiTestApi):
+    path = rc.get_path('prediction/models/clf_svc.pickle')
+
+    f_id, l_id = gui.get_pred_template_ids()
+    gui.load_model(path)
+
+    actual = f_id, l_id
+    expected = None, None
+    assert actual == expected, \
+        f"The the current templates should be {expected}, but are {actual}"
+
+
+def test_loading_model_as_dict_updates_template_ids(gui: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     gui.load_model(path)
 
@@ -101,11 +123,13 @@ def test_predict_shows_pred_and_proba_labels(prediction_clf_reg: GuiTestApi):
 def test_predict_shows_correct_values_clf(gui: GuiTestApi):
     path = rc.get_path('prediction/models/clf_svc.joblib')
     gui.load_model(path)
+    path = rc.get_path('prediction/models/clf_svc.pickle')
+    gui.load_model(path)
     gui.select_pred_row(0, 0)  # predict only the first sample
     gui.predict()
 
     actual = [(model.predLabel.text(), model.probaLabel.text()) for model in gui.loadedModels]
-    expected = [('1', '0.849')]
+    expected = [('1', '0.849'), ('1', '0.849')]
     assert actual == expected, \
         f"The predictions of the models should be {expected}, but is {actual}"
 
@@ -113,11 +137,13 @@ def test_predict_shows_correct_values_clf(gui: GuiTestApi):
 def test_predict_shows_correct_values_reg(gui: GuiTestApi):
     path = rc.get_path('prediction/models/reg_dt.joblib')
     gui.load_model(path)
+    path = rc.get_path('prediction/models/reg_dt.pickle')
+    gui.load_model(path)
     gui.select_pred_row(0, 0)  # predict only the first sample
     gui.predict()
 
     actual = [(model.predLabel.text(), model.probaLabel.text()) for model in gui.loadedModels]
-    expected = [('3.600', '-')]
+    expected = [('3.600', '-'), ('3.600', '-')]
     assert actual == expected, \
         f"The predictions of the models should be {expected}, but is {actual}"
 
