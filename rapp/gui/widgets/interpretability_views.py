@@ -59,6 +59,9 @@ class InitialView(QtWidgets.QWidget):
         topLayout.addRow(f"{pl_type} Metrics:", self.cbMetrics)
         topLayout.addRow('Mode:', self.cbModes)
 
+        self.stretch = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                                                     QtWidgets.QSizePolicy.Expanding)
+
         # add to layout
         self.main_layout.addWidget(self.filters_groupBox)
         populate_summary_table()
@@ -78,10 +81,12 @@ class InitialView(QtWidgets.QWidget):
 
         # add to layout
         self.main_layout.addWidget(self.summary_table)
+        self.main_layout.addItem(self.stretch)
 
     def _clear_table(self):
         try:
             self.summary_table.setParent(None)
+            self.main_layout.removeItem(self.stretch)
         except AttributeError:
             return
 
