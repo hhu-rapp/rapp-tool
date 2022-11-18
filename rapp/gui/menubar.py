@@ -61,11 +61,13 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionPaste.setObjectName("actionPaste")
 
         # add entries to the file menu
-        self.menuFile.addAction(self.actionLoad_Config)
-        self.menuFile.addAction(self.actionSave_Config)
         self.menuFile.addMenu(self.menuDatabase)
         self.menuDatabase.addAction(self.actionOpen_Pipeline_Database)
         self.menuDatabase.addAction(self.actionOpen_Prediction_Database)
+        self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionLoad_Config)
+        self.menuFile.addAction(self.actionSave_Config)
+        self.menuFile.addSeparator()
         self.menuFile.addMenu(self.menuSql)
         self.menuSql.addAction(self.actionOpen_SQLite_Query)
         self.menuSql.addAction(self.actionSave_SQLite_Query)
@@ -84,16 +86,16 @@ class MenuBar(QtWidgets.QMenuBar):
         self.menuFile.setTitle(_translate("Window", "&File"))
         self.menuEdit.setTitle(_translate("Window", "&Edit"))
         self.menuSql.setTitle(_translate("Window", "SQL Query"))
-        self.menuDatabase.setTitle(_translate("Window", "Database"))
+        self.menuDatabase.setTitle(_translate("Window", "Open Data"))
 
-        self.actionOpen_Pipeline_Database.setText(_translate("Window", "Open Pipeline Database"))
+        self.actionOpen_Pipeline_Database.setText(_translate("Window", "Training Data"))
         self.actionOpen_Pipeline_Database.setStatusTip(_translate(
-            "Window", "Opens SQLite Database. File type is \'.db\'"))
+            "Window", "Open data for training"))
         self.actionOpen_Pipeline_Database.setShortcut(_translate("Window", "Ctrl+O"))
 
-        self.actionOpen_Prediction_Database.setText(_translate("Window", "Open Prediction Database"))
+        self.actionOpen_Prediction_Database.setText(_translate("Window", "Prediction Data"))
         self.actionOpen_Prediction_Database.setStatusTip(_translate(
-            "Window", "Opens SQLite Database. File type is \'.db\'"))
+            "Window", "Open data for predicting"))
         self.actionOpen_Prediction_Database.setShortcut(_translate("Window", "Ctrl+Alt+O"))
 
         self.actionOpen_SQLite_Query.setText(
