@@ -113,20 +113,23 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionPaste.triggered.connect(self.pasteSQLQuery)
 
     def openDatabasePipeline(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQLite Database File for Training", "",
-                                                            "Database Files (*.db);;All Files (*)", options=options)
-        if fileName:
-            self.databaseLayoutWidget.connectDatabase(os.path.normpath(fileName))
+        fileName = self.showDataFileDialog()
+        self.databaseLayoutWidget.open_data_file(fileName)
 
     def openDatabasePrediction(self):
+        fileName = self.showDataFileDialog()
+        self.parent().databasePredictionLayoutWidget.open_data_file(os.path.normpath(fileName))
+
+    def showDataFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQLite Database File for Prediction", "",
-                                                            "Database Files (*.db);;All Files (*)", options=options)
+                                                            "Database Files (*.db *.sqlite *.sqlite3 *.db *.db3 *.s3db "
+                                                            "*.sl3);; "
+                                                            "CSV Files (*.csv *.data *.txt);;All Files (*)",
+                                                            options=options)
         if fileName:
-            a = self.parent().databasePredictionLayoutWidget.connectDatabase(os.path.normpath(fileName))
+            return fileName
 
     def showConfigurationFileDialog(self):
         options = QtWidgets.QFileDialog.Options()

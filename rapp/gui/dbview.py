@@ -213,6 +213,20 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.__conn = data.connect(self.filepath_db)
         self.pandas_dataview.set_connection(self.__conn)
 
+    def connectDatabaseFromCsv(self, filepath, delimiter=','):
+        self.log.info('Creating in memory database from  %s', filepath)
+        df = pd.read_csv(filepath, delimiter=delimiter)
+        table_name = pathlib.Path(filepath).stem
+
+        self.filepath_db = filepath
+        self.sql_tabs.set_db_filepath(filepath)
+        self.__conn = data.connect(':memory:')
+        df.to_sql(table_name, self.__conn, index=False)
+
+        self.pandas_dataview.set_connection(self.__conn)
+
+        self.sql_tabs.tabs.setCurrentIndex(self.sql_tabs.advanced_tab_index)
+
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
 
         try:
@@ -266,15 +280,21 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def dropEvent(self, event):
         for url in event.mimeData().urls():
-            file_path = url.toLocalFile()
-            file_extension = pathlib.Path(file_path).suffix
+            self.open_data_file(url.toLocalFile())
 
-            if file_extension == '.db':
-                self.connectDatabase(file_path)
+    def open_data_file(self, file_path):
+        database_files = ['.sqlite', '.sqlite3', '.db', '.db3', '.s3db', '.sl3']
+        delimiter_files = ['.csv', '.data', '.txt']
 
-            elif file_extension == '.csv':
-                df = pd.read_csv(file_path)
-                self.displayDataframe(df)
+        file_extension = pathlib.Path(file_path).suffix
 
             else:
                 log.error(f'{file_extension} is not supported.')
+        if file_extension in database_files:
+            self.connectDatabase(file_path)
+
+        elif file_extension in delimiter_files:
+            dialog = CsvDialog()
+            delimiter = dialog.get_delim()
+            self.connectDatabaseFromCsv(file_path, delimiter)
+
