@@ -86,8 +86,12 @@ class SimpleSettings(QtWidgets.QWidget):
 
         self.cbModels.clear()
 
-        self.featuresIdLabel.setText(f"{data_settings['studies_id']}_{data_settings['features_id']}")
-        self.labelsIdLabel.setText(data_settings['labels_id'])
+        if data_settings.get('features_id') is not None or data_settings.get('labels_id') is not None:
+            self.featuresIdLabel.setText(f"{data_settings['studies_id']}_{data_settings['features_id']}")
+            self.labelsIdLabel.setText(data_settings['labels_id'])
+        else:
+            self.featuresIdLabel.setText('-')
+            self.labelsIdLabel.setText('-')
 
         for model in self.pipeline.performance_results:
             self.cbModels.addItem(estimator_name(model))
