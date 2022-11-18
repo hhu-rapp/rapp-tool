@@ -1,6 +1,8 @@
 
 import numpy as np
 import pandas as pd
+
+import rapp.fair.regression
 from rapp.fair import notions
 
 
@@ -16,7 +18,7 @@ def test_key_error_problem_for_regression_group_fairness():
     pred = pd.DataFrame([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_group_fairness(X, y, z, pred)
+        fair = rapp.fair.regression.regression_group_fairness(X, y, z, pred)
     except KeyError as err:
         assert False, f"KeyError raised, {err}"
 
@@ -33,7 +35,7 @@ def test_key_error_problem_for_regression_individual_fairness():
     pred = pd.DataFrame([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_individual_fairness(X, y, z, pred)
+        fair = rapp.fair.regression.regression_individual_fairness(X, y, z, pred)
     except KeyError as err:
         assert False, f"KeyError raised, {err}"
 
@@ -50,7 +52,7 @@ def test_use_of_fav_label_group_regression_fairness():
     pred = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_group_fairness(X, y, z, pred)
+        fair = rapp.fair.regression.regression_group_fairness(X, y, z, pred)
     except ZeroDivisionError as err:
         assert False, f"ZeroDivisionError raised, {err}"
 
@@ -67,6 +69,6 @@ def test_use_of_fav_label_individual_regression_fairness():
     pred = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
 
     try:
-        fair = notions.regression_individual_fairness(X, y, z, pred)
+        fair = rapp.fair.regression.regression_individual_fairness(X, y, z, pred)
     except ZeroDivisionError as err:
         assert False, f"ZeroDivisionError raised, {err}"

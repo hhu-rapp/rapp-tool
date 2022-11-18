@@ -19,6 +19,7 @@ from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
+import rapp.fair.regression
 from rapp import sqlbuilder
 from rapp import models
 from rapp import data as db
@@ -168,8 +169,8 @@ class Pipeline:
             }
         elif self.type == 'regression':
             self.fairness_functions = {
-                'Reg. Group Fairness': notions.regression_group_fairness,
-                'Reg. Individual Fairness': notions.regression_individual_fairness,
+                'Reg. Group Fairness': rapp.fair.regression.regression_group_fairness,
+                'Reg. Individual Fairness': rapp.fair.regression.regression_individual_fairness,
             }
         else:
             self.fairness_functions = {}
