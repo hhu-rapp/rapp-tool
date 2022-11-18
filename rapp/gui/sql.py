@@ -1,11 +1,5 @@
-import copy
-import logging
 import pathlib
 from os.path import basename
-
-import pandas as pd
-from PyQt5.QtGui import QTextCharFormat, QColor
-from pandas.io.sql import DatabaseError
 
 from PyQt5 import QtCore, QtGui
 from PyQt5 import QtWidgets
