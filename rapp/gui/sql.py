@@ -149,6 +149,12 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
 
+        self.qPushButtonClearSql = QtWidgets.QPushButton()
+        self.qPushButtonClearSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DialogResetButton')))
+        self.qPushButtonClearSql.setStatusTip('Clear SQL query (Ctrl+Shift+Delete)')
+        self.qPushButtonClearSql.setShortcut('Ctrl+Shift+Delete')
+
         self.qLineEditFindSql = QtWidgets.QLineEdit()
         self.qLineEditFindSql.setHidden(True)
         self.qLineEditFindSql.setPlaceholderText("Find keyword")
@@ -183,6 +189,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonClearSql)
         self.hlayoutSqlButtons.addWidget(separator2)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
         self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
@@ -197,6 +204,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonExecuteSql.clicked.connect(
             lambda: self.displaySql(self.sql_field.toPlainText())
         )
+        self.qPushButtonClearSql.clicked.connect(
+            lambda: self.sql_field.setPlainText(''))
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
         self.qPushButtonFindSql.clicked.connect(self.toggle_find_sql)
