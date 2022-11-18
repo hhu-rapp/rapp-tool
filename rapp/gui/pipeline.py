@@ -239,7 +239,7 @@ class Pipeline(QtWidgets.QWidget):
         if pl.fairness_results[next(iter(pl.fairness_results))]:
             data_settings = {"studies_id": getattr(cf, "studies_id", None),
                              "features_id": getattr(cf, "features_id", None),
-                             "labels_id": cf.labels_id}
+                             "labels_id": getattr(cf, "labels_id", None)}
 
             # Enable Evaluation tab
             self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.evaluation_tab_index, True)
