@@ -140,9 +140,6 @@ class IdButton(QtWidgets.QPushButton):
     def set_click_function(self, function):
         self.clicked.connect(lambda: function(self.id))
 
-    def set_id(self, new_id):
-        self.id = new_id
-
 
 class ClickableLabel(QtWidgets.QLabel):
 
@@ -256,6 +253,7 @@ class Highlighter(QSyntaxHighlighter):
 
 
 def init_sql_highlighter(highlighter, sql_field):
+
     # SQL operations
     sql_format = QTextCharFormat()
     sql_format.setForeground(QColor("#2088b5"))
@@ -304,61 +302,3 @@ def init_sql_highlighter(highlighter, sql_field):
     highlighter.add_mapping(pattern, comment_format)
 
     highlighter.setDocument(sql_field.document())
-
-
-class CsvDialog(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__(flags=QtCore.Qt.WindowCloseButtonHint)
-        self.setFixedSize(250, 200)
-
-        self.setWindowTitle("Delimiter Options")
-
-        QBtn = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
-
-        self.buttonBox = QtWidgets.QDialogButtonBox(QBtn)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-        self.layout = QtWidgets.QVBoxLayout()
-
-        self.cbDelim = QtWidgets.QComboBox()
-        self.cbDelim.addItem("Comma")
-        self.cbDelim.addItem("Semicolon")
-        self.cbDelim.addItem("Space")
-        self.cbDelim.addItem("Tab")
-
-        self.delimDict = {'Comma': ',',
-                          'Semicolon': ';',
-                          'Space': ' ',
-                          'Tab': '\t'}
-
-        self.inputDelim = QtWidgets.QLineEdit()
-        self.inputDelim.setPlaceholderText('Other')
-
-        self.inputDelim.textChanged.connect(lambda: self.radio2.setChecked(True))
-        self.cbDelim.currentIndexChanged.connect(lambda: self.radio1.setChecked(True))
-
-        groupBox = QtWidgets.QGroupBox("Select the type of delimiter")
-        self.radio1 = QtWidgets.QRadioButton()
-        self.radio2 = QtWidgets.QRadioButton()
-        self.radio1.setChecked(True)
-
-        grid = QtWidgets.QGridLayout()
-        grid.addWidget(self.radio1, 0, 0)
-        grid.addWidget(self.cbDelim, 0, 1)
-        grid.addWidget(self.radio2, 1, 0)
-        grid.addWidget(self.inputDelim, 1, 1)
-        groupBox.setLayout(grid)
-
-        self.layout.addWidget(groupBox)
-        self.layout.addWidget(self.buttonBox)
-        self.setLayout(self.layout)
-
-    def get_delim(self):
-        done = self.exec()
-
-        if done:
-            if self.radio1.isChecked():
-                return self.delimDict[self.cbDelim.currentText()]
-            if self.radio2.isChecked():
-                return self.inputDelim.text()
