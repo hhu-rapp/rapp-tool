@@ -1,6 +1,6 @@
 # Modular SQL Templates
 
-To battle the combinatoric explosion behind writing any possible
+To battle the combinatorial explosion behind writing any possible
 feature/label combination by hand,
 the SQL-templating system allows to only write the SQL for each
 feature and each label once, then combine everything arbitrarily.
