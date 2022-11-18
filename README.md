@@ -14,9 +14,27 @@ For the specific use case of predicting students' performance data from the Hein
 
 ## Developer Setup
 
+### Cloning the Repository
+
+Make sure you have installed `git lfs` in your system to correctly clone `data/rapp_dummy.db`.
+
+Clone the repository:
+```bash
+git clone https://github.com/hhu-rapp/rapp-tool.git
+```
+
+Calculate the sha265 checksum of `data/rapp_dummy.db` (UNIX-like systems):
+```bash
+sha256sum data/rapp_dummy.db
+```
+
+The checksum of the dummy database `data/rapp_dummy.db` should be:
+`d5aac60436d931174f2b02ea32c87c7d32f442021022380e8af376b3d817ee69`
+
 ### Requirements
 
 Ensure you work on a virtual environment and install the dependencies.
+The GUI should work on Python >=3.8.
 
 ```bash
 python3 -m venv env
