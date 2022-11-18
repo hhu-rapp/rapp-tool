@@ -52,7 +52,7 @@ general features or labels, it will shadow the general one.
 ## Semantics of the template files
 
 The template files for SELECT, JOIN, and WHERE
-are put into a [mustache template](../sqltemplates/basetemplate.sql)
+are put into a [mustache template](../../sqltemplates/basetemplate.sql)
 which has the following form
 
 ```sql
