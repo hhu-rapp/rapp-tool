@@ -309,7 +309,7 @@ def init_sql_highlighter(highlighter, sql_field):
 class CsvDialog(QtWidgets.QDialog):
     def __init__(self):
         super().__init__(flags=QtCore.Qt.WindowCloseButtonHint)
-        self.setFixedSize(250, 200)
+        #self.setFixedSize(250, 200)
 
         self.setWindowTitle("Delimiter Options")
 
