@@ -1,10 +1,5 @@
-import copy
-import logging
+import pathlib
 from os.path import basename
-
-import pandas as pd
-from PyQt5.QtGui import QTextCharFormat, QColor
-from pandas.io.sql import DatabaseError
 
 from PyQt5 import QtCore, QtGui
 from PyQt5 import QtWidgets
@@ -13,19 +8,20 @@ from rapp.gui.helper import Highlighter, init_sql_highlighter
 from rapp.sqlbuilder import load_sql
 from rapp import sqlbuilder
 
-log = logging.getLogger('GUI')
-
 
 class SQLWidget(QtWidgets.QWidget):
 
-    def __init__(self, sql_query_callback):
+    def __init__(self, sql_query_callback, log):
         """
         Parameters
         ----------
         sql_query_callback: function
             A reference to a function that takes an SQL query as argument.
+
+        log: logger instance
         """
         super(SQLWidget, self).__init__()
+        self.log = log
 
         self.displaySql = sql_query_callback
 
@@ -36,6 +32,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.__init_advanced_tab()
 
         self.__is_reset_connected = False
+
+        self.setAcceptDrops(True)
 
         # Arrange layout
         layout = QtWidgets.QVBoxLayout()
@@ -54,7 +52,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.targetSelect = QtWidgets.QComboBox()
         self.__populate_template_options()
 
-        self.verifySelect = QtWidgets.QPushButton("Load")
+        self.verifySelect = QtWidgets.QPushButton("Load Templates")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
 
         # add to layout
@@ -76,12 +74,12 @@ class SQLWidget(QtWidgets.QWidget):
 
         self.featuresSelect.addItem("")
         for feat_id in dirs_feats:
-            log.debug(f"Adding feature '{feat_id}' to SQL templates")
+            self.log.debug(f"Adding feature '{feat_id}' to SQL templates")
             self.featuresSelect.addItem(feat_id)
 
         self.targetSelect.addItem("")
         for label_id in dirs_labels:
-            log.debug(f"Adding label '{label_id}' to SQL templates")
+            self.log.debug(f"Adding label '{label_id}' to SQL templates")
             self.targetSelect.addItem(label_id)
 
     def __init_advanced_tab(self):
@@ -95,16 +93,37 @@ class SQLWidget(QtWidgets.QWidget):
         self.Findhighlighter = Highlighter()
         init_sql_highlighter(self.highlighter, self.sql_field)
 
-        self.__init_footer()
-        self.advanced_tab.layout().addWidget(self.sql_field)
+        self.__init_buttons()
         self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
+        self.advanced_tab.layout().addWidget(self.sql_field)
 
         tab_idx = self.tabs.addTab(self.advanced_tab, 'SQL Query')
         self.advanced_tab_index = tab_idx
 
-    def __init_footer(self):
+    def __init_buttons(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
+
+        separator1 = QtWidgets.QFrame()
+        separator1.setFrameShape(QtWidgets.QFrame.VLine)
+        separator1.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+        separator2 = QtWidgets.QFrame()
+        separator2.setFrameShape(QtWidgets.QFrame.VLine)
+        separator2.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+        self.qPushButtonOpenSql = QtWidgets.QPushButton()
+        self.qPushButtonOpenSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DirOpenIcon')))
+        self.qPushButtonOpenSql.setStatusTip(
+            'Open SQL query (Ctrl+Shift+O)')
+        self.qPushButtonOpenSql.setShortcut('Ctrl+Shift+O')
+
+        self.qPushButtonSaveSql = QtWidgets.QPushButton()
+        self.qPushButtonSaveSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
+        self.qPushButtonSaveSql.setStatusTip('Save current SQL query (Ctrl+Shift+S)')
+        self.qPushButtonSaveSql.setShortcut('Ctrl+Shift+S')
 
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(
@@ -124,6 +143,12 @@ class SQLWidget(QtWidgets.QWidget):
             getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
         self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
         self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
+
+        self.qPushButtonClearSql = QtWidgets.QPushButton()
+        self.qPushButtonClearSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DialogResetButton')))
+        self.qPushButtonClearSql.setStatusTip('Clear SQL query (Ctrl+Shift+Delete)')
+        self.qPushButtonClearSql.setShortcut('Ctrl+Shift+Delete')
 
         self.qLineEditFindSql = QtWidgets.QLineEdit()
         self.qLineEditFindSql.setHidden(True)
@@ -149,40 +174,49 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonFindSql = QtWidgets.QPushButton()
         self.qPushButtonFindSql.setIcon(self.style().standardIcon(
             getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
-        self.qPushButtonFindSql.setStatusTip('Find in SQL Query (Ctrl+Shift+F)')
-        self.qPushButtonFindSql.setShortcut('Ctrl+Shift+F')
+        self.qPushButtonFindSql.setStatusTip('Find in SQL Query (Ctrl+F)')
+        self.qPushButtonFindSql.setShortcut('Ctrl+F')
 
         # add buttons to button layout
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonOpenSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonSaveSql)
+        self.hlayoutSqlButtons.addWidget(separator1)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
-        self.hlayoutSqlButtons.addStretch(1)
-        self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonClearSql)
+        self.hlayoutSqlButtons.addWidget(separator2)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
         self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
+        self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindPrevious)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindNext)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
+        self.hlayoutSqlButtons.addStretch(1)
 
         # add button actions
+        self.qPushButtonOpenSql.clicked.connect(self.open_sql_query)
+        self.qPushButtonSaveSql.clicked.connect(self.save_sql_query)
         self.qPushButtonExecuteSql.clicked.connect(
             lambda: self.displaySql(self.sql_field.toPlainText())
         )
+        self.qPushButtonClearSql.clicked.connect(
+            lambda: self.sql_field.setPlainText(''))
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
         self.qPushButtonFindSql.clicked.connect(self.toggle_find_sql)
 
     def load_selected_sql_template(self):
-        log.debug("Loading SQL template from GUI button click")
+        self.log.debug("Loading SQL template from GUI button click")
 
         f_id = self.featuresSelect.currentText()
         l_id = self.targetSelect.currentText()
-        log.debug(f"f_id = '{f_id}', l_id = '{l_id}'")
+        self.log.debug(f"f_id = '{f_id}', l_id = '{l_id}'")
 
         if f_id == "":
-            log.warning("No features chosen for SQL templating")
+            self.log.warning("No features chosen for SQL templating")
             return
         if l_id == "":
-            log.warning("No target label chosen for SQL templating")
+            self.log.warning("No target label chosen for SQL templating")
             return
 
         # Display the queried template in the advanced tab
@@ -196,8 +230,16 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field.textChanged.connect(self.reset_simple_tab)
         self.__is_reset_connected = True
 
+    def set_template_ids(self, f_id=None, l_id=None):
+        if f_id is not None:
+            self.featuresSelect.setCurrentText(f_id)
+        if l_id is not None:
+            self.targetSelect.setCurrentText(l_id)
+
+        self.load_selected_sql_template()
+
     def reset_simple_tab(self):
-        log.debug("Resetting selection in Simple SQL tab")
+        self.log.debug("Resetting selection in Simple SQL tab")
         self.featuresSelect.setCurrentIndex(0)
         self.targetSelect.setCurrentIndex(0)
 
@@ -211,7 +253,7 @@ class SQLWidget(QtWidgets.QWidget):
         """
         Loads the given query into the SQL text field.
         """
-        log.debug("Setting SQL query by external call")
+        self.log.debug("Setting SQL query by external call")
         self.reset_simple_tab()
         self.sql_field.setPlainText(sql_query)
 
@@ -222,7 +264,7 @@ class SQLWidget(QtWidgets.QWidget):
         """
         Sets the database filepath to the given path.
         """
-        log.debug("Setting database filepath by external call to %s", path)
+        self.log.debug("Setting database filepath by external call to %s", path)
         self.db_filepath = path
 
         sqlbuilder.set_database_name(basename(self.db_filepath))
@@ -281,3 +323,55 @@ class SQLWidget(QtWidgets.QWidget):
             count = self.sql_field.toPlainText().lower().count(keyword.lower())
             self.qLabelFoundResults.setText(f"{count} result" + ("s" if count != 1 else ""))
         self.sql_field.find(keyword)
+
+    def open_sql_query(self):
+        """
+        Opens a SQL file and displays it in the sql field.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQL Query File", "",
+                                                            "SQL Files (*.sql);;Text Files (*.txt);;All Files (*)", options=options)
+
+        if fileName:
+            filename = (f'{fileName}.sql' if fileName.split('.')[-1] != 'sql' else fileName)
+            self.log.info("Opening SQL query: %s", filename)
+            with open(filename, 'r') as file:
+                sql = file.read()
+                self.sql_field.setPlainText(sql)
+
+    def save_sql_query(self):
+        """
+        Saves current query from the sql field to a SQL file.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save current SQL query as a File", "",
+                                                            "SQL Files (*.sql);;All Files (*)", options=options)
+
+        if fileName:
+            filename = (f'{fileName}.sql' if fileName.split('.')[-1] != 'sql' else fileName)
+            with open(filename, 'w+') as file:
+                data = self.sql_field.toPlainText()
+                file.write(data)
+            self.log.info("SQL query saved as: %s", filename)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            file_extension = pathlib.Path(file_path).suffix
+
+            if file_extension == '.sql' or file_extension == '.txt':
+                self.log.info("Loading SQL file into GUI: %s", file_path)
+                with open(file_path, 'r') as file:
+                    data = file.read()
+                    self.set_sql(data)
+
+            else:
+                self.log.error(f'{file_extension} is not supported.')

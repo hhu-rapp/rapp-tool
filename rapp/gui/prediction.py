@@ -1,20 +1,17 @@
 import os.path
-from os import listdir, getcwd
-from os.path import isdir, join, abspath
+import pathlib
+import pickle
+import traceback
 
 import joblib
 # PyQt5
-import numpy as np
 from PyQt5 import QtWidgets
 # rapp gui
-from PyQt5.QtCore import Qt
-from scipy import stats
+from rapp.gui.widgets.prediction_views import LoadModelView
+import logging
 
-from rapp import sqlbuilder
-from rapp.gui.helper import IdButton, CheckableComboBox
 from rapp.pipeline import preprocess_data
 
-import logging
 log = logging.getLogger("prediction")
 
 
@@ -25,178 +22,164 @@ class PredictionWidget(QtWidgets.QWidget):
 
         self.qmainwindow = qmainwindow
         self.initUI()
+        self.setAcceptDrops(True)
 
     def initUI(self):
         # create layout
         self.vlayoutPrediction = QtWidgets.QVBoxLayout()
-        self.vlayoutPrediction.setContentsMargins(25, 11, 0, 0)
+        self.vlayoutPrediction.setContentsMargins(0, 0, 0, 0)
+        self.hlayoutTop = QtWidgets.QHBoxLayout()
+        self.hlayoutTop.setContentsMargins(0, 0, 0, 22)
         self.featuresLayout = QtWidgets.QFormLayout()
-        self.featuresLayout.setContentsMargins(0,11,11,22)
+        self.featuresLayout.setContentsMargins(0, 11, 11, 0)
         self.gridlayoutPrediction = QtWidgets.QGridLayout()
-        self.menubuttonsPrediction = QtWidgets.QHBoxLayout()
+        self.loadModelView = LoadModelView()
 
         self.vlayoutPrediction.addLayout(self.featuresLayout)
-        self.vlayoutPrediction.addLayout(self.gridlayoutPrediction)
-        self.vlayoutPrediction.addStretch(1)
-        self.vlayoutPrediction.addLayout(self.menubuttonsPrediction)
+        self.vlayoutPrediction.addLayout(self.hlayoutTop)
+        self.vlayoutPrediction.addWidget(self.loadModelView)
 
         # create buttons
+        loadButton = QtWidgets.QPushButton('Open Model')
+        loadButton.clicked.connect(self.showLoadModelDialog)
+        loadButton.setStatusTip('Open Trained Model (Ctrl+L)')
+        loadButton.setShortcut('Ctrl+l')
+        loadButton.setFixedWidth(300)
+        loadButton.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DirOpenIcon')))
+        self.loadButton = loadButton
+
         predictButton = QtWidgets.QPushButton('Predict')
         predictButton.clicked.connect(self.predict)
-        predictButton.setStatusTip('Predict SQL query with Models (Ctrl+P)')
+        predictButton.setStatusTip('Predict (Ctrl+P)')
         predictButton.setShortcut('Ctrl+p')
+        predictButton.setFixedWidth(300)
+        predictButton.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_MediaSeekForward')))
         self.predictButton = predictButton
 
-        clearButton = QtWidgets.QPushButton('Clear')
-        clearButton.clicked.connect(self.clear_loaded_models)
-        clearButton.setStatusTip('Clear all loaded models')
-        self.clearButton = clearButton
-
-        # add pred button
-        self.menubuttonsPrediction.addWidget(predictButton)
-
-        # headers
-        headers = ['Load', 'Model', 'Target', 'Prediction', 'Mean Student']
-
-        # get labels
-        self.label_ids = sqlbuilder.list_available_labels()
-        self.label_ids.sort()
-        # create lists for widgets
-        self.predLabels = []
-        self.loadedModelsCb = []
-        self.loadModelButtons = []
-
-        # add headers
-        self.featuresIdLabel = QtWidgets.QLabel()
-        self.featuresIdLabel.setText("")
-
-        for i, header in enumerate(headers):
-            headerLabel = QtWidgets.QLabel()
-            headerLabel.setText(header)
-            headerLabel.setStyleSheet("font-weight: bold")
-            self.gridlayoutPrediction.addWidget(headerLabel, 0, i, alignment=Qt.AlignCenter)
-
-        self.featuresLayout.addRow('Features:', self.featuresIdLabel)
-
-        # add rows
-        for i, target in enumerate(self.label_ids):
-            targetLabel = QtWidgets.QLabel()
-            targetLabel.setText(target)
-
-            predLabel = QtWidgets.QLabel()
-            predLabel.setText("-")
-
-            loadModelButton = IdButton(i)
-            loadModelButton.setStatusTip('Load Model')
-            loadModelButton.setMaximumWidth(50)
-            # Load model buttons and predLabel are saved in a list
-            self.loadModelButtons.append(loadModelButton)
-            self.loadModelButtons[i].set_click_function(self.showLoadModelDialog)
-            self.predLabels.append(predLabel)
-            self.loadedModelsCb.append(CheckableComboBox())
-            # add widgets
-            self.gridlayoutPrediction.addWidget(self.loadModelButtons[i], i+1, 0)
-            self.gridlayoutPrediction.addWidget(self.loadedModelsCb[i], i+1, 1)
-            self.gridlayoutPrediction.addWidget(targetLabel, i+1, 2, alignment=Qt.AlignCenter)
-            self.gridlayoutPrediction.addWidget(self.predLabels[i], i+1, 3, alignment=Qt.AlignCenter)
-
-        self.gridlayoutPrediction.addWidget(self.clearButton, i+2, 0, 1, 2, alignment=Qt.AlignCenter)
+        # add buttons
+        self.hlayoutTop.addWidget(self.loadButton)
+        self.hlayoutTop.addWidget(predictButton)
 
         self.setLayout(self.vlayoutPrediction)
 
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            file_path = url.toLocalFile()
+            file_extension = pathlib.Path(file_path).suffix
+
+            if file_extension == '.joblib' or file_extension == '.pickle':
+                self._load_model(file_path)
+            else:
+                log.error(f'{file_extension} is not supported.')
+
     def predict(self):
         """
-        Predicts selected data with the loaded and selected Models.
+        Predicts selected data with the loaded Models.
         It assumes that the models loaded are compatible with the data.
         """
-        data_df, data_f_id, data_l_id = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
+        data_df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
         selected_indexes = self.qmainwindow.databasePredictionLayoutWidget.pandas_dataview.table.selectionModel().selectedIndexes()
 
-        if data_df is None or data_f_id is None or data_l_id is None:
-            log.error(f"No valid data to predict")
+        if data_df is None:
+            log.error(f"No data to predict from")
             return
-
-        # drop last column
-        data_df = data_df.iloc[:, :-1]
-
+        if len(self.loadModelView.loadedModels) == 0:
+            log.error(f"No models to predict with")
+            return
+        # preprocess df based on currently loaded data
         X = preprocess_data(data_df, data_df.select_dtypes(exclude=["number"]).columns)
+
+        # if no index is selected the whole df is passed for prediction
         if len(selected_indexes) > 0:
-            selected_row = selected_indexes[0].row()
-            X = X.iloc[[selected_row]]
-            log.debug(f"Student No. {selected_row} selected.")
+            selected = [selected_index.row() for selected_index in selected_indexes]
+            X = X.iloc[selected]
+            log.debug(f"Student No. {selected} selected.")
             log.debug(f"Student's features: \n {X}")
 
-        predicted = False
-
-        for i, modelCb in enumerate(self.loadedModelsCb):
-            models = modelCb.get_checked_items()
-
-            self.predLabels[i].setText("-")
-
-            if len(models) <= 0:
-                continue
-            else:
-                y_preds = []
-                for model in models:
-                    item_index = modelCb.find_item_index(model)
-                    y_preds.append(modelCb.itemData(item_index)['model'].predict(X))
-
-                if modelCb.itemData(item_index) is not None:
-                    # Majority voting for classification
-                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] != 'reg':
-                        y_pred = stats.mode(np.array(y_preds))
-                        self.predLabels[i].setText(str(y_pred[0][0][0]))
-                        predicted = True
-                    # Mean for regression
-                    if modelCb.itemData(item_index)['labels_id'].split('_')[0] == 'reg':
-                        y_pred = np.mean(np.array(y_preds))
-                        self.predLabels[i].setText(str(y_pred))
-                        predicted = True
-
-        if predicted:
-            log.info('Prediction finished.')
-        if not predicted:
-            log.error('No Model loaded/selected, prediction failed.')
-
-    def load_model(self, filename, index):
-        """
-        Loads a .joblib model file and loads it to the comboBox[index].
-        """
-        model = joblib.load(filename)
-
-        # Verify models compatibility
-        _, data_f_id, _ = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
-        # same features as data
-        if data_f_id != f"{model['studies_id']}_{model['features_id']}":
-            log.error(f"Model trained with {model['studies_id']}_{model['features_id']} "
-                      f"is not compatible with {data_f_id}")
-            return
-        # same label
-        if self.label_ids[index] != model['labels_id']:
-            log.error(f"Model trained with {model['labels_id']} is not compatible with {self.label_ids[index]}")
+        try:
+            self.loadModelView.predict(X)
+        except Exception as e:
+            log.error(traceback.format_exc())
+            traceback.print_exc()
             return
 
-        modelName = os.path.basename(filename)
-        # append loaded model
-        self.loadedModelsCb[index].addItem(str(modelName), userData=model)
-        item_index = self.loadedModelsCb[index].find_item_index(str(modelName))
-        self.loadedModelsCb[index].setItemChecked(item_index)
+        log.info('Prediction finished.')
 
-    def showLoadModelDialog(self, index):
+    def _load_model(self, filename):
+        """
+        Loads a .joblib or .pickle model file and loads it to the loadModelView.
+
+        The model file can be a trained estimator, or a dictionary with the form:
+
+        {'model' : trained estimator,
+        'studies_id': studies_id of train data,
+        'features_id': features_id of train data,
+        'labels_id': predicting label_id of the model,
+        'uses_templates': specifies if the sql templates was used}
+        """
+        file_extension = pathlib.Path(filename).suffix
+        model_name = os.path.basename(filename)
+
+        if file_extension == '.joblib':
+            model = joblib.load(filename)
+        elif file_extension == '.pickle':
+            with open(filename, 'rb') as f:
+                model = pickle.load(f)
+                f.close()
+        else:
+            log.error(f'{file_extension} is not supported.')
+
+        # models can be loaded as a dictionary, this loads the given sql templates
+        if isinstance(model, dict):
+            if model.get('uses_templates'):
+                # get features
+                if model.get('features_id', None) is not None:
+                    if model.get('studies_id', None) is None:
+                        features_id = model['features_id']
+                    else:
+                        features_id = f"{model['studies_id']}_{model['features_id']}"
+                # get label
+                if model.get('labels_id', None) is not None:
+                    labels_id = model['labels_id']
+
+                    current_f_id, current_l_id = self.qmainwindow.databasePredictionLayoutWidget.get_current_template_id()
+
+                    if current_f_id != features_id or current_l_id != labels_id:
+                        self.qmainwindow.databasePredictionLayoutWidget.sql_tabs.set_template_ids(f_id=features_id, l_id=labels_id)
+
+                        if len(self.loadModelView.loadedModels) > 0:
+                            log.warning("The data has been updated; Ensure that the loaded models are still compatible.")
+
+            estimator = model['model']
+
+        else:
+            estimator = model
+
+        df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
+        pos_targets = df.columns.tolist()
+
+        self.loadModelView.load_model(estimator, model_name, pos_targets)
+        self.loadModelView.update_labels(pos_targets)
+
+    def showLoadModelDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Config File", "",
-                                                            "Joblib Files (*.joblib);;All Files (*)",
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Trained Model", "",
+                                                            "Joblib Files (*.joblib);; Pickle Files (*.pickle);;All Files (*)",
                                                             options=options)
         if fileName:
-            self.load_model(fileName, index)
-
-    def clear_loaded_models(self):
-        for modelCb in self.loadedModelsCb:
-            modelCb.clear()
+            self._load_model(fileName)
 
     def refresh_labels(self):
-        self.clear_loaded_models()
+        df = self.qmainwindow.databasePredictionLayoutWidget.get_current_df()
+        pos_targets = df.columns.tolist()
 
-        _, f_id, _ = self.qmainwindow.databasePredictionLayoutWidget.getDataSettings()
-        self.featuresIdLabel.setText(f_id)
+        self.loadModelView.update_labels(pos_targets)
