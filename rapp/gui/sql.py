@@ -109,9 +109,26 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
 
+        separator1 = QtWidgets.QFrame()
+        separator1.setFrameShape(QtWidgets.QFrame.VLine)
+        separator1.setFrameShadow(QtWidgets.QFrame.Sunken)
+
         separator2 = QtWidgets.QFrame()
         separator2.setFrameShape(QtWidgets.QFrame.VLine)
         separator2.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+        self.qPushButtonOpenSql = QtWidgets.QPushButton()
+        self.qPushButtonOpenSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DirOpenIcon')))
+        self.qPushButtonOpenSql.setStatusTip(
+            'Open SQL query (Ctrl+Shift+O)')
+        self.qPushButtonOpenSql.setShortcut('Ctrl+Shift+O')
+
+        self.qPushButtonSaveSql = QtWidgets.QPushButton()
+        self.qPushButtonSaveSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
+        self.qPushButtonSaveSql.setStatusTip('Save current SQL query (Ctrl+Shift+S)')
+        self.qPushButtonSaveSql.setShortcut('Ctrl+Shift+S')
 
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(
@@ -160,6 +177,9 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonFindSql.setShortcut('Ctrl+F')
 
         # add buttons to button layout
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonOpenSql)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonSaveSql)
+        self.hlayoutSqlButtons.addWidget(separator1)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
@@ -172,6 +192,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addStretch(1)
 
         # add button actions
+        self.qPushButtonOpenSql.clicked.connect(self.open_sql_query)
+        self.qPushButtonSaveSql.clicked.connect(self.save_sql_query)
         self.qPushButtonExecuteSql.clicked.connect(
             lambda: self.displaySql(self.sql_field.toPlainText())
         )
@@ -297,6 +319,38 @@ class SQLWidget(QtWidgets.QWidget):
             count = self.sql_field.toPlainText().lower().count(keyword.lower())
             self.qLabelFoundResults.setText(f"{count} result" + ("s" if count != 1 else ""))
         self.sql_field.find(keyword)
+
+    def open_sql_query(self):
+        """
+        Opens a SQL file and displays it in the sql field.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQL Query File", "",
+                                                            "SQL Files (*.sql);;Text Files (*.txt);;All Files (*)", options=options)
+
+        if fileName:
+            filename = (f'{fileName}.sql' if fileName.split('.')[-1] != 'sql' else fileName)
+            log.info("Opening SQL query: %s", filename)
+            with open(filename, 'r') as file:
+                sql = file.read()
+                self.sql_field.setPlainText(sql)
+
+    def save_sql_query(self):
+        """
+        Saves current query from the sql field to a SQL file.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save current SQL query as a File", "",
+                                                            "SQL Files (*.sql);;All Files (*)", options=options)
+
+        if fileName:
+            filename = (f'{fileName}.sql' if fileName.split('.')[-1] != 'sql' else fileName)
+            with open(filename, 'w+') as file:
+                data = self.sql_field.toPlainText()
+                file.write(data)
+            log.info("SQL query saved as: %s", filename)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

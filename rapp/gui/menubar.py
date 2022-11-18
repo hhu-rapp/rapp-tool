@@ -31,8 +31,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.menuFile.setObjectName("menuFile")
         self.menuEdit = QtWidgets.QMenu(self)
         self.menuEdit.setObjectName("menuEdit")
-        self.menuSql = QtWidgets.QMenu(self)
-        self.menuSql.setObjectName("menuSql")
         self.menuDatabase = QtWidgets.QMenu(self)
         self.menuDatabase.setObjectName("menuDatabase")
 
@@ -48,12 +46,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionSave_Config = QtWidgets.QAction(self)
         self.actionSave_Config.setObjectName("actionSave_Config")
 
-        # Sql
-        self.actionOpen_SQLite_Query = QtWidgets.QAction(self)
-        self.actionOpen_SQLite_Query.setObjectName("actionOpen_SQLite_Query")
-        self.actionSave_SQLite_Query = QtWidgets.QAction(self)
-        self.actionSave_SQLite_Query.setObjectName("actionSave_SQLite_Query")
-
         # Edit
         self.actionCopy = QtWidgets.QAction(self)
         self.actionCopy.setObjectName("actionCopy")
@@ -67,10 +59,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLoad_Config)
         self.menuFile.addAction(self.actionSave_Config)
-        self.menuFile.addSeparator()
-        self.menuFile.addMenu(self.menuSql)
-        self.menuSql.addAction(self.actionOpen_SQLite_Query)
-        self.menuSql.addAction(self.actionSave_SQLite_Query)
 
         # Edit
         self.menuEdit.addAction(self.actionCopy)
@@ -85,7 +73,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.setWindowTitle(_translate("Window", "MainWindow"))
         self.menuFile.setTitle(_translate("Window", "&File"))
         self.menuEdit.setTitle(_translate("Window", "&Edit"))
-        self.menuSql.setTitle(_translate("Window", "SQL Query"))
         self.menuDatabase.setTitle(_translate("Window", "Open Data"))
 
         self.actionOpen_Pipeline_Database.setText(_translate("Window", "Training Data"))
@@ -97,18 +84,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.actionOpen_Prediction_Database.setStatusTip(_translate(
             "Window", "Open data for predicting"))
         self.actionOpen_Prediction_Database.setShortcut(_translate("Window", "Ctrl+Alt+O"))
-
-        self.actionOpen_SQLite_Query.setText(
-            _translate("Window", "Open SQLite Query"))
-        self.actionOpen_SQLite_Query.setStatusTip(
-            _translate("Window", "Opens an SQLite query file"))
-        self.actionOpen_SQLite_Query.setShortcut(_translate("Window", "Ctrl+Shift+O"))
-
-        self.actionSave_SQLite_Query.setText(
-            _translate("Window", "Save SQLite Query"))
-        self.actionSave_SQLite_Query.setStatusTip(
-            _translate("Window", "Saves an SQLite query"))
-        self.actionSave_SQLite_Query.setShortcut(_translate("Window", "Ctrl+Shift+S"))
 
         self.actionLoad_Config.setText(
             _translate("Window", "Open Config File"))
@@ -131,8 +106,6 @@ class MenuBar(QtWidgets.QMenuBar):
         # file
         self.actionOpen_Pipeline_Database.triggered.connect(self.openDatabasePipeline)
         self.actionOpen_Prediction_Database.triggered.connect(self.openDatabasePrediction)
-        self.actionOpen_SQLite_Query.triggered.connect(self.openSQLQuery)
-        self.actionSave_SQLite_Query.triggered.connect(self.saveSQLQuery)
         self.actionLoad_Config.triggered.connect(self.showConfigurationFileDialog)
         self.actionSave_Config.triggered.connect(self.saveConfigurationFile)
 
@@ -154,30 +127,6 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Database Files (*.db);;All Files (*)", options=options)
         if fileName:
             a = self.parent().databasePredictionLayoutWidget.connectDatabase(os.path.normpath(fileName))
-
-    def openSQLQuery(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open SQLite Query File", "",
-                                                            "Database Files (*.sql);;All Files (*)", options=options)
-
-        if fileName:
-            log.info("Loading SQL file into GUI: %s", fileName)
-            with open(fileName, 'r') as file:
-                data = file.read()
-                self.databaseLayoutWidget.load_sql(data)
-
-    def saveSQLQuery(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save SQL Query as a File", "",
-                                                            "Database Files (*.sql);;All Files (*)", options=options)
-
-        if fileName:
-            with open(fileName, 'w+') as file:
-                data = self.databaseLayoutWidget.pandas_dataview.get_custom_sql()
-                file.write(data)
-            log.info("SQL Query saved as: %s", fileName)
 
     def showConfigurationFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
