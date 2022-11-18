@@ -371,12 +371,12 @@ class SampleView(QtWidgets.QWidget):
         self.pred_layout = QtWidgets.QVBoxLayout()
         self.pred_layout.setContentsMargins(10, 10, 50, 10)
 
-        self.button_explanation = QtWidgets.QPushButton('Generiere Erkärung')
+        self.button_explanation = QtWidgets.QPushButton('Generate Explanation')
         self.button_explanation.clicked.connect(self._generate_explanation)
         self.button_explanation.setStatusTip('Generate Explanation')
         self.button_explanation.setEnabled(False)
 
-        self.button_counterfactuals = QtWidgets.QPushButton('Generiere Counterfactuals')
+        self.button_counterfactuals = QtWidgets.QPushButton('Generate Counterfactuals')
         self.button_counterfactuals.clicked.connect(self._generate_counterfactuals)
         self.button_counterfactuals.setStatusTip('Generate Counterfactuals')
         self.button_counterfactuals.setEnabled(False)
