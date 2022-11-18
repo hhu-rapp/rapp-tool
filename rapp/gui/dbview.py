@@ -230,6 +230,9 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.sql_tabs.tabs.setCurrentIndex(self.sql_tabs.advanced_tab_index)
 
+        query = f"SELECT * FROM {table_name}"
+        self.displaySql(query)
+
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
 
         try:
