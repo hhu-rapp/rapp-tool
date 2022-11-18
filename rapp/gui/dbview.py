@@ -1,8 +1,11 @@
 # table
+import pathlib
+
 import pandas as pd
 from pandas.io.sql import DatabaseError
 import logging
-log = logging.getLogger('GUI')
+
+from rapp.gui.helper import CsvDialog
 
 # gui
 from PyQt5 import QtCore
@@ -82,8 +85,9 @@ class PandasModel(QtCore.QAbstractTableModel):
 
 class DataView(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, sql_conn=None, qmainwindow=None):
+    def __init__(self, parent=None, sql_conn=None, qmainwindow=None, log=None):
         super(DataView, self).__init__(parent)
+        self.log = log
 
         self.qmainwindow = qmainwindow
 
@@ -128,7 +132,7 @@ class DataView(QtWidgets.QWidget):
 
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
-        log.info(f'Loading {tbl} table')
+        self.log.info(f'Loading {tbl} table')
 
         try:
             if tbl != "SQL" and tbl != "":
@@ -142,20 +146,19 @@ class DataView(QtWidgets.QWidget):
                 self.display_dataframe(pd.DataFrame(columns=["Empty"]))
 
         except (DatabaseError, TypeError) as e:
-            log.error(str(e))
+            self.log.error(str(e))
 
     def display_dataframe(self, df):
         """
         Display the given Pandas DataFrame in the widget.
         """
+        df.columns = df.columns.str.capitalize()
         model = PandasModel(df)
         self.table.setModel(model)
 
     def set_custom_sql(self, sql_query):
         df = data.query_sql(sql_query, self.__conn)
-        df.columns = df.columns.str.capitalize()
-        model = PandasModel(df)
-        self.table.setModel(model)
+        self.display_dataframe(df)
         self.__sql_query = sql_query
         self.combo.setCurrentIndex(self.__sql_idx)
 
@@ -164,11 +167,17 @@ class DataView(QtWidgets.QWidget):
     def get_custom_sql(self):
         return self.__sql_query
 
+    def load_dataframe(self, df):
+        self.__sql_query = None
+        self.combo.setCurrentIndex(self.__sql_idx)
+        self.display_dataframe(df)
+
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
-    def __init__(self, qmainwindow, filepath_db):
+    def __init__(self, qmainwindow, filepath_db, log):
         super(DatabaseLayoutWidget, self).__init__()
+        self.log = log
 
         self.qmainwindow = qmainwindow
         self.filepath_db = filepath_db
@@ -179,6 +188,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         self.initUI()
         self.connectDatabase(self.filepath_db) # init database
+        self.setAcceptDrops(True)
 
     def initUI(self):
         layout = QtWidgets.QVBoxLayout()
@@ -186,8 +196,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
         # create widgets
-        self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql)
-        self.pandas_dataview = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
+        self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql, log=self.log)
+        self.pandas_dataview = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow, log=self.log)
 
         # add widgets to splitter
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
@@ -198,46 +208,64 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # add to layout
         layout.addWidget(splitter)
 
-    def createButtons(self):
-        self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
-        self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
-
-        self.qPushButtonExecuteSql = QtWidgets.QPushButton()
-        self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
-        self.qPushButtonExecuteSql.setStatusTip('Execute SQL query (Ctrl+Enter)')
-        self.qPushButtonExecuteSql.setShortcut('Ctrl+Return')
-
-        self.qPushButtonUndoSql = QtWidgets.QPushButton()
-        self.qPushButtonUndoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowBack')))
-        self.qPushButtonUndoSql.setStatusTip('Undo text (Ctrl+Z)')
-        self.qPushButtonUndoSql.setShortcut('Ctrl+Z')
-
-        self.qPushButtonRedoSql = QtWidgets.QPushButton()
-        self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
-        self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
-        self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
-
     def connectDatabase(self, filepath):
-        log.info('Connecting to database %s', filepath)
+        self.log.info('Connecting to database %s', filepath)
 
         self.filepath_db = filepath
         self.sql_tabs.set_db_filepath(filepath)
         self.__conn = data.connect(self.filepath_db)
         self.pandas_dataview.set_connection(self.__conn)
 
+    def connectDatabaseFromCsv(self, filepath, delimiter=','):
+        self.log.info('Creating in memory database from  %s', filepath)
+        df = pd.read_csv(filepath, delimiter=delimiter)
+        table_name = pathlib.Path(filepath).stem
+
+        self.filepath_db = filepath
+        self.sql_tabs.set_db_filepath(filepath)
+        self.__conn = data.connect(':memory:')
+        df.to_sql(table_name, self.__conn, index=False)
+
+        self.pandas_dataview.set_connection(self.__conn)
+
+        self.sql_tabs.tabs.setCurrentIndex(self.sql_tabs.advanced_tab_index)
+
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
+
         try:
             self.sql_df = self.pandas_dataview.set_custom_sql(sql_query)
-            self.qmainwindow.sql_df = self.sql_df
+
             self.features_id = f_id
             self.labels_id = l_id
+
+            self.qmainwindow.sql_df = self.sql_df
 
             # TODO: better way to do access the method
             self.qmainwindow.settings.simple_tab.refresh_labels()
             self.qmainwindow.prediction.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
-            log.error(str(e))
+            self.log.error(str(e))
+
+    def displayDataframe(self, df):
+        self.sql_df = df
+
+        self.features_id = None
+        self.labels_id = None
+
+        self.qmainwindow.sql_df = self.sql_df
+
+        self.pandas_dataview.load_dataframe(df)
+
+        # TODO: better way to do access the method
+        self.qmainwindow.settings.simple_tab.refresh_labels()
+        self.qmainwindow.prediction.refresh_labels()
+
+    def get_current_df(self):
+        return self.pandas_dataview.table.model().df
+
+    def get_current_template_id(self):
+        return self.features_id, self.labels_id
 
     def getDataSettings(self):
         # TODO: Cannot access current dataframe
@@ -246,3 +274,30 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
     def load_sql(self, sql_query):
         self.sql_tabs.set_sql(sql_query)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            self.open_data_file(url.toLocalFile())
+
+    def open_data_file(self, file_path):
+        database_files = ['.sqlite', '.sqlite3', '.db', '.db3', '.s3db', '.sl3']
+        delimiter_files = ['.csv', '.data', '.txt']
+
+        file_extension = pathlib.Path(file_path).suffix
+
+        if file_extension in database_files:
+            self.connectDatabase(file_path)
+
+        elif file_extension in delimiter_files:
+            dialog = CsvDialog()
+            delimiter = dialog.get_delim()
+            self.connectDatabaseFromCsv(file_path, delimiter)
+
+        else:
+            self.log.error(f'{file_extension} is not supported.')
