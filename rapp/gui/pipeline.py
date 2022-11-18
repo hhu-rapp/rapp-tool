@@ -271,8 +271,9 @@ class Pipeline(QtWidgets.QWidget):
             studies_feat_id = self.qmainwindow.databaseLayoutWidget.features_id.split('_', 1)
             cf.studies_id = studies_feat_id[0]
             cf.features_id = studies_feat_id[1]
+        if self.qmainwindow.databaseLayoutWidget.labels_id is not None:
+            cf.labels_id = self.qmainwindow.databaseLayoutWidget.labels_id
 
-        cf.labels_id = self.qmainwindow.databaseLayoutWidget.labels_id
         cf.sql_df = self.qmainwindow.databaseLayoutWidget.sql_df
         cf.label_name = self.cbName.currentText()
         cf.categorical = self.leCVariables.text().replace(' ', '').split(',')

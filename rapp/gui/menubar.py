@@ -243,24 +243,27 @@ class MenuBar(QtWidgets.QMenuBar):
                                                             "Configuration Files (*.ini)", options=options)
 
         if fileName:
-            with open(fileName + ".ini", 'w+') as file:
+            filename = (f'{fileName}.ini' if fileName.split('.')[-1] != 'ini' else fileName)
+
+            with open(filename, 'w+') as file:
                 config = vars(cf)
 
-                if config["filename"] == None:
-                    config["filename"] = "data/rapp/data.db"
+                if config.get("filename") is None:
+                    config["filename"] = self.databaseLayoutWidget.filepath_db
 
                 for key in config:
                     if key == "sql_df":
                         continue
-                    if len(config[key]) == 0:
+                    if config.get(key) is None:
                         continue
 
-                    file.write(key)
-                    file.write("=")
-                    file.write(str(config[key]))
-                    file.write("\n")
+                    file.write(f'{key}={config[key]}\n')
 
-            log.info("Saved pipeline settings as: %s.ini", fileName)
+                if 'feature_id' not in list(config.keys()):
+                    sql_query = self.databaseLayoutWidget.sql_tabs.sql_field.toPlainText()
+                    file.write(f'sql_query={sql_query}')
+
+            log.info("Saved pipeline configuration settings as: %s.ini", filename)
 
     def copySQLQuery(self):
         QApplication.clipboard().setText(self.databaseLayoutWidget.sql_tabs.sql_field.toPlainText())
