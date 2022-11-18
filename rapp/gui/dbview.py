@@ -205,25 +205,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         # add to layout
         layout.addWidget(splitter)
 
-    def createButtons(self):
-        self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
-        self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
-
-        self.qPushButtonExecuteSql = QtWidgets.QPushButton()
-        self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_MediaPlay')))
-        self.qPushButtonExecuteSql.setStatusTip('Execute SQL query (Ctrl+Enter)')
-        self.qPushButtonExecuteSql.setShortcut('Ctrl+Return')
-
-        self.qPushButtonUndoSql = QtWidgets.QPushButton()
-        self.qPushButtonUndoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowBack')))
-        self.qPushButtonUndoSql.setStatusTip('Undo text (Ctrl+Z)')
-        self.qPushButtonUndoSql.setShortcut('Ctrl+Z')
-
-        self.qPushButtonRedoSql = QtWidgets.QPushButton()
-        self.qPushButtonRedoSql.setIcon(self.style().standardIcon(getattr(QtWidgets.QStyle, 'SP_ArrowForward')))
-        self.qPushButtonRedoSql.setStatusTip('Redo text (Ctrl+Shift+Z)')
-        self.qPushButtonRedoSql.setShortcut('Ctrl+Shift+Z')
-
     def connectDatabase(self, filepath):
         log.info('Connecting to database %s', filepath)
 
