@@ -4,6 +4,8 @@ import traceback
 import logging
 import logging
 
+from pandas.core.dtypes.common import is_numeric_dtype
+
 log = logging.getLogger('GUI')
 
 # PyQt5
@@ -175,11 +177,11 @@ class Pipeline(QtWidgets.QWidget):
         if self.cbName.currentText() not in self.qmainwindow.sql_df.columns:
             return
         else:
-            unique_label_count = len(self.qmainwindow.sql_df[self.cbName.currentText()].unique())
-            total_label_count = len(self.qmainwindow.sql_df[self.cbName.currentText()])
-
-            if unique_label_count / total_label_count > 0.5:
-                self.cbType.setCurrentText("Regression")
+            if is_numeric_dtype(self.qmainwindow.sql_df[self.cbName.currentText()]):
+               if any((self.qmainwindow.sql_df[self.cbName.currentText()] % 1) > 0):
+                   self.cbType.setCurrentText("Regression")
+               else:
+                   self.cbType.setCurrentText("Classification")
             else:
                 self.cbType.setCurrentText("Classification")
 
