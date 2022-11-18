@@ -4,7 +4,8 @@ import pathlib
 import pandas as pd
 from pandas.io.sql import DatabaseError
 import logging
-log = logging.getLogger('GUI')
+
+from rapp.gui.helper import CsvDialog
 
 # gui
 from PyQt5 import QtCore
@@ -84,8 +85,9 @@ class PandasModel(QtCore.QAbstractTableModel):
 
 class DataView(QtWidgets.QWidget):
 
-    def __init__(self, parent=None, sql_conn=None, qmainwindow=None):
+    def __init__(self, parent=None, sql_conn=None, qmainwindow=None, log=None):
         super(DataView, self).__init__(parent)
+        self.log = log
 
         self.qmainwindow = qmainwindow
 
@@ -130,7 +132,7 @@ class DataView(QtWidgets.QWidget):
 
     def selection_changed(self, index):
         tbl = self.combo.itemText(index)
-        log.info(f'Loading {tbl} table')
+        self.log.info(f'Loading {tbl} table')
 
         try:
             if tbl != "SQL" and tbl != "":
@@ -144,7 +146,7 @@ class DataView(QtWidgets.QWidget):
                 self.display_dataframe(pd.DataFrame(columns=["Empty"]))
 
         except (DatabaseError, TypeError) as e:
-            log.error(str(e))
+            self.log.error(str(e))
 
     def display_dataframe(self, df):
         """
@@ -173,8 +175,9 @@ class DataView(QtWidgets.QWidget):
 
 class DatabaseLayoutWidget(QtWidgets.QWidget):
 
-    def __init__(self, qmainwindow, filepath_db):
+    def __init__(self, qmainwindow, filepath_db, log):
         super(DatabaseLayoutWidget, self).__init__()
+        self.log = log
 
         self.qmainwindow = qmainwindow
         self.filepath_db = filepath_db
@@ -193,8 +196,8 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
         # create widgets
-        self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql)
-        self.pandas_dataview = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow)
+        self.sql_tabs = SQLWidget(sql_query_callback=self.displaySql, log=self.log)
+        self.pandas_dataview = DataView(self, sql_conn=self.__conn, qmainwindow=self.qmainwindow, log=self.log)
 
         # add widgets to splitter
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
@@ -206,7 +209,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
         layout.addWidget(splitter)
 
     def connectDatabase(self, filepath):
-        log.info('Connecting to database %s', filepath)
+        self.log.info('Connecting to database %s', filepath)
 
         self.filepath_db = filepath
         self.sql_tabs.set_db_filepath(filepath)
@@ -242,7 +245,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             self.qmainwindow.prediction.refresh_labels()
 
         except (DatabaseError, TypeError) as e:
-            log.error(str(e))
+            self.log.error(str(e))
 
     def displayDataframe(self, df):
         self.sql_df = df
@@ -288,8 +291,6 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
 
         file_extension = pathlib.Path(file_path).suffix
 
-            else:
-                log.error(f'{file_extension} is not supported.')
         if file_extension in database_files:
             self.connectDatabase(file_path)
 
@@ -298,3 +299,5 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
             delimiter = dialog.get_delim()
             self.connectDatabaseFromCsv(file_path, delimiter)
 
+        else:
+            self.log.error(f'{file_extension} is not supported.')

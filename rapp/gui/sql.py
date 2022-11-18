@@ -8,19 +8,20 @@ from rapp.gui.helper import Highlighter, init_sql_highlighter
 from rapp.sqlbuilder import load_sql
 from rapp import sqlbuilder
 
-log = logging.getLogger('GUI')
-
 
 class SQLWidget(QtWidgets.QWidget):
 
-    def __init__(self, sql_query_callback):
+    def __init__(self, sql_query_callback, log):
         """
         Parameters
         ----------
         sql_query_callback: function
             A reference to a function that takes an SQL query as argument.
+
+        log: logger instance
         """
         super(SQLWidget, self).__init__()
+        self.log = log
 
         self.displaySql = sql_query_callback
 
@@ -51,7 +52,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.targetSelect = QtWidgets.QComboBox()
         self.__populate_template_options()
 
-        self.verifySelect = QtWidgets.QPushButton("Load")
+        self.verifySelect = QtWidgets.QPushButton("Load Templates")
         self.verifySelect.clicked.connect(self.load_selected_sql_template)
 
         # add to layout
@@ -73,12 +74,12 @@ class SQLWidget(QtWidgets.QWidget):
 
         self.featuresSelect.addItem("")
         for feat_id in dirs_feats:
-            log.debug(f"Adding feature '{feat_id}' to SQL templates")
+            self.log.debug(f"Adding feature '{feat_id}' to SQL templates")
             self.featuresSelect.addItem(feat_id)
 
         self.targetSelect.addItem("")
         for label_id in dirs_labels:
-            log.debug(f"Adding label '{label_id}' to SQL templates")
+            self.log.debug(f"Adding label '{label_id}' to SQL templates")
             self.targetSelect.addItem(label_id)
 
     def __init_advanced_tab(self):
@@ -205,17 +206,17 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonFindSql.clicked.connect(self.toggle_find_sql)
 
     def load_selected_sql_template(self):
-        log.debug("Loading SQL template from GUI button click")
+        self.log.debug("Loading SQL template from GUI button click")
 
         f_id = self.featuresSelect.currentText()
         l_id = self.targetSelect.currentText()
-        log.debug(f"f_id = '{f_id}', l_id = '{l_id}'")
+        self.log.debug(f"f_id = '{f_id}', l_id = '{l_id}'")
 
         if f_id == "":
-            log.warning("No features chosen for SQL templating")
+            self.log.warning("No features chosen for SQL templating")
             return
         if l_id == "":
-            log.warning("No target label chosen for SQL templating")
+            self.log.warning("No target label chosen for SQL templating")
             return
 
         # Display the queried template in the advanced tab
@@ -238,7 +239,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.load_selected_sql_template()
 
     def reset_simple_tab(self):
-        log.debug("Resetting selection in Simple SQL tab")
+        self.log.debug("Resetting selection in Simple SQL tab")
         self.featuresSelect.setCurrentIndex(0)
         self.targetSelect.setCurrentIndex(0)
 
@@ -252,7 +253,7 @@ class SQLWidget(QtWidgets.QWidget):
         """
         Loads the given query into the SQL text field.
         """
-        log.debug("Setting SQL query by external call")
+        self.log.debug("Setting SQL query by external call")
         self.reset_simple_tab()
         self.sql_field.setPlainText(sql_query)
 
@@ -263,7 +264,7 @@ class SQLWidget(QtWidgets.QWidget):
         """
         Sets the database filepath to the given path.
         """
-        log.debug("Setting database filepath by external call to %s", path)
+        self.log.debug("Setting database filepath by external call to %s", path)
         self.db_filepath = path
 
         sqlbuilder.set_database_name(basename(self.db_filepath))
@@ -334,7 +335,7 @@ class SQLWidget(QtWidgets.QWidget):
 
         if fileName:
             filename = (f'{fileName}.sql' if fileName.split('.')[-1] != 'sql' else fileName)
-            log.info("Opening SQL query: %s", filename)
+            self.log.info("Opening SQL query: %s", filename)
             with open(filename, 'r') as file:
                 sql = file.read()
                 self.sql_field.setPlainText(sql)
@@ -353,7 +354,7 @@ class SQLWidget(QtWidgets.QWidget):
             with open(filename, 'w+') as file:
                 data = self.sql_field.toPlainText()
                 file.write(data)
-            log.info("SQL query saved as: %s", filename)
+            self.log.info("SQL query saved as: %s", filename)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -367,10 +368,10 @@ class SQLWidget(QtWidgets.QWidget):
             file_extension = pathlib.Path(file_path).suffix
 
             if file_extension == '.sql' or file_extension == '.txt':
-                log.info("Loading SQL file into GUI: %s", file_path)
+                self.log.info("Loading SQL file into GUI: %s", file_path)
                 with open(file_path, 'r') as file:
                     data = file.read()
                     self.set_sql(data)
 
             else:
-                log.error(f'{file_extension} is not supported.')
+                self.log.error(f'{file_extension} is not supported.')
