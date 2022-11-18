@@ -98,16 +98,20 @@ class SQLWidget(QtWidgets.QWidget):
         self.Findhighlighter = Highlighter()
         init_sql_highlighter(self.highlighter, self.sql_field)
 
-        self.__init_footer()
-        self.advanced_tab.layout().addWidget(self.sql_field)
+        self.__init_buttons()
         self.advanced_tab.layout().addLayout(self.hlayoutSqlButtons)
+        self.advanced_tab.layout().addWidget(self.sql_field)
 
         tab_idx = self.tabs.addTab(self.advanced_tab, 'SQL Query')
         self.advanced_tab_index = tab_idx
 
-    def __init_footer(self):
+    def __init_buttons(self):
         self.hlayoutSqlButtons = QtWidgets.QHBoxLayout()
         self.hlayoutSqlButtons.setContentsMargins(0, 0, 0, 0)
+
+        separator2 = QtWidgets.QFrame()
+        separator2.setFrameShape(QtWidgets.QFrame.VLine)
+        separator2.setFrameShadow(QtWidgets.QFrame.Sunken)
 
         self.qPushButtonExecuteSql = QtWidgets.QPushButton()
         self.qPushButtonExecuteSql.setIcon(self.style().standardIcon(
@@ -152,19 +156,20 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonFindSql = QtWidgets.QPushButton()
         self.qPushButtonFindSql.setIcon(self.style().standardIcon(
             getattr(QtWidgets.QStyle, 'SP_FileDialogContentsView')))
-        self.qPushButtonFindSql.setStatusTip('Find in SQL Query (Ctrl+Shift+F)')
-        self.qPushButtonFindSql.setShortcut('Ctrl+Shift+F')
+        self.qPushButtonFindSql.setStatusTip('Find in SQL Query (Ctrl+F)')
+        self.qPushButtonFindSql.setShortcut('Ctrl+F')
 
         # add buttons to button layout
         self.hlayoutSqlButtons.addWidget(self.qPushButtonExecuteSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonUndoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
-        self.hlayoutSqlButtons.addStretch(1)
-        self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
+        self.hlayoutSqlButtons.addWidget(separator2)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
         self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
+        self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindPrevious)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindNext)
-        self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
+        self.hlayoutSqlButtons.addStretch(1)
 
         # add button actions
         self.qPushButtonExecuteSql.clicked.connect(
