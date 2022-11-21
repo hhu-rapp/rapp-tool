@@ -662,6 +662,7 @@ superx/*
 ## Generated database file
 rapp.db
 tmp.db
+*.db-journal
 data/*.csv
 data/*/*.db
 
