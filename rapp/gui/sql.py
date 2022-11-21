@@ -154,9 +154,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonClearSql.setStatusTip('Clear SQL query (Ctrl+Shift+Delete)')
         self.qPushButtonClearSql.setShortcut('Ctrl+Shift+Delete')
 
-        self.qPushButtonInsertSql = QtWidgets.QPushButton()
-        self.qPushButtonInsertSql.setIcon(self.style().standardIcon(
-            getattr(QtWidgets.QStyle, 'SP_FileDialogDetailedView')))
+        self.qPushButtonInsertSql = QtWidgets.QPushButton("+")
+        self.qPushButtonInsertSql.setFixedSize(32, 28)
         self.qPushButtonInsertSql.setStatusTip('Insert into table (Ctrl+N)')
         self.qPushButtonInsertSql.setShortcut('Ctrl+N')
 
