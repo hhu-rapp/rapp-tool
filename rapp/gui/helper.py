@@ -259,10 +259,10 @@ def init_sql_highlighter(highlighter, sql_field):
     # SQL operations
     sql_format = QTextCharFormat()
     sql_format.setForeground(QColor("#2088b5"))
-    pattern = r'SELECT|FROM|WHERE|JOIN|INNER |OUTER |LEFT |RIGHT |CASE WHEN |THEN | END| AS |GROUP BY | ON |IF |ELSE '
+    pattern = r'SELECT|FROM|WHERE|JOIN|INNER |OUTER |LEFT |RIGHT |CASE WHEN |THEN | END| AS |GROUP BY | ON |IF |ELSE |INSERT INTO |VALUES()'
     highlighter.add_mapping(pattern, sql_format)
     pattern = r'select | from | where | join | inner | outer | left | right | case when | then | end | as | group by ' \
-              r'| on | if | else'
+              r'| on | if | else|insert into |values()'
     highlighter.add_mapping(pattern, sql_format)
 
     # Numbers

@@ -157,7 +157,10 @@ class DataView(QtWidgets.QWidget):
         self.table.setModel(model)
 
     def set_custom_sql(self, sql_query):
-        df = data.query_sql(sql_query, self.__conn)
+        try:
+            df = data.query_sql(sql_query, self.__conn)
+        except TypeError:
+            return None
         self.display_dataframe(df)
         self.__sql_query = sql_query
         self.combo.setCurrentIndex(self.__sql_idx)
@@ -233,16 +236,24 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
     def displaySql(self, sql_query=None, f_id=None, l_id=None):
 
         try:
-            self.sql_df = self.pandas_dataview.set_custom_sql(sql_query)
+            sql_df = self.pandas_dataview.set_custom_sql(sql_query)
 
-            self.features_id = f_id
-            self.labels_id = l_id
+            if sql_df is not None:
+                self.sql_df = sql_df
 
-            self.qmainwindow.sql_df = self.sql_df
+                self.features_id = f_id
+                self.labels_id = l_id
 
-            # TODO: better way to do access the method
-            self.qmainwindow.settings.simple_tab.refresh_labels()
-            self.qmainwindow.prediction.refresh_labels()
+                self.qmainwindow.sql_df = self.sql_df
+
+                # TODO: better way to do access the method
+                self.qmainwindow.settings.simple_tab.refresh_labels()
+                self.qmainwindow.prediction.refresh_labels()
+
+            if sql_df is None:
+                self.log.info('Data has been inserted successfully')
+                cb_index = self.pandas_dataview.combo.currentIndex()
+                self.pandas_dataview.selection_changed(cb_index)
 
         except (DatabaseError, TypeError) as e:
             self.log.error(str(e))
