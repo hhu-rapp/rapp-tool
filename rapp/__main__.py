@@ -19,8 +19,3 @@ if __name__ == "__main__":
     calculate_statistics(pl)
 
     save_report(pl, cf.report_path)
-
-    # Todo:
-    #   * [x] Train models
-    #   * [x] Eval fairness
-    #   * [x] Save report
