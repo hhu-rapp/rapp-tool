@@ -112,6 +112,10 @@ class SQLWidget(QtWidgets.QWidget):
         separator2.setFrameShape(QtWidgets.QFrame.VLine)
         separator2.setFrameShadow(QtWidgets.QFrame.Sunken)
 
+        separator3 = QtWidgets.QFrame()
+        separator3.setFrameShape(QtWidgets.QFrame.VLine)
+        separator3.setFrameShadow(QtWidgets.QFrame.Sunken)
+
         self.qPushButtonOpenSql = QtWidgets.QPushButton()
         self.qPushButtonOpenSql.setIcon(self.style().standardIcon(
             getattr(QtWidgets.QStyle, 'SP_DirOpenIcon')))
@@ -150,6 +154,12 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonClearSql.setStatusTip('Clear SQL query (Ctrl+Shift+Delete)')
         self.qPushButtonClearSql.setShortcut('Ctrl+Shift+Delete')
 
+        self.qPushButtonInsertSql = QtWidgets.QPushButton()
+        self.qPushButtonInsertSql.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_FileDialogDetailedView')))
+        self.qPushButtonInsertSql.setStatusTip('Insert into table (Ctrl+N)')
+        self.qPushButtonInsertSql.setShortcut('Ctrl+N')
+
         self.qLineEditFindSql = QtWidgets.QLineEdit()
         self.qLineEditFindSql.setHidden(True)
         self.qLineEditFindSql.setPlaceholderText("Find keyword")
@@ -186,6 +196,8 @@ class SQLWidget(QtWidgets.QWidget):
         self.hlayoutSqlButtons.addWidget(self.qPushButtonRedoSql)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonClearSql)
         self.hlayoutSqlButtons.addWidget(separator2)
+        self.hlayoutSqlButtons.addWidget(self.qPushButtonInsertSql)
+        self.hlayoutSqlButtons.addWidget(separator3)
         self.hlayoutSqlButtons.addWidget(self.qPushButtonFindSql)
         self.hlayoutSqlButtons.addWidget(self.qLineEditFindSql)
         self.hlayoutSqlButtons.addWidget(self.qLabelFoundResults)
@@ -203,6 +215,7 @@ class SQLWidget(QtWidgets.QWidget):
             lambda: self.sql_field.setPlainText(''))
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
+        self.qPushButtonInsertSql.clicked.connect(self.insert_sql)
         self.qPushButtonFindSql.clicked.connect(self.toggle_find_sql)
 
     def load_selected_sql_template(self):
@@ -355,6 +368,19 @@ class SQLWidget(QtWidgets.QWidget):
                 data = self.sql_field.toPlainText()
                 file.write(data)
             self.log.info("SQL query saved as: %s", filename)
+
+    def insert_sql(self):
+        self.sql_field.clear()
+        df_columns = (f'"{col}"' for col in self.parent().parent().get_current_df().columns.to_list())
+        columns = f'({", ".join(df_columns)})'
+        table = self.parent().parent().pandas_dataview.combo.currentText()
+
+        if table == 'SQL':
+            table = '<table_name>'
+            columns = ''
+
+        sql = f"INSERT INTO {table} {columns} \nVALUES();"
+        self.sql_field.setPlainText(sql)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
