@@ -155,7 +155,7 @@ class SQLWidget(QtWidgets.QWidget):
         self.qPushButtonClearSql.setShortcut('Ctrl+Shift+Delete')
 
         self.qPushButtonInsertSql = QtWidgets.QPushButton("+")
-        self.qPushButtonInsertSql.setFixedSize(32, 28)
+        self.qPushButtonInsertSql.setIconSize(self.qPushButtonExecuteSql.iconSize())
         self.qPushButtonInsertSql.setStatusTip('Insert into table (Ctrl+N)')
         self.qPushButtonInsertSql.setShortcut('Ctrl+N')
 
@@ -211,7 +211,7 @@ class SQLWidget(QtWidgets.QWidget):
             lambda: self.displaySql(self.sql_field.toPlainText())
         )
         self.qPushButtonClearSql.clicked.connect(
-            lambda: self.sql_field.setPlainText(''))
+            lambda: self.sql_field.clear())
         self.qPushButtonUndoSql.clicked.connect(self.sql_field.undo)
         self.qPushButtonRedoSql.clicked.connect(self.sql_field.redo)
         self.qPushButtonInsertSql.clicked.connect(self.insert_sql)
@@ -372,13 +372,13 @@ class SQLWidget(QtWidgets.QWidget):
         self.sql_field.clear()
         df_columns = (f'"{col}"' for col in self.parent().parent().get_current_df().columns.to_list())
         columns = f'({", ".join(df_columns)})'
-        table = self.parent().parent().pandas_dataview.combo.currentText()
+        table_name = self.parent().parent().pandas_dataview.combo.currentText()
 
-        if table == 'SQL':
-            table = '<table_name>'
+        if table_name == 'SQL':
+            table_name = '<table_name>'
             columns = ''
 
-        sql = f"INSERT INTO {table} {columns} \nVALUES();"
+        sql = f"INSERT INTO {table_name} {columns} \nVALUES();"
         self.sql_field.setPlainText(sql)
 
     def dragEnterEvent(self, event):
