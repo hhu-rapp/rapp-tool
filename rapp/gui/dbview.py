@@ -249,8 +249,7 @@ class DatabaseLayoutWidget(QtWidgets.QWidget):
                 # TODO: better way to do access the method
                 self.qmainwindow.settings.simple_tab.refresh_labels()
                 self.qmainwindow.prediction.refresh_labels()
-
-            if sql_df is None:
+            else:
                 self.log.info('Data has been inserted successfully')
                 cb_index = self.pandas_dataview.combo.currentIndex()
                 self.pandas_dataview.selection_changed(cb_index)
