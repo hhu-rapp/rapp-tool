@@ -138,12 +138,7 @@ class Pipeline(QtWidgets.QWidget):
 
         # refresh Categorical Variable lineEdit
         self.leCVariables.clear()
-        for feature in (self.qmainwindow.sql_df.select_dtypes(exclude=["number"])).columns:
-            text = self.leCVariables.text()
-            if text == '':
-                self.leCVariables.setText(feature)
-            else:
-                self.leCVariables.setText(text + ',' + feature)
+        self.leCVariables.setText(', '.join((self.qmainwindow.sql_df.select_dtypes(exclude=["number"])).columns))
 
         self.update_estimators()
         self.update_sensitive_attributes()
