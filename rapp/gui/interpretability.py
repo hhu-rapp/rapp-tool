@@ -32,12 +32,16 @@ class InterpretabilityWidget(QtWidgets.QWidget):
         self.initUI()
 
         self.button_header_layout = QtWidgets.QHBoxLayout()
-        self.model_list_button = QtWidgets.QPushButton('Return: Model List')
+        self.model_list_button = QtWidgets.QPushButton('Model List')
+        self.model_list_button.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_MediaSkipBackward')))
         self.model_list_button.clicked.connect(self._load_initial_view)
         self.model_list_button.setStatusTip('Go back to model list')
         self.model_list_button.resize(50, 50)
 
-        self.model_insight_button = QtWidgets.QPushButton('Return: Model Insights')
+        self.model_insight_button = QtWidgets.QPushButton('Model Insights')
+        self.model_insight_button.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_MediaSeekBackward')))
         self.model_insight_button.clicked.connect(self._load_model_view)
         self.model_insight_button.setStatusTip('Go back to model insights')
         self.model_insight_button.resize(50, 50)
