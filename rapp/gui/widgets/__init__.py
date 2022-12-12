@@ -716,6 +716,7 @@ class ParetoCollapsible(CollapsibleBox):
             self.main_groupBox[mode].setLayout(hBoxLayout)
 
             self.pareto_groupBox[mode] = ParetoPlot(model_names, costs[mode], x_label=x_label, y_label=y_label)
+            plt.close("all")
 
             hBoxLayout.addWidget(self.pareto_groupBox[mode])
             self.sensitiveHBoxLayout.addWidget(self.main_groupBox[mode])
