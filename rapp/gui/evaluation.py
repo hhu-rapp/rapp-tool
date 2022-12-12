@@ -2,7 +2,7 @@
 import os.path
 
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGroupBox, QScrollArea
 
@@ -319,8 +319,11 @@ class EvaluationWidget(QtWidgets.QWidget):
 
         # groupBox for the filters
         self.pareto_metrics_groupBox = QGroupBox("Filters")
-        paretoTopLayout = QtWidgets.QFormLayout()
-        self.pareto_metrics_groupBox.setLayout(paretoTopLayout)
+        paretoFormLayout = QtWidgets.QFormLayout()
+        paretoFormWidget = QtWidgets.QWidget()
+        paretoFormWidget.setLayout(paretoFormLayout)
+        vBoxLayout = QtWidgets.QVBoxLayout()
+        self.pareto_metrics_groupBox.setLayout(vBoxLayout)
         self.pareto_metrics_groupBox.setAlignment(Qt.AlignTop)
 
         # load comboBoxes
@@ -332,9 +335,12 @@ class EvaluationWidget(QtWidgets.QWidget):
             self.pareto_cbNotions.addItem(str(notion))
 
         # export button
-        self.plot_export_button = QtWidgets.QPushButton('Save Plots')
-        self.plot_export_button.clicked.connect(self._showExportPlotsDialog)
-        self.plot_export_button.setStatusTip('Save pareto plots as PDF file')
+        self.plot_save_button = QtWidgets.QPushButton('Save Plots')
+        self.plot_save_button.setIcon(self.style().standardIcon(
+            getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
+        self.plot_save_button.clicked.connect(self._showSavePlotsDialog)
+        self.plot_save_button.setStatusTip('Save pareto plots as PDF file')
+        self.plot_save_button.setMaximumWidth(200)
 
         def populate_pareto_table():
             self._populate_pareto_table(pipeline.data, pipeline.sensitive_attributes,
@@ -344,9 +350,10 @@ class EvaluationWidget(QtWidgets.QWidget):
         self.pareto_cbNotions.currentIndexChanged.connect(populate_pareto_table)
 
         # add to groupBox
-        paretoTopLayout.addRow(f'{pl_type} Metric:', self.pareto_cbMetrics)
-        paretoTopLayout.addRow('Fairness Notion:', self.pareto_cbNotions)
-        paretoTopLayout.addRow('', self.plot_export_button)
+        paretoFormLayout.addRow(f'{pl_type} Metric:', self.pareto_cbMetrics)
+        paretoFormLayout.addRow('Fairness Notion:', self.pareto_cbNotions)
+        self.pareto_metrics_groupBox.layout().addWidget(paretoFormWidget)
+        self.pareto_metrics_groupBox.layout().addWidget(self.plot_save_button, alignment=QtCore.Qt.AlignRight)
 
         # add to layout
         self.pareto_tab.layout().addWidget(self.pareto_metrics_groupBox)
@@ -432,15 +439,15 @@ class EvaluationWidget(QtWidgets.QWidget):
         self._clear_inspection_table()
         self._clear_pareto_table()
 
-    def _showExportPlotsDialog(self):
+    def _showSavePlotsDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         dirName = QtWidgets.QFileDialog.getExistingDirectory(self, "Export to folder", "",
                                                              QtWidgets.QFileDialog.ShowDirsOnly)
         if dirName:
-            self._export_pareto_plots(dirName)
+            self._save_pareto_plots(dirName)
 
-    def _export_pareto_plots(self, dirName):
+    def _save_pareto_plots(self, dirName):
         for sensitive, collapsible in self.sensitiveParetoTables.items():
             for mode, plot in collapsible.pareto_groupBox.items():
                 if mode == "train":
