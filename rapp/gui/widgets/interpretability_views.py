@@ -1,9 +1,14 @@
+import os
+
 from PyQt5 import QtWidgets, Qt, QtGui, QtCore
 from PyQt5.QtWidgets import QGroupBox, QScrollArea
+import matplotlib.pyplot as plt
+from sklearn import tree
 
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
 from rapp.gui.widgets import SummaryTable, PandasModelColor
+from rapp.util import estimator_name
 
 
 class InitialView(QtWidgets.QWidget):
@@ -141,6 +146,23 @@ class ModelViewCLF(QtWidgets.QWidget):
         for mode in modes:
             self.cbModes.addItem(str(mode).capitalize())
 
+        # visualization of decision trees
+        if estimator_name(estimator) == 'DecisionTreeClassifier':
+            data = self.pipeline.data['train']
+            target = data['y'].columns[0]
+            features = data['X'].columns.tolist()
+
+            self.button_visualize = QtWidgets.QHBoxLayout()
+            self.button_visualize = QtWidgets.QPushButton('Save Visualization')
+            self.button_visualize.setIcon(self.style().standardIcon(
+                getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
+            self.button_visualize.setStatusTip('Save estimator visualization as PDF file')
+            self.button_visualize.setMaximumWidth(200)
+
+            self.button_visualize.clicked.connect(lambda: self._visualize_estimator(estimator, features, target))
+
+            self.main_layout.addWidget(self.button_visualize, alignment=QtCore.Qt.AlignRight)
+
         def populate_predictions_tabs():
             self._populate_predictions_tabs(self.pipeline.data, self.estimator)
 
@@ -259,6 +281,33 @@ class ModelViewCLF(QtWidgets.QWidget):
 
     def set_tab_idx(self, mode_idx):
         self.tabs.setCurrentIndex(mode_idx)
+
+    def _visualize_estimator(self, estimator, features, target):
+        if estimator_name(estimator) == 'DecisionTreeClassifier':
+            plt.close("all")
+            plt.figure(figsize=(25, 20))
+            _ = tree.plot_tree(estimator, fontsize=8, feature_names=features)
+            plt.title(f'{target} - Decision Tree Visualization', y=1)
+
+        self._showSavePlotDialog()
+        # FIXME: Plots are not easy to read
+        # plt.show()
+
+    def _showSavePlotDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File",
+                                                            'decision_tree_visualization',
+                                                            "PDF Files (*.pdf);;All Files (*)", options=options)
+        if fileName:
+            filename = (f'{fileName}.pdf' if fileName.split('.')[-1] != 'pdf' else fileName)
+            self._save_plot(filename)
+
+    def _save_plot(self, filename):
+        size = plt.gcf().get_size_inches()  #* plot.figure.dpi
+        plt.gcf().set_size_inches(5, 3.5)
+        plt.gcf().savefig(filename, bbox_inches="tight")
+        plt.gcf().set_size_inches(size)  # return back to original size after exporting plot
 
 
 class ModelViewREG(ModelViewCLF):
