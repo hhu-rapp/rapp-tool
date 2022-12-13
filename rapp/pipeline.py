@@ -197,7 +197,7 @@ class Pipeline:
         -------
         X, z : Dataframe
             Dataframes containing the data related to the specified mode.
-        y
+        y: Dataframe containing data of the label
         """
         X = self.data[mode]['X']
         y = self.data[mode]['y']
