@@ -1,9 +1,12 @@
 import os
+import re
 
 from PyQt5 import QtWidgets, Qt, QtGui, QtCore
 from PyQt5.QtWidgets import QGroupBox, QScrollArea
+import matplotlib
 import matplotlib.pyplot as plt
 from sklearn import tree
+from sklearn.tree._tree import TREE_LEAF
 
 from rapp.gui.dbview import PandasModel
 from rapp.gui.helper import CheckableComboBox
@@ -147,8 +150,7 @@ class ModelViewCLF(QtWidgets.QWidget):
             self.cbModes.addItem(str(mode).capitalize())
 
         # visualization of estimators
-        if estimator_name(estimator) == 'DecisionTreeClassifier'\
-                or estimator_name(estimator) == 'DecisionTreeRegressor':
+        if estimator_name(estimator) in ('DecisionTreeClassifier', 'DecisionTreeRegressor'):
             data = self.pipeline.data['train']
             target = data['y'].columns[0]
             features = data['X'].columns.tolist()
@@ -172,7 +174,6 @@ class ModelViewCLF(QtWidgets.QWidget):
             # generate visualization plot
             self.fig = self._generate_estimator_visualization(estimator, features, target)
 
-            # FIXME: Plots are not easy to read
             button_visualize.clicked.connect(self.fig.show)
             button_save.clicked.connect(self._show_save_plot_dialog)
 
@@ -302,12 +303,15 @@ class ModelViewCLF(QtWidgets.QWidget):
         self.tabs.setCurrentIndex(mode_idx)
 
     def _generate_estimator_visualization(self, estimator, features, target):
-        if estimator_name(estimator) == 'DecisionTreeClassifier'\
-                or estimator_name(estimator) == 'DecisionTreeRegressor':
+        if estimator_name(estimator) in ('DecisionTreeClassifier', 'DecisionTreeRegressor'):
             plt.close("all")
-            plt.figure(figsize=(25, 20))
-            _ = tree.plot_tree(estimator, fontsize=8, feature_names=features)
-            plt.title(f'{target} - Decision Tree Visualization', y=1)
+            plt.figure(figsize=(20, 10))
+            targets = [f"No-{target}", target] if estimator.n_classes_ == 2 else None
+            tree.plot_tree(estimator, feature_names=features, class_names=targets, label='none',
+                           impurity=False, filled=True, proportion=True,
+                           max_depth=3,
+                           fontsize=8)
+            plt.title(f'{target} - Decision Tree Visualization')
 
         return plt.gcf()
 
@@ -322,9 +326,14 @@ class ModelViewCLF(QtWidgets.QWidget):
             self._save_plot(filename)
 
     def _save_plot(self, filename):
+        # TODO: Bug with Title
         size = self.fig.get_size_inches()  #* plot.figure.dpi
         self.fig.set_size_inches(5, 3.5)
+        title = self.fig.axes[0].get_title()
+        plt.title('')
         self.fig.savefig(filename, bbox_inches="tight")
+        # reset settings
+        plt.title(title)
         self.fig.set_size_inches(size)  # return back to original size after exporting plot
 
 
