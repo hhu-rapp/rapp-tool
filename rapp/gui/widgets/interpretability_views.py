@@ -146,8 +146,9 @@ class ModelViewCLF(QtWidgets.QWidget):
         for mode in modes:
             self.cbModes.addItem(str(mode).capitalize())
 
-        # visualization of decision trees
-        if estimator_name(estimator) == 'DecisionTreeClassifier':
+        # visualization of estimators
+        if estimator_name(estimator) == 'DecisionTreeClassifier'\
+                or estimator_name(estimator) == 'DecisionTreeRegressor':
             data = self.pipeline.data['train']
             target = data['y'].columns[0]
             features = data['X'].columns.tolist()
@@ -282,8 +283,9 @@ class ModelViewCLF(QtWidgets.QWidget):
     def set_tab_idx(self, mode_idx):
         self.tabs.setCurrentIndex(mode_idx)
 
-    def _visualize_estimator(self, estimator, features, target):
-        if estimator_name(estimator) == 'DecisionTreeClassifier':
+    def _generate_estimator_visualization(self, estimator, features, target):
+        if estimator_name(estimator) == 'DecisionTreeClassifier'\
+                or estimator_name(estimator) == 'DecisionTreeRegressor':
             plt.close("all")
             plt.figure(figsize=(25, 20))
             _ = tree.plot_tree(estimator, fontsize=8, feature_names=features)
