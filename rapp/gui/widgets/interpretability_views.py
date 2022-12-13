@@ -153,16 +153,34 @@ class ModelViewCLF(QtWidgets.QWidget):
             target = data['y'].columns[0]
             features = data['X'].columns.tolist()
 
-            self.button_visualize = QtWidgets.QHBoxLayout()
-            self.button_visualize = QtWidgets.QPushButton('Save Visualization')
-            self.button_visualize.setIcon(self.style().standardIcon(
+            buttons_layout = QtWidgets.QHBoxLayout()
+            self.buttons_header_widget = QtWidgets.QWidget()
+            self.buttons_header_widget.setLayout(buttons_layout)
+
+            button_visualize = QtWidgets.QPushButton('Visualize Estimator')
+            button_visualize.setIcon(self.style().standardIcon(
+                getattr(QtWidgets.QStyle, 'SP_FileDialogDetailedView')))
+            button_visualize.setStatusTip('Visualize estimator')
+            button_visualize.setMaximumWidth(200)
+
+            button_save = QtWidgets.QPushButton('Save Visualization')
+            button_save.setIcon(self.style().standardIcon(
                 getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
-            self.button_visualize.setStatusTip('Save estimator visualization as PDF file')
-            self.button_visualize.setMaximumWidth(200)
+            button_save.setStatusTip('Save estimator visualization as PDF file')
+            button_save.setMaximumWidth(200)
 
-            self.button_visualize.clicked.connect(lambda: self._visualize_estimator(estimator, features, target))
+            # generate visualization plot
+            self.fig = self._generate_estimator_visualization(estimator, features, target)
 
-            self.main_layout.addWidget(self.button_visualize, alignment=QtCore.Qt.AlignRight)
+            # FIXME: Plots are not easy to read
+            button_visualize.clicked.connect(self.fig.show)
+            button_save.clicked.connect(self._show_save_plot_dialog)
+
+            # add to layout
+            buttons_layout.addWidget(button_visualize, alignment=QtCore.Qt.AlignRight)
+            buttons_layout.addWidget(button_save, alignment=QtCore.Qt.AlignRight)
+
+            self.main_layout.addWidget(self.buttons_header_widget, alignment=QtCore.Qt.AlignRight)
 
         def populate_predictions_tabs():
             self._populate_predictions_tabs(self.pipeline.data, self.estimator)
@@ -291,11 +309,9 @@ class ModelViewCLF(QtWidgets.QWidget):
             _ = tree.plot_tree(estimator, fontsize=8, feature_names=features)
             plt.title(f'{target} - Decision Tree Visualization', y=1)
 
-        self._showSavePlotDialog()
-        # FIXME: Plots are not easy to read
-        # plt.show()
+        return plt.gcf()
 
-    def _showSavePlotDialog(self):
+    def _show_save_plot_dialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File",
@@ -306,10 +322,10 @@ class ModelViewCLF(QtWidgets.QWidget):
             self._save_plot(filename)
 
     def _save_plot(self, filename):
-        size = plt.gcf().get_size_inches()  #* plot.figure.dpi
-        plt.gcf().set_size_inches(5, 3.5)
-        plt.gcf().savefig(filename, bbox_inches="tight")
-        plt.gcf().set_size_inches(size)  # return back to original size after exporting plot
+        size = self.fig.get_size_inches()  #* plot.figure.dpi
+        self.fig.set_size_inches(5, 3.5)
+        self.fig.savefig(filename, bbox_inches="tight")
+        self.fig.set_size_inches(size)  # return back to original size after exporting plot
 
 
 class ModelViewREG(ModelViewCLF):
