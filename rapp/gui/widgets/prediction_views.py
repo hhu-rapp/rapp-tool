@@ -20,6 +20,9 @@ class LoadModelView(QtWidgets.QWidget):
         self.predWidget = QtWidgets.QWidget()
         self.pred_scroll = QtWidgets.QScrollArea()
 
+        # specifies if a prediction has taken place
+        self.prediction = False
+
         self.loadedModels = []
         self.ensembleLabels = {}
         self.ensembleLayouts = []
@@ -91,7 +94,7 @@ class LoadModelView(QtWidgets.QWidget):
             self.main_layout.setAlignment(QtCore.Qt.AlignTop)
 
         # create model widget
-        widget = LoadedModelWidget(model, model_name, labels, index)
+        widget = LoadedModelWidget(model, model_name, labels, index, pred_labels=self.prediction)
         widget.removeButton.set_click_function(self._remove_model)
 
         # add to layout
@@ -107,6 +110,7 @@ class LoadModelView(QtWidgets.QWidget):
         self.headersLayout.addWidget(self.predLabel, 0, QtCore.Qt.AlignCenter)
         self.headersLayout.addWidget(self.probaLabel, 0, QtCore.Qt.AlignCenter)
 
+        self.prediction = True
         ensemble = {}
         for model in self.loadedModels:
             model.predict(data)
@@ -178,6 +182,7 @@ class LoadModelView(QtWidgets.QWidget):
         self._clear_ensemble_labels()
         # no models are loaded
         if len(self.loadedModels) == 0:
+            self.prediction = False
             self._clear_pred_widget()
             self.headersLayout.removeItem(self.predStretch)
             self.main_layout.addWidget(self.defaultTextLabel)
@@ -225,9 +230,12 @@ class LoadedModelWidget(QtWidgets.QWidget):
 
     index: int
         initial id of the model
+
+    pred_labels: bool , default=False
+        specifies if the pred and proba labels are displayed.
     """
 
-    def __init__(self, model, file_name, labels, index):
+    def __init__(self, model, file_name, labels, index, pred_labels=False):
         super(LoadedModelWidget, self).__init__()
 
         self.model = model
@@ -270,6 +278,11 @@ class LoadedModelWidget(QtWidgets.QWidget):
         self.mainHBoxLayout.addWidget(self.modelLabel)
         self.mainHBoxLayout.addStretch(2)
         self.mainHBoxLayout.addWidget(self.cbTarget)
+
+        if pred_labels:
+            self.mainHBoxLayout.addItem(self.predStretch)
+            self.mainHBoxLayout.addWidget(self.predLabel, 0, QtCore.Qt.AlignLeft)
+            self.mainHBoxLayout.addWidget(self.probaLabel, 0, QtCore.Qt.AlignLeft)
 
         self.setLayout(self.mainHBoxLayout)
 
