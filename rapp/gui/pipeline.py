@@ -1,7 +1,6 @@
 import argparse
-import os.path
+import threading
 import traceback
-import logging
 import logging
 
 from pandas.core.dtypes.common import is_numeric_dtype
@@ -48,7 +47,7 @@ class Pipeline(QtWidgets.QWidget):
         self.reportPathButton = reportPathButton
 
         trainButton = QtWidgets.QPushButton('Train')
-        trainButton.clicked.connect(self.train)
+        trainButton.clicked.connect(self.start_train_thread)
         trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
         trainButton.setShortcut('Ctrl+t')
         self.trainButton = trainButton
@@ -190,6 +189,10 @@ class Pipeline(QtWidgets.QWidget):
             path = 'reports/'
 
         self.lePath.setText(path)
+
+    def start_train_thread(self):
+        train = threading.Thread(target=self.train)
+        train.start()
 
     def train(self):
         """
