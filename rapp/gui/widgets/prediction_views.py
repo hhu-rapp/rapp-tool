@@ -188,6 +188,7 @@ class LoadModelView(QtWidgets.QWidget):
         self.pred_scroll.setParent(None)
 
     def _clear_ensemble_labels(self):
+        self.headersLayout.removeItem(self.predStretch)
         self.ensembleLabel.setParent(None)
 
         for targetLabel, predLabel in self.ensembleLabels.items():
