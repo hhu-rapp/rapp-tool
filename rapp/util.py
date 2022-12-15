@@ -35,6 +35,26 @@ def pareto_front(costs):
     return is_efficient
 
 
+def a_priori_scalarization(costs, weights=None):
+    """
+
+    Parameters
+    ----------
+    costs: (n_samples, n_costs)
+    weights: (n_costs,), default: None
+
+    Returns
+    -------
+    (n,) array
+        indices of samples where sum of weighted costs is minimal
+    """
+    if weights is None:
+        weights = np.ones((costs.shape[1], 1))
+
+    sums = costs @ weights.reshape(-1, 1)
+    return np.where(sums == np.min(sums))
+
+
 def estimator_name(estimator):
     """
     Returns the estimator's name by class name
