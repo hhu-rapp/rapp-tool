@@ -15,19 +15,19 @@ def cost_complexity_pruning(estimator, X_train, y_train, X_test, y_test,
 
     Parameters
     ----------
-    estimator : DecisionTreeClassifier
+    estimator: DecisionTreeClassifier
         An already fitted decision tree.
-    X_train :
+    X_train:
         Training data.
-    y_train :
+    y_train:
         Training labels.
-    X_test :
-        testidation set data.
-    y_test :
-        testidation set labels.
+    X_test:
+        test data.
+    y_test:
+        test labels.
 
-    scoring :
-        A scoring method for the pareto front.
+    scoring_fun:
+        A scoring method for the pareto front which takes y_true, y_pred as parameters
         Default to sklearn.metrics.balanced_accuracy_score.
 
     Returns
@@ -89,3 +89,4 @@ def cost_complexity_pruning(estimator, X_train, y_train, X_test, y_test,
         models[i]['save_model'] = True
 
     return models
+
