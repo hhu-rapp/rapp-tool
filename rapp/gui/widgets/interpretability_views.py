@@ -163,13 +163,13 @@ class ModelViewCLF(QtWidgets.QWidget):
             button_visualize.setIcon(self.style().standardIcon(
                 getattr(QtWidgets.QStyle, 'SP_FileDialogDetailedView')))
             button_visualize.setStatusTip('Visualize estimator')
-            button_visualize.setMaximumWidth(200)
+            # button_visualize.setMaximumWidth(200)
 
             button_save = QtWidgets.QPushButton('Save Visualization')
             button_save.setIcon(self.style().standardIcon(
                 getattr(QtWidgets.QStyle, 'SP_DialogSaveButton')))
             button_save.setStatusTip('Save estimator visualization as PDF file')
-            button_save.setMaximumWidth(200)
+            # button_save.setMaximumWidth(200)
 
             # generate visualization plot
             self.fig = self._generate_estimator_visualization(estimator, features, target)
