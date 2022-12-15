@@ -211,13 +211,6 @@ class EvaluationWidget(QtWidgets.QWidget):
         self.summary_tab.layout().addWidget(self.summary_metrics_groupBox)
         self._populate_summary_table(pipeline.performance_results, pipeline.fairness_results, pipeline.type)
 
-    def _clear_summary_table(self):
-        try:
-            self.summary_groupBox.setParent(None)
-            self.summary_tab.layout().removeItem(self.stretch_summary)
-        except AttributeError:
-            return
-
     def _populate_summary_table(self, performance_results, fairness_results, pl_type):
         self._clear_summary_table()
         # get values from filters
@@ -239,6 +232,13 @@ class EvaluationWidget(QtWidgets.QWidget):
         # add to layout
         self.summary_tab.layout().addWidget(self.summary_groupBox)
         self.summary_tab.layout().addItem(self.stretch_summary)
+
+    def _clear_summary_table(self):
+        try:
+            self.summary_groupBox.setParent(None)
+            self.summary_tab.layout().removeItem(self.stretch_summary)
+        except AttributeError:
+            return
 
     def _populate_inspection_tab(self, pipeline):
         # comboBox for filtering
