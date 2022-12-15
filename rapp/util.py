@@ -37,8 +37,14 @@ def pareto_front(costs):
 
 def estimator_name(estimator):
     """
+    Returns the estimator's name by class name
+    
+    Parameters
+    ----------
+    estimator: scikit-learn estimator
+
     Return
     ------
-    Simple class name of the estimator.
+    Name of the estimator.
     """
     return estimator.__class__.__name__
