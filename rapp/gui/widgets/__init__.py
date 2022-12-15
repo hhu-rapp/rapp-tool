@@ -764,10 +764,7 @@ class ParetoPlot(QtWidgets.QGroupBox):
         pareto_costs = self.costs * (-1, 1)
         front = pareto_front(pareto_costs)
 
-        # plot each model's pareto front
-        #colors_pareto = cm.hot(np.linspace(0.25, 0.75, sum(front)))
-        #colors_no_pareto = cm.cool(np.linspace(0.4, 0.6, len(legend)))
-
+        # define markers for Pareto plot
         markers = ['o', 'v', 's', 'p', 'P', '*', 'X', 'D']
         for i, model in enumerate(legend):
             if front[i]:
