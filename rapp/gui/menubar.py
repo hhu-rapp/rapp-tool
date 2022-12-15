@@ -114,11 +114,13 @@ class MenuBar(QtWidgets.QMenuBar):
 
     def openDatabasePipeline(self):
         fileName = self.showDataFileDialog()
-        self.databaseLayoutWidget.open_data_file(fileName)
+        if fileName is not None:
+            self.databaseLayoutWidget.open_data_file(fileName)
 
     def openDatabasePrediction(self):
         fileName = self.showDataFileDialog()
-        self.parent().databasePredictionLayoutWidget.open_data_file(os.path.normpath(fileName))
+        if fileName is not None:
+            self.parent().databasePredictionLayoutWidget.open_data_file(os.path.normpath(fileName))
 
     def showDataFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
