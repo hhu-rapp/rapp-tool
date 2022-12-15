@@ -56,7 +56,7 @@ The SQLite database is to be positioned in the `data/` directory:
 data/rapp.db
 ```
 
-SQL Templates already available are compatible with the database. The templates are located in the `sqltemplates/` directory:
+SQL Templates are already available and are compatible with the database. The templates are located in the `sqltemplates/` directory:
 
 ```tree
 sqltemplates/
@@ -67,6 +67,7 @@ sqltemplates/
 The GUI can be started by executing
 
 ```bash
+source env/bin/activate
 python -m rapp.gui
 ```
 
