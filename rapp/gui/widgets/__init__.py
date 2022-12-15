@@ -249,7 +249,6 @@ class SummaryTable(QtWidgets.QGroupBox):
             super(SummaryTable, self).__init__(f"{str(mode).capitalize()}:")
 
         self.setFlat(True)
-        self.setStyleSheet("QGroupBox: border:0;")
         tableGridLayout = QtWidgets.QGridLayout()
         self.setLayout(tableGridLayout)
         self.labels = {}
