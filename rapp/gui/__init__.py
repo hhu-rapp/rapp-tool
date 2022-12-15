@@ -62,6 +62,9 @@ class Window(QMainWindow):
         self.setStatusBar(self.statusbar)
 
     def initUI(self):
+        # set icon
+        self.setWindowIcon(QtGui.QIcon('rapp/gui/res/icon.png'))
+
         # set the title
         self.setWindowTitle('Responsible Academic Performance Prediction')
 
