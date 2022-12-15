@@ -277,7 +277,5 @@ class Pipeline(QtWidgets.QWidget):
         cf.type = self.cbType.currentText().lower()
         cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
         cf.estimators = self.cbEstimator.get_checked_items()
-        # cf.imputation = self.cbImputation.currentText().lower()
-        # cf.feature_selection = self.cbFSM.currentText().lower()
 
         return cf
