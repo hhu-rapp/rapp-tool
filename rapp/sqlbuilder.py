@@ -32,6 +32,17 @@ def reset_database_name():
 
 
 def load_sql(features_id, labels_id, template_dir=None):
+    """
+    Parameters
+    ----------
+    features_id: str
+    labels_id: str
+    template_dir: str
+
+    Returns
+    -------
+    SQL query as a string with the selected features and labels
+    """
     if template_dir is None:
         template_dir = _DEFAULTTEMPLATEDIR
 
