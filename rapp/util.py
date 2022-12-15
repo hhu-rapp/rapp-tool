@@ -3,6 +3,10 @@ import numpy as np
 
 def pareto_front(costs):
     """
+    Calculate the Pareto front from costs.
+    Treated as maximization problem:
+    A point pareto dominates another point if all costs of it are greater.
+
     Parameters
     ----------
     costs: np.array (n_samples, n_costs)
@@ -22,7 +26,7 @@ def pareto_front(costs):
             is_efficient[is_efficient] = np.any(costs[is_efficient] > c,
                                                 axis=1)
             is_efficient[i] = True  # And keep self.
-    # Above line marls only the first duplicate of an element in Pareto front.
+    # Above line marks only the first duplicate of an element in Pareto front.
     # Code below marks other duplicates in pareto front as well.
     for i, c in enumerate(costs):
         if is_efficient[i]:
