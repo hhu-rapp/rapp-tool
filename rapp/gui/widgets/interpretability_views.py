@@ -318,7 +318,7 @@ class ModelViewCLF(QtWidgets.QWidget):
     def _show_save_plot_dialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Trained Model as a File",
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Estimator Visualization as a File",
                                                             'decision_tree_visualization',
                                                             "PDF Files (*.pdf);;All Files (*)", options=options)
         if fileName:
