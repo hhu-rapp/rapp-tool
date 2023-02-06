@@ -131,7 +131,7 @@ class LoadModelView(QtWidgets.QWidget):
             if ensemble[ml_type].get(target) is None:
                 ensemble[ml_type][target] = []
 
-            ensemble[ml_type][target].append(np.float(model.predLabel.text()))
+            ensemble[ml_type][target].append(float(model.predLabel.text()))
 
         self.ensembleLabel.setText('Ensemble Learning')
         self.predVBoxLayout.addWidget(self.ensembleLabel, 0, QtCore.Qt.AlignCenter)
