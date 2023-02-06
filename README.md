@@ -78,12 +78,3 @@ python -m rapp --config-file settings/GUI/cs/first_term_ects/cs_first_term_ects_
 ```
 
 The reports are saved under `reports/`
-
-
-### Explainable AI (Decision Tree)
-
-Example configuration files for the explainability modules are located in `settings/explain/`. To run the prediction and get xAI results, execute
-
-```bash
-python -m rapp.explain --config-file settings/explain/CSDropout.ini
-``
