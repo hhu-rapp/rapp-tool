@@ -42,6 +42,24 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
+If you are using conda (anaconda/miniconda), you can create a new environment with:
+
+```bash
+conda create -n "rapp-tool" python=3.8
+```
+
+and make sure you activate it by:
+
+```bash
+conda activate rapp-tool
+```
+
+and then install the required packages with:
+
+```bash
+pip install -r requirements.txt
+```
+
 Optionally, if visualisation of decision trees or alike is needed,
 make sure that [Graphviz](https://graphviz.org/download/) is installed on your
 system.
@@ -64,10 +82,17 @@ sqltemplates/
 
 ### First start
 
-The GUI can be started by executing
+The GUI can be started by executing (for Python's virtual environment):
 
 ```bash
 source env/bin/activate
+python -m rapp.gui
+```
+
+For conda environment:
+
+```bash
+conda activate rapp-tool
 python -m rapp.gui
 ```
 
@@ -77,4 +102,4 @@ For a headless run, settings are provided. To run an example evaluation, simply 
 python -m rapp --config-file settings/GUI/cs/first_term_ects/cs_first_term_ects_3_dropout.ini
 ```
 
-The reports are saved under `reports/`
+The reports are saved under `reports/`.
