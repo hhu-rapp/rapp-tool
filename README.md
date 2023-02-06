@@ -34,7 +34,7 @@ The checksum of the dummy database `data/rapp_dummy.db` should be:
 ### Requirements
 
 Ensure you work on a virtual environment and install the dependencies.
-The GUI should work on Python >=3.8.
+The GUI should work on Python==3.8.
 
 ```bash
 python3 -m venv env
