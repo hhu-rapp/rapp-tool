@@ -52,6 +52,7 @@ class Pipeline(QtWidgets.QWidget):
         trainButton.clicked.connect(self.train)
         trainButton.setStatusTip('Train models on SQL query (Ctrl+T)')
         trainButton.setShortcut('Ctrl+t')
+        trainButton.setEnabled(False)
         self.trainButton = trainButton
 
         # add buttons
