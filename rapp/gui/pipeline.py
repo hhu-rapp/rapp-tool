@@ -202,32 +202,39 @@ class Pipeline(QtWidgets.QWidget):
         if self.cf is None:
             return
 
-
-
+        # Thread for updating the train button.
         self.trainbtn_thread = QThread()
         self.trainbtn_worker = TrainButtonUpdater(self.trainButton)
-        self.trainbtn_worker.moveToThread(self.trainbtn_thread)
 
+        self.trainbtn_worker.moveToThread(self.trainbtn_thread)
         self.trainbtn_thread.started.connect(self.trainbtn_worker.run)
 
 
+        # Prepare thread for training so the GUI does not freeze.
         self.training_thread = QThread()
         self.worker = Trainer(self, self.cf)
 
         self.worker.moveToThread(self.training_thread)
-
         self.training_thread.started.connect(self.worker.run)
 
+        # Quit training animation when training is finished.
         self.worker.finished.connect(self.trainbtn_worker.interrupt)
         self.worker.finished.connect(self.trainbtn_thread.quit)
-        self.worker.finished.connect(self.training_thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.trainbtn_worker.deleteLater)
-        self.training_thread.finished.connect(self.training_thread.deleteLater)
         self.trainbtn_thread.finished.connect(self.trainbtn_thread.deleteLater)
 
+        # Quit training thread as well.
+        self.worker.finished.connect(self.training_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.training_thread.finished.connect(self.training_thread.deleteLater)
+
+        # If training was successful, enable the other tabs which
+        # contain the results.
+        # Note: This happens outside of the training thread because otherwise
+        # Qt will complain about accessing the GUI from a different thread.
         self.worker.success.connect(self._setup_tabs_after_training)
 
+        # Start training.
         self.trainbtn_thread.start()
         self.training_thread.start()
 
