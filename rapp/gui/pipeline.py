@@ -1,15 +1,16 @@
 import argparse
-import os.path
 import traceback
 import logging
 import logging
+import time
 
 from pandas.core.dtypes.common import is_numeric_dtype
 
 log = logging.getLogger('GUI')
 
 # PyQt5
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, QTimer
 
 # rapp
 from rapp import gui
@@ -193,43 +194,46 @@ class Pipeline(QtWidgets.QWidget):
 
     def train(self):
         """
-        Get user input and parse to Pipeline
-        Returns
-        -------
-
+        Trains the ML pipeline from given user input in separate thread.
         """
+        self.cf = self.parse_settings()
 
-        cf = self.parse_settings()
-
-        if cf is None:
+        if self.cf is None:
             return
 
-        report_path = self.lePath.text()
 
-        try:
-            pl = MLPipeline(cf)
 
-            log.info('Training models...')
-            train_models(pl, cross_validation=True)
+        self.trainbtn_thread = QThread()
+        self.trainbtn_worker = TrainButtonUpdater(self.trainButton)
+        self.trainbtn_worker.moveToThread(self.trainbtn_thread)
 
-            log.info('Evaluating fairness...')
-            evaluate_fairness(pl)
+        self.trainbtn_thread.started.connect(self.trainbtn_worker.run)
 
-            log.info('Evaluating performance...')
-            evaluate_performance(pl)
 
-            log.info('Calculating statistics...')
-            calculate_statistics(pl)
+        self.training_thread = QThread()
+        self.worker = Trainer(self, self.cf)
 
-            log.info('Generating report...')
-            save_report(pl, report_path)
-            log.info('Report saved to %s', report_path)
+        self.worker.moveToThread(self.training_thread)
 
-        except Exception as e:
-            log.error(traceback.format_exc())
-            traceback.print_exc()
-            return
+        self.training_thread.started.connect(self.worker.run)
 
+        self.worker.finished.connect(self.trainbtn_worker.interrupt)
+        self.worker.finished.connect(self.trainbtn_thread.quit)
+        self.worker.finished.connect(self.training_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.trainbtn_worker.deleteLater)
+        self.training_thread.finished.connect(self.training_thread.deleteLater)
+        self.trainbtn_thread.finished.connect(self.trainbtn_thread.deleteLater)
+
+        self.worker.success.connect(self._setup_tabs_after_training)
+
+        self.trainbtn_thread.start()
+        self.training_thread.start()
+
+
+
+    def _setup_tabs_after_training(self, pl: MLPipeline):
+        cf = self.cf
         # Enable Tab to save models
         self.qmainwindow.settings.tab.setTabEnabled(self.qmainwindow.settings.individual_tab_idx, True)
 
@@ -250,6 +254,8 @@ class Pipeline(QtWidgets.QWidget):
         # Enable Interpretability tab
         self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.interpretability_tab_index, True)
         self.qmainwindow.tabs.widget(self.qmainwindow.interpretability_tab_index).initialize_tab(pl)
+
+
 
     def parse_settings(self):
         cf = argparse.Namespace()
@@ -279,3 +285,74 @@ class Pipeline(QtWidgets.QWidget):
         cf.estimators = self.cbEstimator.get_checked_items()
 
         return cf
+
+
+class Trainer(QObject):
+    finished = pyqtSignal()
+    success = pyqtSignal(MLPipeline)
+
+    def __init__(self, app: Pipeline, cf):
+        super().__init__()
+        self.caller = app
+        self.cf = cf
+
+    def run(self):
+        try:
+            report_path = self.caller.lePath.text()
+
+            pl = MLPipeline(self.cf)
+
+            log.info('Training models...')
+            train_models(pl, cross_validation=True)
+
+            log.info('Evaluating fairness...')
+            evaluate_fairness(pl)
+
+            log.info('Evaluating performance...')
+            evaluate_performance(pl)
+
+            log.info('Calculating statistics...')
+            calculate_statistics(pl)
+
+            log.info('Generating report...')
+            save_report(pl, report_path)
+            log.info('Report saved to %s', report_path)
+
+        except Exception as e:
+            log.error(traceback.format_exc())
+            traceback.print_exc()
+            self.finished.emit()
+            return
+
+        self.finished.emit()
+        self.success.emit(pl)
+
+
+class TrainButtonUpdater(QObject):
+
+    def __init__(self, btn):
+        super().__init__()
+        self.btn = btn
+        self.old_text = self.btn.text()
+
+
+        self.animation = ["", ".", "..", "..."]
+        self.anim_step = 0
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+
+    def run(self):
+        self.btn.setEnabled(False)
+        self.update()
+        self.timer.start(500)
+
+    def update(self):
+        self.btn.setText("Training" + self.animation[self.anim_step])
+        self.anim_step = (self.anim_step + 1) % len(self.animation)
+
+
+    def interrupt(self):
+        self.timer.stop()
+        self.btn.setText(self.old_text)
+        self.btn.setEnabled(True)
