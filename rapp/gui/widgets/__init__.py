@@ -414,8 +414,10 @@ class ConfusionMatrixTable(QtWidgets.QGroupBox):
         labelTitle = QtWidgets.QLabel()
         labelTitle.setText("Predicted as")
         labelTitle.setStyleSheet("font-weight: bold")
-        tableGridLayout.addWidget(labelTitle, 0, 1 + len(confusion_matrix) / 2, 1, len(confusion_matrix),
-                                  alignment=Qt.AlignCenter)
+
+        column = int(1 + len(confusion_matrix) / 2)
+        column_span = len(confusion_matrix)
+        tableGridLayout.addWidget(labelTitle, 0, column, 1, column_span, alignment=Qt.AlignCenter)
         self.title = labelTitle
 
         # labelClass = QtWidgets.QLabel()
