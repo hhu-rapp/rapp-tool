@@ -175,10 +175,10 @@ class Pipeline(QtWidgets.QWidget):
             return
         else:
             if is_numeric_dtype(self.qmainwindow.sql_df[self.cbName.currentText()]):
-               if any((self.qmainwindow.sql_df[self.cbName.currentText()] % 1) > 0):
-                   self.cbType.setCurrentText("Regression")
-               else:
-                   self.cbType.setCurrentText("Classification")
+                if any((self.qmainwindow.sql_df[self.cbName.currentText()] % 1) > 0):
+                    self.cbType.setCurrentText("Regression")
+                else:
+                    self.cbType.setCurrentText("Classification")
             else:
                 self.cbType.setCurrentText("Classification")
 
@@ -204,23 +204,31 @@ class Pipeline(QtWidgets.QWidget):
 
         # Thread for updating the train button.
         self.trainbtn_thread = QThread()
-        self.trainbtn_worker = TrainButtonUpdater(self.trainButton)
+        self.trainbtn_worker = TrainButtonAnimation()
 
         self.trainbtn_worker.moveToThread(self.trainbtn_thread)
         self.trainbtn_thread.started.connect(self.trainbtn_worker.run)
+        self.trainbtn_thread.started.connect(lambda: self.trainButton.setEnabled(False))
 
+        # Connect signal of train button thread.
+        self.trainbtn_worker.progress.connect(self.trainButton.setText)
 
         # Prepare thread for training so the GUI does not freeze.
         self.training_thread = QThread()
-        self.worker = Trainer(self, self.cf)
+        self.worker = Trainer(self.cf)
 
         self.worker.moveToThread(self.training_thread)
         self.training_thread.started.connect(self.worker.run)
+
+        # Connect signals of training thread.
+        self.worker.progress.connect(log.info)
+        self.worker.error.connect(log.error)
 
         # Quit training animation when training is finished.
         self.worker.finished.connect(self.trainbtn_worker.interrupt)
         self.worker.finished.connect(self.trainbtn_thread.quit)
         self.worker.finished.connect(self.trainbtn_worker.deleteLater)
+        self.trainbtn_thread.finished.connect(lambda: self.trainButton.setEnabled(True))
         self.trainbtn_thread.finished.connect(self.trainbtn_thread.deleteLater)
 
         # Quit training thread as well.
@@ -237,8 +245,6 @@ class Pipeline(QtWidgets.QWidget):
         # Start training.
         self.trainbtn_thread.start()
         self.training_thread.start()
-
-
 
     def _setup_tabs_after_training(self, pl: MLPipeline):
         cf = self.cf
@@ -262,8 +268,6 @@ class Pipeline(QtWidgets.QWidget):
         # Enable Interpretability tab
         self.qmainwindow.tabs.setTabEnabled(self.qmainwindow.interpretability_tab_index, True)
         self.qmainwindow.tabs.widget(self.qmainwindow.interpretability_tab_index).initialize_tab(pl)
-
-
 
     def parse_settings(self):
         cf = argparse.Namespace()
@@ -291,6 +295,7 @@ class Pipeline(QtWidgets.QWidget):
         cf.type = self.cbType.currentText().lower()
         cf.sensitive_attributes = self.cbSAttributes.get_checked_items()
         cf.estimators = self.cbEstimator.get_checked_items()
+        cf.report_path = self.lePath.text()
 
         return cf
 
@@ -298,51 +303,49 @@ class Pipeline(QtWidgets.QWidget):
 class Trainer(QObject):
     finished = pyqtSignal()
     success = pyqtSignal(MLPipeline)
+    progress = pyqtSignal(str)
+    error = pyqtSignal(str)
 
-    def __init__(self, app: Pipeline, cf):
+    def __init__(self, cf):
         super().__init__()
-        self.caller = app
         self.cf = cf
 
     def run(self):
         try:
-            report_path = self.caller.lePath.text()
-
             pl = MLPipeline(self.cf)
 
-            log.info('Training models...')
+            self.progress.emit('Training models...')
             train_models(pl, cross_validation=True)
 
-            log.info('Evaluating fairness...')
+            self.progress.emit('Evaluating fairness...')
             evaluate_fairness(pl)
 
-            log.info('Evaluating performance...')
+            self.progress.emit('Evaluating performance...')
             evaluate_performance(pl)
 
-            log.info('Calculating statistics...')
+            self.progress.emit('Calculating statistics...')
             calculate_statistics(pl)
 
-            log.info('Generating report...')
-            save_report(pl, report_path)
-            log.info('Report saved to %s', report_path)
+            self.progress.emit('Generating report...')
+            save_report(pl, self.cf.report_path)
+            self.progress.emit(f'Report saved to {self.cf.report_path}')
 
         except Exception as e:
-            log.error(traceback.format_exc())
             traceback.print_exc()
+            self.error.emit(traceback.format_exc())
+
+        else:
+            self.success.emit(pl)
+
+        finally:
             self.finished.emit()
-            return
-
-        self.finished.emit()
-        self.success.emit(pl)
 
 
-class TrainButtonUpdater(QObject):
+class TrainButtonAnimation(QObject):
+    progress = pyqtSignal(str)
 
-    def __init__(self, btn):
+    def __init__(self):
         super().__init__()
-        self.btn = btn
-        self.old_text = self.btn.text()
-
 
         self.animation = ["", ".", "..", "..."]
         self.anim_step = 0
@@ -351,16 +354,13 @@ class TrainButtonUpdater(QObject):
         self.timer.timeout.connect(self.update)
 
     def run(self):
-        self.btn.setEnabled(False)
         self.update()
         self.timer.start(500)
 
     def update(self):
-        self.btn.setText("Training" + self.animation[self.anim_step])
+        self.progress.emit("Training" + self.animation[self.anim_step])
         self.anim_step = (self.anim_step + 1) % len(self.animation)
-
 
     def interrupt(self):
         self.timer.stop()
-        self.btn.setText(self.old_text)
-        self.btn.setEnabled(True)
+        self.progress.emit('Train')
