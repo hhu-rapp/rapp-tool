@@ -106,14 +106,15 @@ The reports are saved under `reports/`.
 
 ### BibTeX
 
-```
-@inproceedings{duongRapp,
-author = {Duong, Manh Khoi AND Dunkelau, Jannik AND Cordova, José Andrés AND Conrad, Stefan},
-title = {RAPP: A Responsible Academic Performance Prediction Tool for Decision-Making in Educational Institutes},
-booktitle = {BTW 2023},
-year = {2023},
-doi = { 10.18420/BTW2023-29 },
-publisher = {Gesellschaft für Informatik e.V.},
-address = {}
+```bibtex
+@inproceedings{duong2023rapp,
+  author    = {Duong, Manh Khoi AND Dunkelau, Jannik AND Cordova, Jos\'{e} Andr\'{e}s AND Conrad, Stefan},
+  title     = {{RAPP}: A Responsible Academic Performance Prediction Tool for Decision-Making in Educational Institutes},
+  booktitle = {BTW 2023},
+  year      = {2023},
+  month     = mar,
+  pages     = {595--606},
+  publisher = {Gesellschaft für Informatik e.V.},
+  doi       = {10.18420/BTW2023-29},
 }
 ```
