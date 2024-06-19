@@ -1,18 +1,22 @@
-# RAPP GUI Package
+# RAPP GUI Package (MLOps for Deploying Responsible Machine Learning Models)
 
-The **responsible academic performance prediction** (RAPP) GUI is a tool to **train, save, load** and **evaluate Machine Learning models** on **any SQLite database**. Users can load a database or a `.csv` file, query custom SQL queries and use the resulting database as training/test data for the implemented Machine Learning pipeline.
+The **responsible academic performance prediction** (RAPP) GUI is an **MLOps application**
+to **train, save, load** and **evaluate Machine Learning models** on **any SQLite database**. Users can load a database or a `.csv` file, query custom SQL queries and use the resulting database as training/test data for the implemented Machine Learning pipeline.
 
 For the specific use case of predicting students' performance data from the Heinrich Heine University, this package provides SQL templates that leverages the complexity of feature engineering away from the user.
 
-## How it internally works
+## Tutorial
 
-1. Loads SQLite database.
-2. SQL query on database to obtain a new database.
-3. One column of the new database is the target label. The rest are training data. The last column is by default the target.
-4. With a given list of categorical columns, those are then one-hot encoded.
-5. With the predefined type of the supervised learning task, respective supervised learning algorithms are used. The data is ran through a Machine Learning Pipeline.
+1. Load SQLite database or `.csv` file.
+2. Optional: Query with SQL to obtain the training and test data.
+3. Select a column as the target label. By default, the last column is set as the target variable.
+All other columns are used as input features.
+4. Select all categorical columns that need to be one-hot encoded.
+5. Select supervised learning task: Classification/Regression
+6. Select machine learning models to train on the data.
+7. Click `Train` to start the training.
 
-## Developer Setup
+## Installation
 
 ### Cloning the Repository
 
@@ -31,10 +35,10 @@ sha256sum data/rapp_dummy.db
 The checksum of the dummy database `data/rapp_dummy.db` should be:
 `d5aac60436d931174f2b02ea32c87c7d32f442021022380e8af376b3d817ee69`
 
-### Requirements
+### Setup Environments (2 Options)
 
-Ensure you work on a virtual environment and install the dependencies.
-The GUI should work on Python==3.8.
+Setup [virtual environment](https://docs.python.org/3/library/venv.html) with Python==3.8
+and install the dependencies.
 
 ```bash
 python3 -m venv env
@@ -42,21 +46,13 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-If you are using conda (anaconda/miniconda), you can create a new environment with:
+**OR**
+
+Using conda (anaconda/miniconda):
 
 ```bash
 conda create -n "rapp-tool" python=3.8
-```
-
-and make sure you activate it by:
-
-```bash
 conda activate rapp-tool
-```
-
-and then install the required packages with:
-
-```bash
 pip install -r requirements.txt
 ```
 
@@ -80,7 +76,7 @@ SQL Templates are already available and are compatible with the database. The te
 sqltemplates/
 ```
 
-### First start
+## First start
 
 The GUI can be started by executing (for Python's virtual environment):
 
@@ -104,7 +100,7 @@ python -m rapp --config-file settings/GUI/cs/first_term_ects/cs_first_term_ects_
 
 The reports are saved under `reports/`.
 
-### BibTeX
+## BibTeX
 
 ```bibtex
 @inproceedings{duong2023rapp,
